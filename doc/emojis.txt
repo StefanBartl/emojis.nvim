@@ -1,0 +1,230 @@
+*emojis.txt*  Emoji operations for Neovim                            *emojis.nvim*
+
+Author:   Stefan Bartl
+License:  MIT
+Version:  0.1.0
+
+==============================================================================
+CONTENTS                                                     *emojis-contents*
+
+  1. Introduction .............. |emojis-intro|
+  2. Requirements .............. |emojis-requirements|
+  3. Installation .............. |emojis-installation|
+  4. Configuration ............. |emojis-config|
+  5. The :Emojis command ....... |:Emojis|
+     5.1 Actions ............... |emojis-actions|
+     5.2 Scopes ................ |emojis-scopes|
+  6. Space-collapse behaviour .. |emojis-clear-spaces|
+  7. Tab completion ............ |emojis-completion|
+  8. Lua API ................... |emojis-api|
+  9. Health check .............. |emojis-health|
+ 10. Architecture .............. |emojis-architecture|
+
+==============================================================================
+1. INTRODUCTION                                                 *emojis-intro*
+
+emojis.nvim provides a single `:Emojis` command to remove, count, list,
+replace, or insert emojis across several scopes — the current line, the visual
+selection, the whole buffer, or the entire project (via ripgrep).
+
+Standalone plugin (no lib.nvim dependency), cross-platform. Emoji detection
+uses a pure UTF-8 byte tokenizer; no external library is required.
+
+==============================================================================
+2. REQUIREMENTS                                          *emojis-requirements*
+
+  - Neovim 0.9 or later
+  - ripgrep (`rg`) — only for the `cwd` scope
+
+==============================================================================
+3. INSTALLATION                                          *emojis-installation*
+
+lazy.nvim (local checkout): >lua
+  {
+    dir  = vim.env.REPOS_DIR .. "/emojis.nvim",
+    cmd  = "Emojis",
+    opts = {},
+  }
+<
+
+==============================================================================
+4. CONFIGURATION                                               *emojis-config*
+
+>lua
+  require("emojis").setup({
+    default_scope = "%",        -- scope used when none is given
+    command       = "Emojis",   -- user-command name
+
+    picks = {                    -- insert-picker entries: { glyph, label }
+      { "✅", "check" }, { "⚠️", "warning" }, --[[ … ]]
+    },
+
+    names = {                    -- codepoint -> :name: for replace
+      [0x2705] = ":white_check_mark:",
+      [0x26A0] = ":warning:",
+    },
+
+    search = {                   -- cwd search (ripgrep)
+      cmd = "rg",
+      extra_args = { "--no-heading", "--line-number", "--with-filename", "--color=never" },
+    },
+  })
+<
+
+default_scope ~
+  Scope applied when the second argument is omitted. One of `word`, `line`,
+  `visual`, `%`, `cwd`. Default: `"%"`.
+
+command ~
+  Name of the registered user command. Default: `"Emojis"`.
+
+picks ~
+  Array of `{ glyph, label }` entries shown by `:Emojis insert`.
+
+names ~
+  Map of Unicode codepoint to replacement text used by `:Emojis replace`.
+  Unknown emojis fall back to `:U+XXXX:`.
+
+search.cmd ~
+  External search binary for the cwd scope. Default: `"rg"`.
+
+search.extra_args ~
+  Arguments passed before the pattern and path. Default: ripgrep flags for
+  no-heading, line-number, with-filename, no-color.
+
+==============================================================================
+5. THE :Emojis COMMAND                                              *:Emojis*
+
+>
+  :Emojis [action] [scope]
+  :[range]Emojis [action]
+<
+
+With no arguments, `:Emojis` is equivalent to `:Emojis clear %`.
+
+An explicit Vim range (`:'<,'>Emojis`, `:10,20Emojis`) always overrides the
+`scope` keyword.
+
+------------------------------------------------------------------------------
+5.1 Actions                                                   *emojis-actions*
+
+clear ~
+  Remove every emoji in scope. Collapses surrounding spaces — see
+  |emojis-clear-spaces|. Default action.
+
+replace ~
+  Replace each emoji with its `:name:` placeholder (or `:U+XXXX:` fallback).
+
+list ~
+  Collect every emoji in scope into the quickfix list and `:copen`.
+
+count ~
+  Count emojis in scope and report via a notification.
+
+insert ~
+  Open a `vim.ui.select` picker and insert the chosen emoji at the cursor.
+  The `scope` argument is ignored for this action.
+
+------------------------------------------------------------------------------
+5.2 Scopes                                                     *emojis-scopes*
+
+%       Whole current buffer (default).
+line    The current cursor line.
+word    The current line (the line holding the word under the cursor).
+visual  The lines of the last / current visual selection.
+cwd     All files under the working directory, searched asynchronously with
+        ripgrep. Only `list` and `count` support this scope.
+
+==============================================================================
+6. SPACE-COLLAPSE BEHAVIOUR                              *emojis-clear-spaces*
+
+When `clear` removes an emoji (or a run of adjacent emojis) that had a single
+space on both sides, the result keeps exactly one space instead of leaving
+two: >
+
+  " 🚀 "       ->  " "
+  "a 🚀 b"     ->  "a b"
+  " 🚀🔥 "     ->  " "
+  "a🚀b"       ->  "ab"
+<
+
+Emojis carrying a Variation-Selector-16 (e.g. ⚠️) are treated as a single
+emoji grapheme — counted once and replaced as one placeholder.
+
+==============================================================================
+7. TAB COMPLETION                                          *emojis-completion*
+
+`:Emojis` completes the action at the first argument and the scope at the
+second: >
+
+  :Emojis <Tab>          clear  insert  list  count  replace
+  :Emojis clear <Tab>    word  line  visual  %  cwd
+<
+
+==============================================================================
+8. LUA API                                                        *emojis-api*
+
+>lua
+  local emojis = require("emojis")
+<
+
+setup({opts})                                                *emojis.setup()*
+  Configure and activate. Idempotent.
+
+clear()                                                      *emojis.clear()*
+  Clear emojis from the whole current buffer.
+
+count()                                                      *emojis.count()*
+  Count emojis in the whole current buffer.
+
+insert()                                                    *emojis.insert()*
+  Open the insert picker at the cursor.
+
+ops()                                                          *emojis.ops()*
+  Return the pure operations module (clear/count/list/replace) that works on
+  string arrays without touching the Neovim API. Useful for scripting/tests: >lua
+    local ops = require("emojis").ops()
+    local cleaned, removed = ops.clear({ " 🚀 done" })  -- { " done" }, 1
+<
+
+==============================================================================
+9. HEALTH CHECK                                                *emojis-health*
+
+>
+  :checkhealth emojis
+<
+
+Checks:
+  - Neovim >= 0.9
+  - `vim.ui.select` available (insert picker)
+  - ripgrep on PATH (cwd scope)
+  - `vim.system` available (async search)
+  - plugin loaded (guard flag set)
+
+==============================================================================
+10. ARCHITECTURE                                         *emojis-architecture*
+
+  plugin/emojis.lua          Load guard
+  lua/emojis/
+    init.lua                 Public API, setup()
+    @types.lua               LuaLS type definitions
+    config/
+      DEFAULTS.lua           Immutable default configuration
+      init.lua               Merge + access to active config
+    util/
+      notify.lua             "[emojis] " prefixed vim.notify wrapper
+    core/
+      patterns.lua           Pure UTF-8 emoji tokenizer (graphemes incl. VS16)
+      ops.lua                Pure clear/count/list/replace operations
+      scope.lua              Scope (+ range) -> buffer line range
+    actions.lua              Buffer-facing handlers (edit/list/count)
+    picker.lua               Insert picker (vim.ui.select)
+    search.lua               Async cwd search (ripgrep)
+    commands.lua             :Emojis command + tab completion
+    health.lua               checkhealth provider
+
+The pure logic in core/* is isolated from every API/UI layer and is therefore
+unit-testable on plain string arrays.
+
+==============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:
