@@ -1,7 +1,7 @@
 *emojis.txt*  Emoji operations for Neovim                            *emojis.nvim*
 
 Author:   Stefan Bartl
-Version:  0.1.0
+Version:  0.2.0
 
 ==============================================================================
 CONTENTS                                                     *emojis-contents*
