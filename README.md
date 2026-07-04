@@ -4,7 +4,7 @@ Ein universeller `:Emojis`-Befehl für Neovim: Emojis **entfernen**, **zählen**
 **auflisten**, **ersetzen** oder **einfügen** — auf verschiedenen Scopes
 (aktuelle Zeile, Visual-Auswahl, ganzer Buffer oder projektweit via ripgrep).
 
-Eigenständiges Plugin ohne `lib.nvim`-Abhängigkeit, plattformübergreifend.
+Eigenständiges Plugin ohne harte `lib.nvim`-Abhängigkeit, plattformübergreifend.
 Die Emoji-Erkennung läuft über einen reinen UTF-8-Byte-Tokenizer (keine externe
 Bibliothek).
 
@@ -62,18 +62,44 @@ sie wurden zuvor doppelt gezählt und in `replace` zu `:warning::U+FE0F:`.
 
 - Neovim 0.9+
 - `ripgrep` (`rg`) — nur für den `cwd`-Scope optional erforderlich
+- [`lib.nvim`](https://github.com/StefanBartl/lib.nvim) — optional; wird für
+  `notify`/`map` verwendet, wenn installiert, sonst nativer Fallback (keine
+  harte Abhängigkeit)
 
 ---
 
 ## Installation
 
+### lazy.nvim
+
 ```lua
--- lazy.nvim (lokaler Checkout)
 {
-  dir = vim.env.REPOS_DIR .. "/emojis.nvim",
+  "StefanBartl/emojis.nvim",
+  dependencies = { "StefanBartl/lib.nvim" }, -- optional: nicer notify/map if present
   cmd = "Emojis",
   opts = {},
 }
+```
+
+### packer.nvim
+
+```lua
+use {
+  "StefanBartl/emojis.nvim",
+  requires = { "StefanBartl/lib.nvim" }, -- optional
+  config = function()
+    require("emojis").setup()
+  end,
+}
+```
+
+### vim-plug
+
+```vim
+Plug 'StefanBartl/lib.nvim' " optional
+Plug 'StefanBartl/emojis.nvim'
+
+lua require("emojis").setup()
 ```
 
 ---
@@ -104,6 +130,11 @@ require("emojis").setup({
     cmd = "rg",
     extra_args = { "--no-heading", "--line-number", "--with-filename", "--color=never" },
   },
+
+  -- Opt-in Preset-Keymaps (siehe "Empfohlene Keymaps")
+  keymaps = {
+    preset = false,
+  },
 })
 ```
 
@@ -127,6 +158,19 @@ Alle Felder sind optional und werden über die Defaults gemerged.
 ---
 
 ## Empfohlene Keymaps
+
+Per `require("emojis").setup({ keymaps = { preset = true } })` aktivierbar
+(Standard: `false`). Labelt die `<leader>e`-Gruppe automatisch in which-key,
+falls installiert (`lua/emojis/bindings/which_key.lua`, optionale
+Abhängigkeit). Vollständige Übersicht: [`docs/BINDINGS.md`](docs/BINDINGS.md).
+
+| Taste | Modus | Aktion |
+|---|---|---|
+| `<C-e>` | n, i | Insert-Picker am Cursor |
+| `<leader>ec` | n | Emojis im Buffer zählen |
+| `<leader>el` | n | Emojis im Buffer -> Quickfix |
+
+Alternativ eigene Keymaps auf `:Emojis` setzen:
 
 ```lua
 vim.keymap.set({ "n", "i" }, "<C-e>", "<cmd>Emojis insert<cr>", { desc = "Emoji: Picker" })
@@ -170,17 +214,27 @@ lua/emojis/
     DEFAULTS.lua           Unveränderliche Default-Konfiguration
     init.lua               Merge + Zugriff auf aktive Config
   util/
-    notify.lua             "[emojis] "-präfigierter vim.notify-Wrapper
+    notify.lua             Präfigierter Notify-Wrapper (via util/lib.lua)
+    lib.lua                Soft-Bridge zu lib.nvim (notify/map), mit Fallback
   core/
     patterns.lua           Reiner UTF-8-Emoji-Tokenizer (Graphemes inkl. VS16)
     ops.lua                Reine clear/count/list/replace-Operationen
     scope.lua              Scope (+ Range) -> Buffer-Zeilenbereich
+  bindings/
+    init.lua               Orchestriert usrcmds/keymaps/autocmds
+    usrcmds.lua            Registriert :Emojis (via commands.lua)
+    keymaps.lua            Opt-in Preset-Keymaps (keymaps.preset)
+    which_key.lua          Optionales which-key-Gruppenlabel
+    autocmds.lua           Leer (bewusst keine Autocmds, siehe ROADMAP)
   actions.lua              Buffer-berührende Handler (edit/list/count)
   picker.lua               Insert-Picker (vim.ui.select)
   search.lua               Asynchrone cwd-Suche (ripgrep)
-  commands.lua             :Emojis-Command + Tab-Completion
+  commands.lua             :Emojis-Dispatch + Tab-Completion
   health.lua               :checkhealth emojis
 ```
+
+Cheatsheet aller Keymaps/Commands/Autocmds: [`docs/BINDINGS.md`](docs/BINDINGS.md).
+Testsuite (rein funktional, headless): [`docs/TESTS/`](docs/TESTS/README.md).
 
 Reine Logik (`core/*`) ist von allen API-/UI-Schichten getrennt und damit
 isoliert testbar.
@@ -192,9 +246,3 @@ isoliert testbar.
 ```
 :checkhealth emojis
 ```
-
----
-
-## Lizenz
-
-MIT

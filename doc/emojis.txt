@@ -1,7 +1,6 @@
 *emojis.txt*  Emoji operations for Neovim                            *emojis.nvim*
 
 Author:   Stefan Bartl
-License:  MIT
 Version:  0.1.0
 
 ==============================================================================
@@ -18,7 +17,8 @@ CONTENTS                                                     *emojis-contents*
   7. Tab completion ............ |emojis-completion|
   8. Lua API ................... |emojis-api|
   9. Health check .............. |emojis-health|
- 10. Architecture .............. |emojis-architecture|
+ 10. Bindings .................. |emojis-bindings|
+ 11. Architecture .............. |emojis-architecture|
 
 ==============================================================================
 1. INTRODUCTION                                                 *emojis-intro*
@@ -27,24 +27,44 @@ emojis.nvim provides a single `:Emojis` command to remove, count, list,
 replace, or insert emojis across several scopes — the current line, the visual
 selection, the whole buffer, or the entire project (via ripgrep).
 
-Standalone plugin (no lib.nvim dependency), cross-platform. Emoji detection
-uses a pure UTF-8 byte tokenizer; no external library is required.
+Standalone plugin (no hard lib.nvim dependency), cross-platform. Emoji
+detection uses a pure UTF-8 byte tokenizer; no external library is required.
 
 ==============================================================================
 2. REQUIREMENTS                                          *emojis-requirements*
 
   - Neovim 0.9 or later
   - ripgrep (`rg`) — only for the `cwd` scope
+  - lib.nvim (StefanBartl/lib.nvim) — optional; used for notify/map when
+    installed, native fallback otherwise (no hard dependency)
 
 ==============================================================================
 3. INSTALLATION                                          *emojis-installation*
 
-lazy.nvim (local checkout): >lua
+lazy.nvim: >lua
   {
-    dir  = vim.env.REPOS_DIR .. "/emojis.nvim",
-    cmd  = "Emojis",
+    "StefanBartl/emojis.nvim",
+    dependencies = { "StefanBartl/lib.nvim" }, -- optional
+    cmd = "Emojis",
     opts = {},
   }
+<
+
+packer.nvim: >lua
+  use {
+    "StefanBartl/emojis.nvim",
+    requires = { "StefanBartl/lib.nvim" }, -- optional
+    config = function()
+      require("emojis").setup()
+    end,
+  }
+<
+
+vim-plug: >vim
+  Plug 'StefanBartl/lib.nvim' " optional
+  Plug 'StefanBartl/emojis.nvim'
+
+  lua require("emojis").setup()
 <
 
 ==============================================================================
@@ -67,6 +87,10 @@ lazy.nvim (local checkout): >lua
     search = {                   -- cwd search (ripgrep)
       cmd = "rg",
       extra_args = { "--no-heading", "--line-number", "--with-filename", "--color=never" },
+    },
+
+    keymaps = {                   -- opt-in preset keymaps
+      preset = false,
     },
   })
 <
@@ -91,6 +115,11 @@ search.cmd ~
 search.extra_args ~
   Arguments passed before the pattern and path. Default: ripgrep flags for
   no-heading, line-number, with-filename, no-color.
+
+keymaps.preset ~
+  When `true`, binds the opt-in preset keymaps (`<C-e>`, `<leader>ec`,
+  `<leader>el`) and labels the `<leader>e` group in which-key if installed.
+  Default: `false`. See |emojis-bindings|.
 
 ==============================================================================
 5. THE :Emojis COMMAND                                              *:Emojis*
@@ -200,9 +229,21 @@ Checks:
   - ripgrep on PATH (cwd scope)
   - `vim.system` available (async search)
   - plugin loaded (guard flag set)
+  - which-key found (optional; labels the preset's `<leader>e` group)
+  - `keymaps.preset` enabled or not
 
 ==============================================================================
-10. ARCHITECTURE                                         *emojis-architecture*
+10. BINDINGS                                             *emojis-bindings*
+
+Full cheatsheet of every keymap, user command, and autocommand: see
+`docs/BINDINGS.md` in the repository. Only the `:Emojis` command is always
+registered; the preset keymaps (`<C-e>`, `<leader>ec`, `<leader>el`) require
+|emojis-config| `keymaps.preset = true` and are labelled under the
+`<leader>e` group in which-key if it is installed (optional, no hard
+dependency). emojis.nvim defines no autocommands.
+
+==============================================================================
+11. ARCHITECTURE                                         *emojis-architecture*
 
   plugin/emojis.lua          Load guard
   lua/emojis/
@@ -212,19 +253,26 @@ Checks:
       DEFAULTS.lua           Immutable default configuration
       init.lua               Merge + access to active config
     util/
-      notify.lua             "[emojis] " prefixed vim.notify wrapper
+      notify.lua             Prefixed notify wrapper (via util/lib.lua)
+      lib.lua                Soft bridge to lib.nvim (notify/map), with fallback
     core/
       patterns.lua           Pure UTF-8 emoji tokenizer (graphemes incl. VS16)
       ops.lua                Pure clear/count/list/replace operations
       scope.lua              Scope (+ range) -> buffer line range
+    bindings/
+      init.lua               Orchestrates usrcmds/keymaps/autocmds
+      usrcmds.lua            Registers :Emojis (via commands.lua)
+      keymaps.lua            Opt-in preset keymaps (keymaps.preset)
+      which_key.lua          Optional which-key group label
+      autocmds.lua           Empty (no autocmds by design, see ROADMAP)
     actions.lua              Buffer-facing handlers (edit/list/count)
     picker.lua               Insert picker (vim.ui.select)
     search.lua               Async cwd search (ripgrep)
-    commands.lua             :Emojis command + tab completion
+    commands.lua             :Emojis dispatch + tab completion
     health.lua               checkhealth provider
 
 The pure logic in core/* is isolated from every API/UI layer and is therefore
-unit-testable on plain string arrays.
+unit-testable on plain string arrays (see `docs/TESTS/`).
 
 ==============================================================================
 vim:tw=78:ts=8:noet:ft=help:norl:

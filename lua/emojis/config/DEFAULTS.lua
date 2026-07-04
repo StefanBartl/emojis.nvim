@@ -40,6 +40,11 @@ local DEFAULTS = {
       "--no-heading", "--line-number", "--with-filename", "--color=never",
     },
   },
+
+  -- Opt-in preset keymaps: <C-e> insert, <leader>ec count %, <leader>el list %.
+  keymaps = {
+    preset = false,
+  },
 }
 
 return DEFAULTS

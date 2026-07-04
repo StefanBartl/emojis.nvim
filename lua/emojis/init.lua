@@ -25,7 +25,7 @@ function M.setup(opts)
   local config = require("emojis.config")
   local cfg = config.setup(opts)
 
-  require("emojis.commands").register(cfg)
+  require("emojis.bindings").setup(cfg)
 
   vim.g.loaded_emojis = 1
 end

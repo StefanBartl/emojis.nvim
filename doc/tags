@@ -2,6 +2,7 @@
 emojis-actions	emojis.txt	/*emojis-actions*
 emojis-api	emojis.txt	/*emojis-api*
 emojis-architecture	emojis.txt	/*emojis-architecture*
+emojis-bindings	emojis.txt	/*emojis-bindings*
 emojis-clear-spaces	emojis.txt	/*emojis-clear-spaces*
 emojis-completion	emojis.txt	/*emojis-completion*
 emojis-config	emojis.txt	/*emojis-config*
