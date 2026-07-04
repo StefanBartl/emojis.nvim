@@ -57,8 +57,11 @@
   dafür ein optionales `c1`/`c2`-Byte-Fenster, das `actions.lua` bei
   clear/replace/list/count respektiert.
 
-- **`cwd`-Scope auch für `clear`/`replace`** — projektweites Entfernen/Ersetzen
-  mit Bestätigungsdialog und optionalem Dry-Run (Quickfix-Vorschau zuerst).
+- ~~**`cwd`-Scope auch für `clear`/`replace`**~~ — **erledigt.**
+  `search.lua` `apply_across_files()`: Bestätigungsdialog vor jeder Änderung
+  (Standard: Abbruch), `:Emojis list cwd` dient als Dry-Run-Vorschau. Bereits
+  geladene Buffer mit ungespeicherten Änderungen werden übersprungen statt
+  überschrieben.
 
 - **Glob-/Filetype-Filter für `cwd`** — `:Emojis count cwd *.md` nur in
   bestimmten Dateien; Weiterreichen zusätzlicher rg-Globs.

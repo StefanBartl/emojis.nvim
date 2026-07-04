@@ -19,6 +19,7 @@ local specs = {
   "scope_spec.lua",
   "config_spec.lua",
   "commands_spec.lua",
+  "search_spec.lua",
 }
 
 local failed = 0
