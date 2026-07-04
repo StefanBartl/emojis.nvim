@@ -11,8 +11,39 @@ local fn = vim.fn
 local notify = require("emojis.util.notify")
 local ops = require("emojis.core.ops")
 local config = require("emojis.config")
+local patterns = require("emojis.core.patterns")
 
 local M = {}
+
+local PREVIEW_NS = api.nvim_create_namespace("emojis_preview")
+
+---Briefly highlight the emoji spans about to be mutated. No-op unless
+---`cfg.enable` is true. Blocks for `cfg.duration_ms` (redrawing first) so the
+---highlight is actually visible before the caller mutates the buffer.
+---@param buf integer
+---@param base_line integer  0-based first line of `work`
+---@param work string[]
+---@param col_offset integer  byte offset added to span columns (word scope)
+---@param cfg Emojis.Config.Preview
+---@return nil
+local function preview_spans(buf, base_line, work, col_offset, cfg)
+  if not cfg.enable then
+    return
+  end
+  for li = 1, #work do
+    local spans = patterns.spans(work[li])
+    for i = 1, #spans do
+      local sp = spans[i]
+      pcall(api.nvim_buf_set_extmark, buf, PREVIEW_NS, base_line + li - 1, col_offset + sp[1] - 1, {
+        end_col = col_offset + sp[2],
+        hl_group = cfg.hl_group,
+      })
+    end
+  end
+  vim.cmd("redraw")
+  vim.wait(cfg.duration_ms)
+  api.nvim_buf_clear_namespace(buf, PREVIEW_NS, 0, -1)
+end
 
 ---@param buf integer
 ---@return boolean
@@ -52,7 +83,11 @@ function M.edit(action, t)
     return
   end
 
-  local work = scoped(t, lines)
+  local work, col_offset = scoped(t, lines)
+
+  if action == "clear" or action == "replace" then
+    preview_spans(t.buf, t.l1, work, col_offset, config.get().preview)
+  end
 
   local new_lines, n
   if action == "clear" then

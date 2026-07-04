@@ -60,6 +60,10 @@ Emoji-Folge) auf **ein** Leerzeichen:
 Zusätzlich werden VS16-Emojis (z. B. ⚠️) korrekt als **ein** Emoji behandelt —
 sie wurden zuvor doppelt gezählt und in `replace` zu `:warning::U+FE0F:`.
 
+Optional (`preview.enable = true`): Vor `clear`/`replace` werden die
+betroffenen Emojis kurz (Standard 150 ms) mit `preview.hl_group` markiert,
+bevor der Buffer geändert wird.
+
 ---
 
 ## Projektweites `clear`/`replace` (`cwd`-Scope)
@@ -168,6 +172,13 @@ require("emojis").setup({
   wrap = {
     prefix = "[[",
     suffix = "]]",
+  },
+
+  -- Opt-in: Emojis vor clear/replace kurz hervorheben
+  preview = {
+    enable = false,
+    duration_ms = 150,
+    hl_group = "IncSearch",
   },
 })
 ```

@@ -81,8 +81,10 @@
   `unreplace`) — der Codepoint für `names` wird aus dem Glyph selbst dekodiert
   (`patterns.codepoint`), nicht von Hand eingetragen.
 
-- **Highlight-Vorschau** — vor `clear`/`replace` die betroffenen Emojis kurz
-  hervorheben (Extmarks), für visuelles Feedback.
+- ~~**Highlight-Vorschau**~~ — **erledigt.** `config.preview.enable = true`
+  (Standard `false`) hebt die betroffenen Emojis vor `clear`/`replace` kurz
+  hervor (Extmarks, `preview.hl_group`, `preview.duration_ms`,
+  `actions.lua` `preview_spans()`).
 
 ---
 

@@ -68,6 +68,11 @@
 ---@field prefix string  Text inserted before each emoji by `wrap`
 ---@field suffix string  Text inserted after each emoji by `wrap`
 
+---@class Emojis.Config.Preview
+---@field enable      boolean  Highlight affected emojis before clear/replace (default false)
+---@field duration_ms integer  How long to show the highlight before mutating
+---@field hl_group    string   Highlight group used for the preview extmarks
+
 ---@class Emojis.Config
 ---@field default_scope Emojis.Scope                      Scope used when none is given
 ---@field command       string                            Name of the user command
@@ -76,5 +81,6 @@
 ---@field search        Emojis.Config.Search              cwd search configuration
 ---@field keymaps       Emojis.Config.Keymaps              Opt-in preset keymaps
 ---@field wrap          Emojis.Config.Wrap                 Marker for the wrap action
+---@field preview       Emojis.Config.Preview              Opt-in clear/replace highlight preview
 
 return {}
