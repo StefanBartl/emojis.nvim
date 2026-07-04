@@ -41,8 +41,9 @@
   `config.names`, `core/ops.lua` `unreplace()`). Unbekannte `:...:`-Tokens
   bleiben unangetastet.
 
-- **`Emojis first` / `Emojis next`** — zum nächsten Emoji im Buffer springen
-  (Cursor-Navigation statt Quickfix).
+- ~~**`Emojis first` / `Emojis next`**~~ — **erledigt.** `lua/emojis/nav.lua`:
+  springt zum ersten/nächsten Emoji im Buffer (Cursor-Navigation statt
+  Quickfix), `next` wrapt am Bufferende zum Anfang.
 
 - **`Emojis wrap`** — Emojis mit konfigurierbarem Marker umgeben (z. B. für
   spätere maschinelle Verarbeitung), ohne sie zu entfernen.

@@ -16,6 +16,8 @@
 ---| '"count"'      # Count emojis in scope and report via notify
 ---| '"replace"'    # Replace emojis with :name: placeholders
 ---| '"unreplace"'  # Replace :name:/:U+XXXX: placeholders back with emojis
+---| '"first"'      # Move the cursor to the first emoji in the buffer
+---| '"next"'       # Move the cursor to the next emoji (wraps to the top)
 
 ---@alias Emojis.Scope
 ---| '"word"'    # Current line (the line holding the word under the cursor)

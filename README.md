@@ -27,6 +27,8 @@ Ohne Argumente: `:Emojis` → `:Emojis clear %` (entfernt alle Emojis im Buffer)
 | `list` | Sammelt alle Emojis im Scope in die Quickfix-Liste |
 | `count` | Zählt die Emojis im Scope und meldet das Ergebnis |
 | `insert` | Öffnet einen Picker am Cursor zum Einfügen |
+| `first` | Springt zum ersten Emoji im Buffer (Cursor-Navigation) |
+| `next` | Springt zum nächsten Emoji, wrapt am Bufferende zum Anfang |
 
 | Scope | Beschreibung |
 |---|---|
@@ -155,6 +157,8 @@ Alle Felder sind optional und werden über die Defaults gemerged.
 :Emojis count cwd        " projektweit zählen (async, rg)
 :Emojis list cwd         " projektweit in die Quickfix-Liste
 :Emojis insert           " Emoji-Picker am Cursor
+:Emojis first            " zum ersten Emoji im Buffer springen
+:Emojis next             " zum nächsten Emoji springen (wrapt am Ende)
 ```
 
 ---
@@ -229,6 +233,7 @@ lua/emojis/
     which_key.lua          Optionales which-key-Gruppenlabel
     autocmds.lua           Leer (bewusst keine Autocmds, siehe ROADMAP)
   actions.lua              Buffer-berührende Handler (edit/list/count)
+  nav.lua                  Cursor-Navigation (first/next)
   picker.lua               Insert-Picker (vim.ui.select)
   search.lua               Asynchrone cwd-Suche (ripgrep)
   commands.lua             :Emojis-Dispatch + Tab-Completion
