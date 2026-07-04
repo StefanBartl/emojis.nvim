@@ -94,6 +94,10 @@ Weitere Argumente nach dem `cwd`-Schlüsselwort werden als zusätzliche
 - [`lib.nvim`](https://github.com/StefanBartl/lib.nvim) — optional; wird für
   `notify`/`map` verwendet, wenn installiert, sonst nativer Fallback (keine
   harte Abhängigkeit)
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) oder
+  [fzf-lua](https://github.com/ibhagwan/fzf-lua) — optional; liefert einen
+  Live-Suche-Picker für `:Emojis insert` (`picker.engine = "auto"`), sonst
+  `vim.ui.select`-Fallback
 
 ---
 
@@ -179,6 +183,11 @@ require("emojis").setup({
     enable = false,
     duration_ms = 150,
     hl_group = "IncSearch",
+  },
+
+  -- Insert-Picker-Engine: "auto" | "telescope" | "fzf-lua" | "select"
+  picker = {
+    engine = "auto",
   },
 })
 ```

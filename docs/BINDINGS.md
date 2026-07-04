@@ -15,7 +15,7 @@ Only active when `keymaps.preset = true` is set (default `false`).
 
 | lhs | mode | action | desc |
 | --- | --- | --- | --- |
-| `<C-e>` | n, i | `emojis.insert` | Insert picker at cursor |
+| `<C-e>` | n, i | `emojis.insert` | Insert picker at cursor (telescope/fzf-lua if available, else vim.ui.select) |
 | `<leader>ec` | n | `emojis.count` | Count emojis in buffer |
 | `<leader>el` | n | `emojis.list` (via `actions.list`) | List emojis in buffer -> quickfix |
 

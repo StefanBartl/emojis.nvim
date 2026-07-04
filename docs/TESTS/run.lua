@@ -20,6 +20,7 @@ local specs = {
   "config_spec.lua",
   "commands_spec.lua",
   "search_spec.lua",
+  "picker_spec.lua",
 }
 
 local failed = 0

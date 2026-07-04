@@ -72,8 +72,10 @@
 
 ### UX / Integration
 
-- **Telescope-/fzf-Picker** für `insert` — Live-Suche über einen größeren
-  Emoji-Katalog statt fixer `vim.ui.select`-Liste; optionale Dependency.
+- ~~**Telescope-/fzf-Picker**~~ — **erledigt.** `config.picker.engine`
+  (Standard `"auto"`): probiert telescope.nvim, dann fzf-lua (beide optional,
+  `picker.lua` `try_telescope()`/`try_fzf_lua()`), fällt sonst auf
+  `vim.ui.select` zurück.
 
 - ~~**Größerer Standard-Emoji-Katalog mit Namen**~~ — **erledigt.**
   `config/DEFAULTS.lua`: ein `CATALOG` aus 60+ `{ glyph, label }`-Einträgen
