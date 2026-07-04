@@ -24,6 +24,8 @@ The runner prints one line per spec and exits non-zero on the first failure
 | `scope_spec.lua`    | Scope resolution: `%`, `line`, `word`, `visual`, range override, `cwd`. |
 | `config_spec.lua`   | DEFAULTS catalog: `picks`/`names` stay in sync, no codepoint collisions. |
 | `commands_spec.lua` | `:Emojis` actions/scopes; `keymaps.preset` gates the preset keys.  |
+| `search_spec.lua`   | `build_cmd()` glob/no_ignore flags; `apply_across_files()` confirm-gated cwd clear/replace. |
+| `picker_spec.lua`   | Insert picker: engine selection falls back to `vim.ui.select`.    |
 | `run.lua`           | Runner: loads every `*_spec.lua`, reports results, sets exit code. |
 
 ## Adding a spec

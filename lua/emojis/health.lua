@@ -14,9 +14,20 @@ function M.check()
   end
 
   if type(vim.ui) == "table" and type(vim.ui.select) == "function" then
-    vim.health.ok("vim.ui.select is available (insert picker)")
+    vim.health.ok("vim.ui.select is available (insert picker fallback)")
   else
     vim.health.warn("vim.ui.select unavailable — :Emojis insert will not work")
+  end
+
+  local has_telescope = pcall(require, "telescope.pickers")
+  local has_fzf_lua = pcall(require, "fzf-lua")
+  local engine = require("emojis.config").get().picker.engine
+  if has_telescope then
+    vim.health.ok("telescope.nvim found (picker.engine = " .. engine .. ")")
+  elseif has_fzf_lua then
+    vim.health.ok("fzf-lua found (picker.engine = " .. engine .. ")")
+  else
+    vim.health.info("neither telescope.nvim nor fzf-lua found — insert picker uses vim.ui.select")
   end
 
   local cmd = require("emojis.config").get().search.cmd

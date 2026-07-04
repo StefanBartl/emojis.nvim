@@ -126,6 +126,12 @@ local DEFAULTS = {
     duration_ms = 150,
     hl_group = "IncSearch",
   },
+
+  -- Insert-picker engine: "auto" tries telescope.nvim then fzf-lua (both
+  -- optional), falling back to vim.ui.select.
+  picker = {
+    engine = "auto",
+  },
 }
 
 return DEFAULTS

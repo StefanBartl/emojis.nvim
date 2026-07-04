@@ -35,6 +35,8 @@ detection uses a pure UTF-8 byte tokenizer; no external library is required.
 
   - Neovim 0.9 or later
   - ripgrep (`rg`) — only for the `cwd` scope
+  - telescope.nvim or fzf-lua — optional; live-search picker for `:Emojis
+    insert` (`picker.engine = "auto"`), falls back to `vim.ui.select`
   - lib.nvim (StefanBartl/lib.nvim) — optional; used for notify/map when
     installed, native fallback otherwise (no hard dependency)
 
@@ -104,6 +106,10 @@ vim-plug: >vim
       duration_ms = 150,
       hl_group = "IncSearch",
     },
+
+    picker = {                    -- insert-picker engine
+      engine = "auto",            -- "auto" | "telescope" | "fzf-lua" | "select"
+    },
   })
 <
 
@@ -155,6 +161,12 @@ preview.duration_ms ~
 preview.hl_group ~
   Highlight group used for the preview extmarks. Default: `"IncSearch"`.
 
+picker.engine ~
+  Insert-picker engine: `"auto"` tries telescope.nvim then fzf-lua (both
+  optional), falling back to `vim.ui.select`; `"telescope"`/`"fzf-lua"` force
+  one (still falling back if not installed); `"select"` always uses
+  `vim.ui.select`. Default: `"auto"`.
+
 ==============================================================================
 5. THE :Emojis COMMAND                                              *:Emojis*
 
@@ -190,8 +202,9 @@ count ~
   Count emojis in scope and report via a notification.
 
 insert ~
-  Open a `vim.ui.select` picker and insert the chosen emoji at the cursor.
-  The `scope` argument is ignored for this action.
+  Open a picker (telescope.nvim/fzf-lua if available per `picker.engine`,
+  else `vim.ui.select`) and insert the chosen emoji at the cursor. The
+  `scope` argument is ignored for this action.
 
 first ~
   Move the cursor to the first emoji in the buffer. The `scope` argument is

@@ -73,6 +73,15 @@
 ---@field duration_ms integer  How long to show the highlight before mutating
 ---@field hl_group    string   Highlight group used for the preview extmarks
 
+---@alias Emojis.Config.Picker.Engine
+---| '"auto"'      # Try telescope.nvim, then fzf-lua, then vim.ui.select
+---| '"telescope"' # telescope.nvim only, falling back to vim.ui.select
+---| '"fzf-lua"'   # fzf-lua only, falling back to vim.ui.select
+---| '"select"'    # Always use vim.ui.select
+
+---@class Emojis.Config.Picker
+---@field engine Emojis.Config.Picker.Engine  Insert-picker engine (default "auto")
+
 ---@class Emojis.Config
 ---@field default_scope Emojis.Scope                      Scope used when none is given
 ---@field command       string                            Name of the user command
@@ -82,5 +91,6 @@
 ---@field keymaps       Emojis.Config.Keymaps              Opt-in preset keymaps
 ---@field wrap          Emojis.Config.Wrap                 Marker for the wrap action
 ---@field preview       Emojis.Config.Preview              Opt-in clear/replace highlight preview
+---@field picker        Emojis.Config.Picker               Insert-picker engine selection
 
 return {}
