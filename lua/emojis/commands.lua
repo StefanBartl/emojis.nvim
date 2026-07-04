@@ -14,10 +14,13 @@ local actions = require("emojis.actions")
 local M = {}
 
 ---@type string[]
-local ACTIONS = { "clear", "insert", "list", "count", "replace", "unreplace" }
+local ACTIONS = { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next" }
 
 ---@type string[]
 local SCOPES = { "word", "line", "visual", "%", "cwd" }
+
+---@type table<string, boolean>  Actions that ignore the scope argument entirely.
+local NO_SCOPE = { insert = true, first = true, next = true }
 
 ---@param list string[]
 ---@param v string
@@ -43,13 +46,21 @@ local function execute(cmd_args)
     notify.error(("unknown action %q. Valid: %s"):format(action, table.concat(ACTIONS, ", ")))
     return
   end
-  if action ~= "insert" and not has(SCOPES, scope) then
+  if not NO_SCOPE[action] and not has(SCOPES, scope) then
     notify.error(("unknown scope %q. Valid: %s"):format(scope, table.concat(SCOPES, ", ")))
     return
   end
 
   if action == "insert" then
     require("emojis.picker").insert()
+    return
+  end
+  if action == "first" then
+    require("emojis.nav").first()
+    return
+  end
+  if action == "next" then
+    require("emojis.nav").next()
     return
   end
   if scope == "cwd" then
@@ -106,7 +117,7 @@ end
 ---@return nil
 function M.register(cfg)
   api.nvim_create_user_command(cfg.command, execute, {
-    desc = "[emojis] :" .. cfg.command .. " [clear|insert|list|count|replace|unreplace] [word|line|visual|%|cwd]",
+    desc = "[emojis] :" .. cfg.command .. " [clear|insert|list|count|replace|unreplace|first|next] [word|line|visual|%|cwd]",
     nargs = "*",
     range = true,
     complete = complete,

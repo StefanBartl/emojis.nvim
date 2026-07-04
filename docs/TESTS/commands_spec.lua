@@ -31,6 +31,31 @@ return function(H)
     eq(line, "shipped ✅ today", "unreplace: :name: restored to emoji")
   end
 
+  -- :Emojis first/next move the cursor without touching the buffer
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "no emoji here", "one 🚀 here", "two 🔥 and ⭐ here" })
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+    vim.cmd("Emojis first")
+    local pos = vim.api.nvim_win_get_cursor(0)
+    eq(pos[1], 2, "first: jumps to the line with the first emoji")
+
+    vim.cmd("Emojis next")
+    pos = vim.api.nvim_win_get_cursor(0)
+    eq(pos[1], 3, "next: jumps forward to the next emoji's line")
+    local line = vim.api.nvim_buf_get_lines(buf, 2, 3, false)[1]
+    eq(line:sub(pos[2] + 1, pos[2] + 4), "🔥", "next: lands exactly on the emoji")
+
+    vim.cmd("Emojis next")
+    vim.cmd("Emojis next") -- past the last emoji -> wraps back to the first
+    pos = vim.api.nvim_win_get_cursor(0)
+    eq(pos[1], 2, "next: wraps around to the first emoji")
+
+    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[2], "one 🚀 here", "first/next: buffer content untouched")
+  end
+
   -- "word" scope only clears the whitespace-delimited token under the cursor
   do
     local buf = H.scratch()

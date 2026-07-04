@@ -159,6 +159,15 @@ insert ~
   Open a `vim.ui.select` picker and insert the chosen emoji at the cursor.
   The `scope` argument is ignored for this action.
 
+first ~
+  Move the cursor to the first emoji in the buffer. The `scope` argument is
+  ignored; the buffer is not modified.
+
+next ~
+  Move the cursor to the next emoji after the cursor, wrapping to the top of
+  the buffer if none is found below. The `scope` argument is ignored; the
+  buffer is not modified.
+
 ------------------------------------------------------------------------------
 5.2 Scopes                                                     *emojis-scopes*
 
@@ -195,6 +204,7 @@ emoji grapheme — counted once and replaced as one placeholder.
 second: >
 
   :Emojis <Tab>          clear  insert  list  count  replace  unreplace
+                         first  next
   :Emojis clear <Tab>    word  line  visual  %  cwd
 <
 
@@ -274,6 +284,7 @@ dependency). emojis.nvim defines no autocommands.
       which_key.lua          Optional which-key group label
       autocmds.lua           Empty (no autocmds by design, see ROADMAP)
     actions.lua              Buffer-facing handlers (edit/list/count)
+    nav.lua                  Cursor navigation (first/next)
     picker.lua               Insert picker (vim.ui.select)
     search.lua               Async cwd search (ripgrep)
     commands.lua             :Emojis dispatch + tab completion
