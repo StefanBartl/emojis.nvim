@@ -59,6 +59,7 @@
 ---@class Emojis.Config.Search
 ---@field cmd        string    External search binary (default "rg")
 ---@field extra_args string[]  Extra args appended before the pattern
+---@field no_ignore  boolean   Pass --no-ignore so rg also searches gitignored files
 
 ---@class Emojis.Config.Keymaps
 ---@field preset boolean  Bind the opt-in preset keymaps (default false)

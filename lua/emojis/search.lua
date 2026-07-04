@@ -124,6 +124,7 @@ local function finish(action, lines, cwd)
   end
 
   if action == "clear" or action == "replace" then
+    ---@diagnostic disable-next-line: param-type-mismatch
     M.apply_across_files(action, lines, fn.confirm)
     return
   end
@@ -150,10 +151,35 @@ local function finish(action, lines, cwd)
   notify.info(("Found %d match%s -> quickfix"):format(#qf, #qf == 1 and "" or "es"))
 end
 
+---Build the rg command array for the cwd search.
+---@param cfg Emojis.Config.Search
+---@param extra_globs string[]|nil  e.g. `{ "*.md" }` from `:Emojis count cwd *.md`
+---@param cwd string
+---@return string[]
+function M.build_cmd(cfg, extra_globs, cwd)
+  local cmd = { cfg.cmd }
+  for i = 1, #cfg.extra_args do
+    cmd[#cmd + 1] = cfg.extra_args[i]
+  end
+  if cfg.no_ignore then
+    cmd[#cmd + 1] = "--no-ignore"
+  end
+  if extra_globs then
+    for i = 1, #extra_globs do
+      cmd[#cmd + 1] = "--glob"
+      cmd[#cmd + 1] = extra_globs[i]
+    end
+  end
+  cmd[#cmd + 1] = RG_PATTERN
+  cmd[#cmd + 1] = cwd
+  return cmd
+end
+
 ---Run the async cwd search for `list`, `count`, `clear`, or `replace`.
 ---@param action "list"|"count"|"clear"|"replace"
+---@param extra_globs string[]|nil  extra `--glob` patterns (args after the scope keyword)
 ---@return nil
-function M.run(action)
+function M.run(action, extra_globs)
   if not SUPPORTED[action] then
     notify.warn("cwd scope only supports list/count/clear/replace")
     return
@@ -168,12 +194,7 @@ function M.run(action)
   local cwd = fn.getcwd()
   notify.info("Searching cwd for emojis (async)...")
 
-  local cmd = { cfg.cmd }
-  for i = 1, #cfg.extra_args do
-    cmd[#cmd + 1] = cfg.extra_args[i]
-  end
-  cmd[#cmd + 1] = RG_PATTERN
-  cmd[#cmd + 1] = cwd
+  local cmd = M.build_cmd(cfg, extra_globs, cwd)
 
   local out, err_buf = {}, {}
 

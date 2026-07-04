@@ -104,6 +104,8 @@ local DEFAULTS = {
       "--with-filename",
       "--color=never",
     },
+    -- When true, pass --no-ignore so rg also searches gitignored files.
+    no_ignore = false,
   },
 
   -- Opt-in preset keymaps: <C-e> insert, <leader>ec count %, <leader>el list %.

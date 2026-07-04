@@ -87,6 +87,7 @@ vim-plug: >vim
     search = {                   -- cwd search (ripgrep)
       cmd = "rg",
       extra_args = { "--no-heading", "--line-number", "--with-filename", "--color=never" },
+      no_ignore = false,          -- true -> --no-ignore (also search gitignored files)
     },
 
     keymaps = {                   -- opt-in preset keymaps
@@ -122,6 +123,10 @@ search.cmd ~
 search.extra_args ~
   Arguments passed before the pattern and path. Default: ripgrep flags for
   no-heading, line-number, with-filename, no-color.
+
+search.no_ignore ~
+  When `true`, passes `--no-ignore` so the cwd scope also searches
+  gitignored files. Default: `false`.
 
 keymaps.preset ~
   When `true`, binds the opt-in preset keymaps (`<C-e>`, `<leader>ec`,
@@ -198,7 +203,8 @@ cwd     All files under the working directory, searched asynchronously with
         first show the same matches, then ask for confirmation (default:
         cancel) before mutating every matched file. Run `:Emojis list cwd`
         first as a dry-run preview. Buffers with unsaved changes are skipped
-        rather than clobbered.
+        rather than clobbered. Arguments after `cwd` are passed to ripgrep as
+        extra `--glob` filters, e.g. `:Emojis count cwd *.md`.
 
 ==============================================================================
 6. SPACE-COLLAPSE BEHAVIOUR                              *emojis-clear-spaces*

@@ -63,11 +63,12 @@
   geladene Buffer mit ungespeicherten Änderungen werden übersprungen statt
   überschrieben.
 
-- **Glob-/Filetype-Filter für `cwd`** — `:Emojis count cwd *.md` nur in
-  bestimmten Dateien; Weiterreichen zusätzlicher rg-Globs.
+- ~~**Glob-/Filetype-Filter für `cwd`**~~ — **erledigt.** Argumente nach dem
+  `cwd`-Schlüsselwort (z. B. `:Emojis count cwd *.md`) werden als `--glob`
+  an ripgrep durchgereicht (`search.build_cmd()`).
 
-- **Gitignore-Respekt konfigurierbar** — rg respektiert `.gitignore` bereits;
-  Option `--no-ignore` für vollständige Suche.
+- ~~**Gitignore-Respekt konfigurierbar**~~ — **erledigt.**
+  `config.search.no_ignore = true` hängt `--no-ignore` an.
 
 ### UX / Integration
 
