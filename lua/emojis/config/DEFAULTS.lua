@@ -118,6 +118,14 @@ local DEFAULTS = {
     prefix = "[[",
     suffix = "]]",
   },
+
+  -- Opt-in: briefly highlight affected emojis before `clear`/`replace` mutate
+  -- the buffer.
+  preview = {
+    enable = false,
+    duration_ms = 150,
+    hl_group = "IncSearch",
+  },
 }
 
 return DEFAULTS

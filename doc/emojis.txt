@@ -98,6 +98,12 @@ vim-plug: >vim
       prefix = "[[",
       suffix = "]]",
     },
+
+    preview = {                   -- opt-in highlight before clear/replace
+      enable = false,
+      duration_ms = 150,
+      hl_group = "IncSearch",
+    },
   })
 <
 
@@ -136,6 +142,18 @@ keymaps.preset ~
 wrap.prefix, wrap.suffix ~
   Text inserted before/after each emoji by the `wrap` action. Default:
   `"[["`/`"]]"`.
+
+preview.enable ~
+  When `true`, briefly highlights the emojis about to be mutated before
+  `clear`/`replace` runs (extmarks, `preview.hl_group`), blocking for
+  `preview.duration_ms`. Default: `false`.
+
+preview.duration_ms ~
+  How long the highlight is shown before the buffer is mutated. Default:
+  `150`.
+
+preview.hl_group ~
+  Highlight group used for the preview extmarks. Default: `"IncSearch"`.
 
 ==============================================================================
 5. THE :Emojis COMMAND                                              *:Emojis*

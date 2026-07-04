@@ -65,6 +65,30 @@ return function(H)
     eq(line, "shipped [[✅]] today", "wrap: default [[ ]] marker applied")
   end
 
+  -- preview.enable highlights the affected span before clear mutates it
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "keep 🚀 this" })
+    require("emojis.config").setup({ preview = { enable = true, duration_ms = 1 } })
+
+    local seen_extmark = false
+    local orig_wait = vim.wait
+    vim.wait = function(ms)
+      -- while the highlight is up, an extmark must exist in this buffer
+      local ns = vim.api.nvim_create_namespace("emojis_preview")
+      local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, {})
+      seen_extmark = #marks > 0
+      return orig_wait(ms)
+    end
+
+    vim.cmd("Emojis clear %")
+    vim.wait = orig_wait
+    require("emojis.config").setup({ preview = { enable = false } })
+
+    eq(seen_extmark, true, "preview: extmark set on the emoji span before clearing")
+    eq(vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1], "keep this", "preview: buffer still cleared correctly")
+  end
+
   -- "word" scope only clears the whitespace-delimited token under the cursor
   do
     local buf = H.scratch()
