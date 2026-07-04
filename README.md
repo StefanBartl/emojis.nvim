@@ -76,6 +76,11 @@ via ripgrep und fragen **vor** jeder Änderung per Bestätigungsdialog nach
 Bereits geöffnete Buffer mit ungespeicherten Änderungen werden übersprungen
 (nicht überschrieben) und in der Zusammenfassung als "skipped" gezählt.
 
+Weitere Argumente nach dem `cwd`-Schlüsselwort werden als zusätzliche
+`--glob`-Filter an ripgrep durchgereicht (z. B. `*.md` für nur Markdown).
+`search.no_ignore = true` durchsucht zusätzlich gitignorte Dateien
+(`--no-ignore`).
+
 ---
 
 ## Voraussetzungen
@@ -151,6 +156,7 @@ require("emojis").setup({
   search = {
     cmd = "rg",
     extra_args = { "--no-heading", "--line-number", "--with-filename", "--color=never" },
+    no_ignore = false,  -- true -> --no-ignore (durchsucht auch gitignorte Dateien)
   },
 
   -- Opt-in Preset-Keymaps (siehe "Empfohlene Keymaps")
@@ -180,6 +186,7 @@ Alle Felder sind optional und werden über die Defaults gemerged.
 :Emojis unreplace %      " :name: -> Emojis im ganzen Buffer
 :Emojis list %           " Emojis des Buffers in die Quickfix-Liste
 :Emojis count cwd        " projektweit zählen (async, rg)
+:Emojis count cwd *.md   " nur in Markdown-Dateien zählen (extra rg --glob)
 :Emojis list cwd         " projektweit in die Quickfix-Liste
 :Emojis clear cwd        " projektweit entfernen (Bestätigungsdialog)
 :Emojis replace cwd      " projektweit -> :name: (Bestätigungsdialog)

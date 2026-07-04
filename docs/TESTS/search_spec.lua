@@ -6,6 +6,25 @@ return function(H)
   local eq = H.eq
   local search = require("emojis.search")
 
+  -- build_cmd: extra_args, no_ignore, and per-invocation --glob filters
+  do
+    local cfg = { cmd = "rg", extra_args = { "--no-heading" }, no_ignore = false }
+    local cmd = search.build_cmd(cfg, nil, "/proj")
+    eq(
+      table.concat(cmd, " "),
+      "rg --no-heading [\\x{1F000}-\\x{1FFFF}\\x{2600}-\\x{27FF}\\x{2B00}-\\x{2BFF}] /proj",
+      "build_cmd: no extras"
+    )
+
+    cfg.no_ignore = true
+    cmd = search.build_cmd(cfg, { "*.md" }, "/proj")
+    eq(
+      table.concat(cmd, " "),
+      "rg --no-heading --no-ignore --glob *.md [\\x{1F000}-\\x{1FFFF}\\x{2600}-\\x{27FF}\\x{2B00}-\\x{2BFF}] /proj",
+      "build_cmd: no_ignore + glob filter"
+    )
+  end
+
   local dir = vim.fn.tempname()
   vim.fn.mkdir(dir, "p")
   local f1 = dir .. "/a.txt"

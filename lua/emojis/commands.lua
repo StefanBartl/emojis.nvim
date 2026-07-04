@@ -64,7 +64,11 @@ local function execute(cmd_args)
     return
   end
   if scope == "cwd" then
-    require("emojis.search").run(action)
+    local extra_globs = {}
+    for i = 3, #cmd_args.fargs do
+      extra_globs[#extra_globs + 1] = cmd_args.fargs[i]
+    end
+    require("emojis.search").run(action, extra_globs)
     return
   end
 
