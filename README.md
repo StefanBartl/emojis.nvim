@@ -24,6 +24,7 @@ Ohne Argumente: `:Emojis` → `:Emojis clear %` (entfernt alle Emojis im Buffer)
 | `clear` | Entfernt alle Emojis im Scope (Standard) |
 | `replace` | Ersetzt Emojis durch `:name:`-Platzhalter |
 | `unreplace` | Ersetzt `:name:`/`:U+XXXX:`-Platzhalter zurück durch Emojis |
+| `wrap` | Umschließt Emojis mit `config.wrap`-Marker, ohne sie zu entfernen |
 | `list` | Sammelt alle Emojis im Scope in die Quickfix-Liste |
 | `count` | Zählt die Emojis im Scope und meldet das Ergebnis |
 | `insert` | Öffnet einen Picker am Cursor zum Einfügen |
@@ -138,6 +139,12 @@ require("emojis").setup({
   keymaps = {
     preset = false,
   },
+
+  -- Marker für die `wrap`-Aktion
+  wrap = {
+    prefix = "[[",
+    suffix = "]]",
+  },
 })
 ```
 
@@ -159,6 +166,7 @@ Alle Felder sind optional und werden über die Defaults gemerged.
 :Emojis insert           " Emoji-Picker am Cursor
 :Emojis first            " zum ersten Emoji im Buffer springen
 :Emojis next             " zum nächsten Emoji springen (wrapt am Ende)
+:Emojis wrap %           " Emojis mit [[ ]] umschließen (Marker konfigurierbar)
 ```
 
 ---

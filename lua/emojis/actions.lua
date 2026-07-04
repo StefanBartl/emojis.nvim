@@ -34,10 +34,10 @@ local function scoped(t, lines)
 end
 
 ---@type table<string, string>  action -> past-tense verb for the notify message
-local VERB = { clear = "Removed", replace = "Replaced", unreplace = "Restored" }
+local VERB = { clear = "Removed", replace = "Replaced", unreplace = "Restored", wrap = "Wrapped" }
 
----Apply a buffer-mutating action ("clear", "replace", or "unreplace").
----@param action "clear"|"replace"|"unreplace"
+---Apply a buffer-mutating action ("clear", "replace", "unreplace", or "wrap").
+---@param action "clear"|"replace"|"unreplace"|"wrap"
 ---@param t Emojis.Target
 ---@return nil
 function M.edit(action, t)
@@ -59,8 +59,11 @@ function M.edit(action, t)
     new_lines, n = ops.clear(work)
   elseif action == "replace" then
     new_lines, n = ops.replace(work, config.get().names)
-  else
+  elseif action == "unreplace" then
     new_lines, n = ops.unreplace(work, config.get().names)
+  else
+    local wrap_cfg = config.get().wrap
+    new_lines, n = ops.wrap(work, wrap_cfg.prefix, wrap_cfg.suffix)
   end
 
   if n == 0 then

@@ -56,6 +56,15 @@ return function(H)
     eq(lines[2], "one 🚀 here", "first/next: buffer content untouched")
   end
 
+  -- :Emojis wrap surrounds emojis using the configured marker
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "shipped ✅ today" })
+    vim.cmd("Emojis wrap %")
+    local line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
+    eq(line, "shipped [[✅]] today", "wrap: default [[ ]] marker applied")
+  end
+
   -- "word" scope only clears the whitespace-delimited token under the cursor
   do
     local buf = H.scratch()

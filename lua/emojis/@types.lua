@@ -18,6 +18,7 @@
 ---| '"unreplace"'  # Replace :name:/:U+XXXX: placeholders back with emojis
 ---| '"first"'      # Move the cursor to the first emoji in the buffer
 ---| '"next"'       # Move the cursor to the next emoji (wraps to the top)
+---| '"wrap"'       # Surround each emoji with config.wrap.prefix/suffix
 
 ---@alias Emojis.Scope
 ---| '"word"'    # Current line (the line holding the word under the cursor)
@@ -62,6 +63,10 @@
 ---@class Emojis.Config.Keymaps
 ---@field preset boolean  Bind the opt-in preset keymaps (default false)
 
+---@class Emojis.Config.Wrap
+---@field prefix string  Text inserted before each emoji by `wrap`
+---@field suffix string  Text inserted after each emoji by `wrap`
+
 ---@class Emojis.Config
 ---@field default_scope Emojis.Scope                      Scope used when none is given
 ---@field command       string                            Name of the user command
@@ -69,5 +74,6 @@
 ---@field names         table<integer, string>            Codepoint -> :name: for replace
 ---@field search        Emojis.Config.Search              cwd search configuration
 ---@field keymaps       Emojis.Config.Keymaps              Opt-in preset keymaps
+---@field wrap          Emojis.Config.Wrap                 Marker for the wrap action
 
 return {}
