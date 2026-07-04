@@ -45,8 +45,9 @@
   springt zum ersten/nächsten Emoji im Buffer (Cursor-Navigation statt
   Quickfix), `next` wrapt am Bufferende zum Anfang.
 
-- **`Emojis wrap`** — Emojis mit konfigurierbarem Marker umgeben (z. B. für
-  spätere maschinelle Verarbeitung), ohne sie zu entfernen.
+- ~~**`Emojis wrap`**~~ — **erledigt.** `config.wrap.prefix`/`suffix` (Default
+  `[[`/`]]`) umgibt jedes Emoji, ohne es zu entfernen (`core/ops.lua`
+  `wrap()`, teilt sich `map_spans()` mit `replace()`).
 
 ### Scope / Suche
 

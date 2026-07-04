@@ -92,6 +92,11 @@ vim-plug: >vim
     keymaps = {                   -- opt-in preset keymaps
       preset = false,
     },
+
+    wrap = {                      -- marker for the wrap action
+      prefix = "[[",
+      suffix = "]]",
+    },
   })
 <
 
@@ -120,6 +125,10 @@ keymaps.preset ~
   When `true`, binds the opt-in preset keymaps (`<C-e>`, `<leader>ec`,
   `<leader>el`) and labels the `<leader>e` group in which-key if installed.
   Default: `false`. See |emojis-bindings|.
+
+wrap.prefix, wrap.suffix ~
+  Text inserted before/after each emoji by the `wrap` action. Default:
+  `"[["`/`"]]"`.
 
 ==============================================================================
 5. THE :Emojis COMMAND                                              *:Emojis*
@@ -168,6 +177,10 @@ next ~
   the buffer if none is found below. The `scope` argument is ignored; the
   buffer is not modified.
 
+wrap ~
+  Surround each emoji with `config.wrap.prefix`/`config.wrap.suffix` (default
+  `[[`/`]]`), without removing it — e.g. for downstream machine processing.
+
 ------------------------------------------------------------------------------
 5.2 Scopes                                                     *emojis-scopes*
 
@@ -204,7 +217,7 @@ emoji grapheme — counted once and replaced as one placeholder.
 second: >
 
   :Emojis <Tab>          clear  insert  list  count  replace  unreplace
-                         first  next
+                         first  next  wrap
   :Emojis clear <Tab>    word  line  visual  %  cwd
 <
 

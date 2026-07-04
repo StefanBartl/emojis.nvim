@@ -60,6 +60,13 @@ return function(H)
     eq(n, 2, "unreplace: round-trip count")
   end
 
+  -- wrap: surrounds each emoji without removing it
+  do
+    local out, n = ops.wrap({ "a ✅ b 🎉 c" }, "[[", "]]")
+    eq(out[1], "a [[✅]] b [[🎉]] c", "wrap: surrounds each emoji")
+    eq(n, 2, "wrap: wrapped count")
+  end
+
   -- clear: a ZWJ family sequence / flag pair counts and clears as one grapheme
   do
     local out, n = ops.clear({ " 👨‍👩‍👧 " })

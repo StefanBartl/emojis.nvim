@@ -79,6 +79,12 @@ local DEFAULTS = {
   keymaps = {
     preset = false,
   },
+
+  -- Marker used by the `wrap` action to surround (not remove) each emoji.
+  wrap = {
+    prefix = "[[",
+    suffix = "]]",
+  },
 }
 
 return DEFAULTS

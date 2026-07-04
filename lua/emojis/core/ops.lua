@@ -117,12 +117,13 @@ function M.list(lines, line_offset)
   return entries
 end
 
----Replace each emoji with its `:name:` placeholder (or `:U+XXXX:` fallback).
+---Walk each line's emoji spans, replacing each span with `transform(glyph)`.
+---Shared by `replace()` and `wrap()` — both substitute per-span text without
+---touching anything outside a span.
 ---@param lines string[]
----@param names table<integer, string>  codepoint -> :name:
----@return string[] replaced, integer count
-function M.replace(lines, names)
-  names = names or {}
+---@param transform fun(glyph: string): string
+---@return string[] out, integer count
+local function map_spans(lines, transform)
   local out, total = {}, 0
 
   for li = 1, #lines do
@@ -137,9 +138,7 @@ function M.replace(lines, names)
         if sp[1] > last then
           pieces[#pieces + 1] = s:sub(last, sp[1] - 1)
         end
-        local glyph = s:sub(sp[1], sp[2])
-        local cp = patterns.codepoint(glyph)
-        pieces[#pieces + 1] = names[cp] or string.format(":U+%04X:", cp)
+        pieces[#pieces + 1] = transform(s:sub(sp[1], sp[2]))
         total = total + 1
         last = sp[2] + 1
       end
@@ -151,6 +150,31 @@ function M.replace(lines, names)
   end
 
   return out, total
+end
+
+---Replace each emoji with its `:name:` placeholder (or `:U+XXXX:` fallback).
+---@param lines string[]
+---@param names table<integer, string>  codepoint -> :name:
+---@return string[] replaced, integer count
+function M.replace(lines, names)
+  names = names or {}
+  return map_spans(lines, function(glyph)
+    local cp = patterns.codepoint(glyph)
+    return names[cp] or string.format(":U+%04X:", cp)
+  end)
+end
+
+---Surround each emoji with `prefix`/`suffix`, without removing it (e.g. for
+---downstream machine processing).
+---@param lines string[]
+---@param prefix string
+---@param suffix string
+---@return string[] wrapped, integer count
+function M.wrap(lines, prefix, suffix)
+  prefix, suffix = prefix or "", suffix or ""
+  return map_spans(lines, function(glyph)
+    return prefix .. glyph .. suffix
+  end)
 end
 
 ---Replace each `:name:` placeholder (or `:U+XXXX:` fallback) with its emoji —
