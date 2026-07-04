@@ -22,6 +22,15 @@ return function(H)
   eq(mapping ~= "", true, "preset on: <C-e> bound")
   eq(cfg.keymaps.preset, true, "config reflects keymaps.preset = true")
 
+  -- :Emojis unreplace restores :name: placeholders back to emojis
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "shipped :white_check_mark: today" })
+    vim.cmd("Emojis unreplace %")
+    local line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
+    eq(line, "shipped ✅ today", "unreplace: :name: restored to emoji")
+  end
+
   -- "word" scope only clears the whitespace-delimited token under the cursor
   do
     local buf = H.scratch()

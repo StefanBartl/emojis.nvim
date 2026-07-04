@@ -118,6 +118,14 @@ local M = {}
 M.VS16 = VS16
 M.BASE = BASE
 
+---Encode a single Unicode codepoint back to its UTF-8 string (inverse of
+---`codepoint()`). Used by `core.ops.unreplace` to rebuild a glyph.
+---@param cp integer
+---@return string
+function M.encode(cp)
+  return encode_str(encode(cp))
+end
+
 ---Match one of the base ranges at exactly `i`.
 ---@param s string
 ---@param i integer

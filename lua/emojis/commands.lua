@@ -14,7 +14,7 @@ local actions = require("emojis.actions")
 local M = {}
 
 ---@type string[]
-local ACTIONS = { "clear", "insert", "list", "count", "replace" }
+local ACTIONS = { "clear", "insert", "list", "count", "replace", "unreplace" }
 
 ---@type string[]
 local SCOPES = { "word", "line", "visual", "%", "cwd" }
@@ -67,6 +67,8 @@ local function execute(cmd_args)
     actions.edit("clear", target)
   elseif action == "replace" then
     actions.edit("replace", target)
+  elseif action == "unreplace" then
+    actions.edit("unreplace", target)
   elseif action == "list" then
     actions.list(target)
   elseif action == "count" then
@@ -104,7 +106,7 @@ end
 ---@return nil
 function M.register(cfg)
   api.nvim_create_user_command(cfg.command, execute, {
-    desc = "[emojis] :" .. cfg.command .. " [clear|insert|list|count|replace] [word|line|visual|%|cwd]",
+    desc = "[emojis] :" .. cfg.command .. " [clear|insert|list|count|replace|unreplace] [word|line|visual|%|cwd]",
     nargs = "*",
     range = true,
     complete = complete,

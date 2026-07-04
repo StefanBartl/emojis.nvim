@@ -33,8 +33,11 @@ local function scoped(t, lines)
   return lines, 0
 end
 
----Apply a buffer-mutating action ("clear" or "replace").
----@param action "clear"|"replace"
+---@type table<string, string>  action -> past-tense verb for the notify message
+local VERB = { clear = "Removed", replace = "Replaced", unreplace = "Restored" }
+
+---Apply a buffer-mutating action ("clear", "replace", or "unreplace").
+---@param action "clear"|"replace"|"unreplace"
 ---@param t Emojis.Target
 ---@return nil
 function M.edit(action, t)
@@ -54,8 +57,10 @@ function M.edit(action, t)
   local new_lines, n
   if action == "clear" then
     new_lines, n = ops.clear(work)
-  else
+  elseif action == "replace" then
     new_lines, n = ops.replace(work, config.get().names)
+  else
+    new_lines, n = ops.unreplace(work, config.get().names)
   end
 
   if n == 0 then
@@ -70,8 +75,7 @@ function M.edit(action, t)
   else
     api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
   end
-  local verb = (action == "clear") and "Removed" or "Replaced"
-  notify.info(("%s %d emoji%s"):format(verb, n, n == 1 and "" or "s"))
+  notify.info(("%s %d emoji%s"):format(VERB[action], n, n == 1 and "" or "s"))
 end
 
 ---List emojis in scope into the quickfix list.

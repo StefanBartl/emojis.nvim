@@ -153,4 +153,47 @@ function M.replace(lines, names)
   return out, total
 end
 
+---Replace each `:name:` placeholder (or `:U+XXXX:` fallback) with its emoji —
+---the inverse of `replace()`. Unrecognized `:...:` tokens are left untouched.
+---@param lines string[]
+---@param names table<integer, string>  codepoint -> :name: (same map as replace())
+---@return string[] restored, integer count
+function M.unreplace(lines, names)
+  names = names or {}
+  local inv = {}
+  for cp, name in pairs(names) do
+    inv[name] = patterns.encode(cp)
+  end
+
+  local out, total = {}, 0
+  for li = 1, #lines do
+    local s = lines[li]
+    local pieces, last, pos = {}, 1, 1
+    while true do
+      local a, b, token = s:find(":([%w_+]+):", pos)
+      if not a then
+        break
+      end
+      local glyph = inv[":" .. token .. ":"]
+      if not glyph then
+        local hex = token:match("^U%+(%x+)$")
+        if hex then
+          glyph = patterns.encode(tonumber(hex, 16))
+        end
+      end
+      if glyph then
+        pieces[#pieces + 1] = s:sub(last, a - 1)
+        pieces[#pieces + 1] = glyph
+        total = total + 1
+        last = b + 1
+      end
+      pos = b + 1
+    end
+    pieces[#pieces + 1] = s:sub(last)
+    out[li] = table.concat(pieces)
+  end
+
+  return out, total
+end
+
 return M

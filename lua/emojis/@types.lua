@@ -10,11 +10,12 @@
 -- #####################################################################
 
 ---@alias Emojis.Action
----| '"clear"'   # Remove all emojis from scope (collapses surrounding spaces)
----| '"insert"'  # Open a picker and insert an emoji at the cursor
----| '"list"'    # Collect all emojis in scope into the quickfix list
----| '"count"'   # Count emojis in scope and report via notify
----| '"replace"' # Replace emojis with :name: placeholders
+---| '"clear"'      # Remove all emojis from scope (collapses surrounding spaces)
+---| '"insert"'     # Open a picker and insert an emoji at the cursor
+---| '"list"'       # Collect all emojis in scope into the quickfix list
+---| '"count"'      # Count emojis in scope and report via notify
+---| '"replace"'    # Replace emojis with :name: placeholders
+---| '"unreplace"'  # Replace :name:/:U+XXXX: placeholders back with emojis
 
 ---@alias Emojis.Scope
 ---| '"word"'    # Current line (the line holding the word under the cursor)

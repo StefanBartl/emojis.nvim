@@ -144,6 +144,11 @@ clear ~
 replace ~
   Replace each emoji with its `:name:` placeholder (or `:U+XXXX:` fallback).
 
+unreplace ~
+  Replace `:name:`/`:U+XXXX:` placeholders back with their emoji — the
+  inverse of |emojis-actions| `replace`. Unrecognized `:...:` tokens are left
+  untouched.
+
 list ~
   Collect every emoji in scope into the quickfix list and `:copen`.
 
@@ -189,7 +194,7 @@ emoji grapheme — counted once and replaced as one placeholder.
 `:Emojis` completes the action at the first argument and the scope at the
 second: >
 
-  :Emojis <Tab>          clear  insert  list  count  replace
+  :Emojis <Tab>          clear  insert  list  count  replace  unreplace
   :Emojis clear <Tab>    word  line  visual  %  cwd
 <
 
