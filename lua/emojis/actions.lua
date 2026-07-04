@@ -20,6 +20,19 @@ local function buf_ok(buf)
   return type(buf) == "number" and api.nvim_buf_is_valid(buf)
 end
 
+---When `t` carries a byte sub-range (the `word` scope), narrow `lines` (a
+---single-line array) to that substring. Returns the column offset to add
+---back onto any reported byte columns; 0 when no sub-range applies.
+---@param t Emojis.Target
+---@param lines string[]
+---@return string[] work, integer col_offset
+local function scoped(t, lines)
+  if t.c1 and t.c2 and #lines == 1 then
+    return { lines[1]:sub(t.c1, t.c2) }, t.c1 - 1
+  end
+  return lines, 0
+end
+
 ---Apply a buffer-mutating action ("clear" or "replace").
 ---@param action "clear"|"replace"
 ---@param t Emojis.Target
@@ -36,11 +49,13 @@ function M.edit(action, t)
     return
   end
 
+  local work = scoped(t, lines)
+
   local new_lines, n
   if action == "clear" then
-    new_lines, n = ops.clear(lines)
+    new_lines, n = ops.clear(work)
   else
-    new_lines, n = ops.replace(lines, config.get().names)
+    new_lines, n = ops.replace(work, config.get().names)
   end
 
   if n == 0 then
@@ -48,7 +63,13 @@ function M.edit(action, t)
     return
   end
 
-  api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
+  if t.c1 and t.c2 and #lines == 1 then
+    local full = lines[1]
+    local rebuilt = full:sub(1, t.c1 - 1) .. new_lines[1] .. full:sub(t.c2 + 1)
+    api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, { rebuilt })
+  else
+    api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
+  end
   local verb = (action == "clear") and "Removed" or "Replaced"
   notify.info(("%s %d emoji%s"):format(verb, n, n == 1 and "" or "s"))
 end
@@ -63,10 +84,16 @@ function M.list(t)
   end
 
   local lines = api.nvim_buf_get_lines(t.buf, t.l1, t.l2 + 1, false)
-  local entries = ops.list(lines, t.l1)
+  local work, col_offset = scoped(t, lines)
+  local entries = ops.list(work, t.l1)
   if #entries == 0 then
     notify.info("no emojis found in scope")
     return
+  end
+  if col_offset > 0 then
+    for i = 1, #entries do
+      entries[i].col = entries[i].col + col_offset
+    end
   end
 
   local name = fn.bufname(t.buf)
@@ -90,7 +117,8 @@ function M.count(t)
   end
 
   local lines = api.nvim_buf_get_lines(t.buf, t.l1, t.l2 + 1, false)
-  local n = ops.count(lines)
+  local work = scoped(t, lines)
+  local n = ops.count(work)
   local lc = t.l2 - t.l1 + 1
   if n == 0 then
     notify.info(("no emojis in %d line%s"):format(lc, lc == 1 and "" or "s"))

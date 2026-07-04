@@ -159,7 +159,10 @@ insert ~
 
 %       Whole current buffer (default).
 line    The current cursor line.
-word    The current line (the line holding the word under the cursor).
+word    The whitespace-delimited run of text containing the cursor byte
+        column — not the whole line. Errors if the cursor sits on
+        whitespace. Only actions operating on a single line
+        (clear/replace/list/count) narrow to this sub-range.
 visual  The lines of the last / current visual selection.
 cwd     All files under the working directory, searched asynchronously with
         ripgrep. Only `list` and `count` support this scope.

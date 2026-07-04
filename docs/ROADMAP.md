@@ -23,15 +23,16 @@
 
 ### Emoji-Abdeckung
 
-- **Vollständigere Unicode-Abdeckung** — derzeit drei Byte-Blöcke (U+1F000–1FFFF,
-  U+2600–27FF, U+2B00–2BFF). Ergänzen: Enclosed Alphanumeric Supplement
-  (U+1F100–1F1FF, inkl. Regional-Indicator-Flaggen), Dingbats-Lücken,
-  Supplemental Symbols. Tabellengetriebene Range-Liste statt fixer Patterns.
+- ~~**Vollständigere Unicode-Abdeckung**~~ — **erledigt.** Tabellengetriebene
+  Range-Liste (`core/patterns.lua`: `RANGES` + `range_pattern()`) statt fixer
+  Patterns; zusätzlich U+2300–23FF (Misc Technical: ⌚⏰⏳). Das
+  1F000–1FFFF-Band deckt Enclosed Alphanumeric Supplement (inkl.
+  Regional-Indicator-Flaggen) und Dingbats bereits vollständig ab.
 
-- **ZWJ-Sequenzen & Hautton-Modifikatoren** — zusammengesetzte Emojis
-  (👨‍👩‍👧, 👍🏽) als ein Graphem behandeln: Zero-Width-Joiner (U+200D) und
-  Fitzpatrick-Modifikatoren (U+1F3FB–1F3FF) in den Tokenizer aufnehmen. Betrifft
-  `count`/`clear`/`list` gleichermaßen (analog zur VS16-Logik).
+- ~~**ZWJ-Sequenzen & Hautton-Modifikatoren**~~ — **erledigt.** Zero-Width-Joiner
+  (U+200D)-Ketten (👨‍👩‍👧), Fitzpatrick-Modifikatoren (U+1F3FB–1F3FF, 👍🏽)
+  und gepaarte Regional-Indicator-Flaggen (🇩🇪) werden als je ein Graphem
+  behandelt — wirkt sich auf `count`/`clear`/`list`/`replace` gleichermaßen aus.
 
 ### Aktionen
 
@@ -46,8 +47,11 @@
 
 ### Scope / Suche
 
-- **Echter `word`-Scope** — aktuell identisch zu `line`. Nur das `<cword>` bzw.
-  die Cursor-Umgebung bearbeiten (relevant, sobald Emojis Teil von Wörtern sind).
+- ~~**Echter `word`-Scope**~~ — **erledigt.** `word` löst jetzt auf den
+  leerzeichenfreien Textabschnitt um die Cursor-Byte-Spalte auf
+  (`core/scope.lua`), nicht mehr auf die ganze Zeile. `Emojis.Target` trägt
+  dafür ein optionales `c1`/`c2`-Byte-Fenster, das `actions.lua` bei
+  clear/replace/list/count respektiert.
 
 - **`cwd`-Scope auch für `clear`/`replace`** — projektweites Entfernen/Ersetzen
   mit Bestätigungsdialog und optionalem Dry-Run (Quickfix-Vorschau zuerst).

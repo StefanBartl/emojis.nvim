@@ -44,4 +44,16 @@ return function(H)
     eq(out[1], "a :white_check_mark: b :U+1F389: c", "replace: known + fallback names")
     eq(n, 2, "replace: replaced count")
   end
+
+  -- clear: a ZWJ family sequence / flag pair counts and clears as one grapheme
+  do
+    local out, n = ops.clear({ " 👨‍👩‍👧 " })
+    eq(out[1], " ", "clear: ZWJ family sequence collapses like a single emoji")
+    eq(n, 1, "clear: ZWJ chain counted once")
+  end
+  do
+    local out, n = ops.clear({ " 🇩🇪 " })
+    eq(out[1], " ", "clear: paired flag collapses like a single emoji")
+    eq(n, 1, "clear: flag pair counted once")
+  end
 end
