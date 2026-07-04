@@ -17,16 +17,13 @@
 local sc = string.char
 
 -- 4-byte: main emoji block  U+1F000 – U+1FFFF
-local P_4BYTE = sc(240, 159) .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
-                             .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
+local P_4BYTE = sc(240, 159) .. "[" .. sc(128) .. "-" .. sc(191) .. "]" .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
 
 -- 3-byte: Misc Symbols (☀★♥⚠✅❌…)  U+2600 – U+27FF
-local P_3A = sc(226) .. "[" .. sc(152) .. "-" .. sc(159) .. "]"
-                     .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
+local P_3A = sc(226) .. "[" .. sc(152) .. "-" .. sc(159) .. "]" .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
 
 -- 3-byte: Misc Symbols + Arrows (⭐…)  U+2B00 – U+2BFF
-local P_3B = sc(226) .. "[" .. sc(172) .. "-" .. sc(175) .. "]"
-                     .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
+local P_3B = sc(226) .. "[" .. sc(172) .. "-" .. sc(175) .. "]" .. "[" .. sc(128) .. "-" .. sc(191) .. "]"
 
 -- Variation Selector-16  U+FE0F  (3 bytes: EF B8 8F)
 local VS16 = sc(239, 184, 143)
@@ -106,8 +103,7 @@ function M.codepoint(glyph)
   local b1 = glyph:byte(1) or 0
   if b1 >= 0xF0 and #glyph >= 4 then
     local b2, b3, b4 = glyph:byte(2), glyph:byte(3), glyph:byte(4)
-    return ((b1 - 0xF0) * 0x40000) + ((b2 - 0x80) * 0x1000)
-         + ((b3 - 0x80) * 0x40) + (b4 - 0x80)
+    return ((b1 - 0xF0) * 0x40000) + ((b2 - 0x80) * 0x1000) + ((b3 - 0x80) * 0x40) + (b4 - 0x80)
   elseif b1 >= 0xE0 and #glyph >= 3 then
     local b2, b3 = glyph:byte(2), glyph:byte(3)
     return ((b1 - 0xE0) * 0x1000) + ((b2 - 0x80) * 0x40) + (b3 - 0x80)

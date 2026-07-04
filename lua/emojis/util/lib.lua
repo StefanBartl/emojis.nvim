@@ -39,10 +39,18 @@ function M.notifier()
 
   local PREFIX = "[emojis] "
   _notifier = {
-    info  = function(msg) vim.notify(PREFIX .. msg, vim.log.levels.INFO) end,
-    warn  = function(msg) vim.notify(PREFIX .. msg, vim.log.levels.WARN) end,
-    error = function(msg) vim.notify(PREFIX .. msg, vim.log.levels.ERROR) end,
-    debug = function(msg) vim.notify(PREFIX .. msg, vim.log.levels.DEBUG) end,
+    info = function(msg)
+      vim.notify(PREFIX .. msg, vim.log.levels.INFO)
+    end,
+    warn = function(msg)
+      vim.notify(PREFIX .. msg, vim.log.levels.WARN)
+    end,
+    error = function(msg)
+      vim.notify(PREFIX .. msg, vim.log.levels.ERROR)
+    end,
+    debug = function(msg)
+      vim.notify(PREFIX .. msg, vim.log.levels.DEBUG)
+    end,
   }
   return _notifier
 end

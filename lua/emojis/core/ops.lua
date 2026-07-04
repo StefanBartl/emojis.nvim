@@ -46,15 +46,14 @@ function M._clear_line(s)
         end
       end
 
-      local prev  = s:sub(i - 1, i - 1)
+      local prev = s:sub(i - 1, i - 1)
       local nextc = s:sub(j, j)
       if prev == " " and nextc == " " then
-        run_start = j + 1  -- drop the emoji run AND one trailing space
+        run_start = j + 1 -- drop the emoji run AND one trailing space
       else
         run_start = j
       end
       i = run_start
-
     elseif s:sub(i, i + 2) == VS16 then
       -- Stray VS16 not attached to a base emoji: strip silently (no count).
       if i > run_start then
@@ -62,7 +61,6 @@ function M._clear_line(s)
       end
       run_start = i + 3
       i = run_start
-
     else
       i = i + 1
     end
@@ -109,7 +107,7 @@ function M.list(lines, line_offset)
       local sp = spans[k]
       entries[#entries + 1] = {
         lnum = li + line_offset,
-        col  = sp[1] - 1,
+        col = sp[1] - 1,
         text = line:sub(sp[1], sp[2]),
       }
     end
