@@ -71,8 +71,11 @@
 - **Telescope-/fzf-Picker** für `insert` — Live-Suche über einen größeren
   Emoji-Katalog statt fixer `vim.ui.select`-Liste; optionale Dependency.
 
-- **Größerer Standard-Emoji-Katalog mit Namen** — vollständige `:name:`-Map
-  (Shortcode-Tabelle), für `replace` und einen Such-Picker gemeinsam genutzt.
+- ~~**Größerer Standard-Emoji-Katalog mit Namen**~~ — **erledigt.**
+  `config/DEFAULTS.lua`: ein `CATALOG` aus 60+ `{ glyph, label }`-Einträgen
+  speist sowohl `picks` (Insert-Picker) als auch `names` (`replace`/
+  `unreplace`) — der Codepoint für `names` wird aus dem Glyph selbst dekodiert
+  (`patterns.codepoint`), nicht von Hand eingetragen.
 
 - **Highlight-Vorschau** — vor `clear`/`replace` die betroffenen Emojis kurz
   hervorheben (Extmarks), für visuelles Feedback.

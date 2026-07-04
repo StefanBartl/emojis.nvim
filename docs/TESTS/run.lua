@@ -17,6 +17,7 @@ local specs = {
   "patterns_spec.lua",
   "ops_spec.lua",
   "scope_spec.lua",
+  "config_spec.lua",
   "commands_spec.lua",
 }
 

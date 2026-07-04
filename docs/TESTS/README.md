@@ -20,9 +20,10 @@ The runner prints one line per spec and exits non-zero on the first failure
 | ------------------- | --------------------------------------------------------------- |
 | `harness.lua`       | Shared assertions (`eq`, `ok`) and a `scratch(ft)` buffer helper. |
 | `patterns_spec.lua` | Tokenizer: base emoji matching, VS16 grapheme handling, spans.   |
-| `ops_spec.lua`      | `clear`/`count`/`list`/`replace` on string arrays, space-collapse. |
-| `scope_spec.lua`    | Scope resolution: `%`, `line`, `visual`, range override, `cwd`.  |
-| `commands_spec.lua` | `:Emojis` exists after setup; `keymaps.preset` gates the preset keys. |
+| `ops_spec.lua`      | `clear`/`replace`/`unreplace`/`wrap`/`count`/`list` on string arrays, space-collapse. |
+| `scope_spec.lua`    | Scope resolution: `%`, `line`, `word`, `visual`, range override, `cwd`. |
+| `config_spec.lua`   | DEFAULTS catalog: `picks`/`names` stay in sync, no codepoint collisions. |
+| `commands_spec.lua` | `:Emojis` actions/scopes; `keymaps.preset` gates the preset keys.  |
 | `run.lua`           | Runner: loads every `*_spec.lua`, reports results, sets exit code. |
 
 ## Adding a spec
