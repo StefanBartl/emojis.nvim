@@ -45,6 +45,21 @@ return function(H)
     eq(n, 2, "replace: replaced count")
   end
 
+  -- unreplace: inverse of replace, including the :U+XXXX: fallback form
+  do
+    local out, n = ops.unreplace({ "a :white_check_mark: b :U+1F389: c :unknown_token:" }, { [0x2705] = ":white_check_mark:" })
+    eq(out[1], "a ✅ b 🎉 c :unknown_token:", "unreplace: known name + fallback restored, unknown left alone")
+    eq(n, 2, "unreplace: restored count")
+  end
+  do
+    -- round-trip: replace() then unreplace() restores the original text
+    local names = { [0x2705] = ":white_check_mark:" }
+    local replaced = ops.replace({ "a ✅ b 🎉 c" }, names)
+    local restored, n = ops.unreplace(replaced, names)
+    eq(restored[1], "a ✅ b 🎉 c", "unreplace: round-trips with replace")
+    eq(n, 2, "unreplace: round-trip count")
+  end
+
   -- clear: a ZWJ family sequence / flag pair counts and clears as one grapheme
   do
     local out, n = ops.clear({ " 👨‍👩‍👧 " })

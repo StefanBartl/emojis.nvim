@@ -23,6 +23,7 @@ Ohne Argumente: `:Emojis` → `:Emojis clear %` (entfernt alle Emojis im Buffer)
 |---|---|
 | `clear` | Entfernt alle Emojis im Scope (Standard) |
 | `replace` | Ersetzt Emojis durch `:name:`-Platzhalter |
+| `unreplace` | Ersetzt `:name:`/`:U+XXXX:`-Platzhalter zurück durch Emojis |
 | `list` | Sammelt alle Emojis im Scope in die Quickfix-Liste |
 | `count` | Zählt die Emojis im Scope und meldet das Ergebnis |
 | `insert` | Öffnet einen Picker am Cursor zum Einfügen |
@@ -149,6 +150,7 @@ Alle Felder sind optional und werden über die Defaults gemerged.
 :Emojis clear line       " nur die aktuelle Zeile
 :'<,'>Emojis clear       " markierten Block säubern (Range schlägt Scope)
 :Emojis replace %        " Emojis -> :name: im ganzen Buffer
+:Emojis unreplace %      " :name: -> Emojis im ganzen Buffer
 :Emojis list %           " Emojis des Buffers in die Quickfix-Liste
 :Emojis count cwd        " projektweit zählen (async, rg)
 :Emojis list cwd         " projektweit in die Quickfix-Liste

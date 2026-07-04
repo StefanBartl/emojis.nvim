@@ -36,8 +36,10 @@
 
 ### Aktionen
 
-- **`replace` rückwärts** — `:Emojis unreplace` wandelt `:name:`-Platzhalter
-  zurück in Emojis (inverse Map aus `config.names`).
+- ~~**`replace` rückwärts**~~ — **erledigt.** `:Emojis unreplace` wandelt
+  `:name:`/`:U+XXXX:`-Platzhalter zurück in Emojis (inverse Map aus
+  `config.names`, `core/ops.lua` `unreplace()`). Unbekannte `:...:`-Tokens
+  bleiben unangetastet.
 
 - **`Emojis first` / `Emojis next`** — zum nächsten Emoji im Buffer springen
   (Cursor-Navigation statt Quickfix).

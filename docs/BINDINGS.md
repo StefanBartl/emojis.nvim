@@ -25,9 +25,9 @@ Always defined, regardless of `keymaps.preset`.
 
 | name | args | range | desc |
 | --- | --- | --- | --- |
-| `:Emojis` | `[action] [scope]` | yes | clear / replace / list / count / insert an emoji scope (see `doc/emojis.txt`) |
+| `:Emojis` | `[action] [scope]` | yes | clear / replace / unreplace / list / count / insert an emoji scope (see `doc/emojis.txt`) |
 
-Tab completion: first argument completes `clear insert list count replace`,
+Tab completion: first argument completes `clear insert list count replace unreplace`,
 second argument completes `word line visual % cwd`.
 
 ## Autocommands
