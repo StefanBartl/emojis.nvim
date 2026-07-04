@@ -12,7 +12,10 @@
 - Pure, testable core (`patterns`, `ops`) separated from API/UI
 - `config/DEFAULTS.lua` config system, idempotent `setup()`
 - `:checkhealth emojis`
-- No lib.nvim dependency
+- No hard lib.nvim dependency (optional soft bridge for notify/map)
+- `bindings/` module (usrcmds/keymaps/autocmds) with opt-in preset keymaps
+  (`keymaps.preset`) and which-key group label
+- `docs/BINDINGS.md` cheatsheet, `docs/TESTS/` headless spec suite
 
 ---
 
@@ -62,8 +65,6 @@
 
 - **Größerer Standard-Emoji-Katalog mit Namen** — vollständige `:name:`-Map
   (Shortcode-Tabelle), für `replace` und einen Such-Picker gemeinsam genutzt.
-
-- **which-key-Labels** für vorgeschlagene Keymaps, falls which-key vorhanden.
 
 - **Highlight-Vorschau** — vor `clear`/`replace` die betroffenen Emojis kurz
   hervorheben (Extmarks), für visuelles Feedback.

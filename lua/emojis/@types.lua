@@ -52,11 +52,15 @@
 ---@field cmd        string    External search binary (default "rg")
 ---@field extra_args string[]  Extra args appended before the pattern
 
+---@class Emojis.Config.Keymaps
+---@field preset boolean  Bind the opt-in preset keymaps (default false)
+
 ---@class Emojis.Config
 ---@field default_scope Emojis.Scope                      Scope used when none is given
 ---@field command       string                            Name of the user command
 ---@field picks         Emojis.Config.PickEntry[]         Entries for the insert picker
 ---@field names         table<integer, string>            Codepoint -> :name: for replace
 ---@field search        Emojis.Config.Search              cwd search configuration
+---@field keymaps       Emojis.Config.Keymaps              Opt-in preset keymaps
 
 return {}

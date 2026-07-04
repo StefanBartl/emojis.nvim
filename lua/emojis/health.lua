@@ -37,6 +37,18 @@ function M.check()
   else
     vim.health.warn("plugin guard not set — call require('emojis').setup()")
   end
+
+  if require("emojis.bindings.which_key").available() then
+    vim.health.ok("which-key found (preset keymaps get labeled group)")
+  else
+    vim.health.info("which-key not installed (optional; only labels the preset's <leader>e group)")
+  end
+
+  if require("emojis.config").get().keymaps.preset then
+    vim.health.ok("keymaps.preset enabled (<C-e>, <leader>ec, <leader>el bound)")
+  else
+    vim.health.info("keymaps.preset disabled (default) — set keymaps.preset = true to opt in")
+  end
 end
 
 return M
