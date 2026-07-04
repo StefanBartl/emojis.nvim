@@ -1,4 +1,4 @@
--- docs/TESTS/scope_spec.lua — scope resolution: %, line, visual, range, cwd.
+-- docs/TESTS/scope_spec.lua — scope resolution: %, line, word, visual, range, cwd.
 ---@diagnostic disable: need-check-nil, param-type-mismatch
 
 return function(H)
@@ -50,5 +50,22 @@ return function(H)
     local t, err = scope_m.resolve("bogus", 0, 0, 0)
     eq(t, nil, "unknown scope: no target")
     eq(err, "unknown scope: bogus", "unknown scope: error message")
+  end
+
+  -- "word": whitespace-delimited run around the cursor byte column
+  -- (uses its own buffer; run last so it doesn't disturb the 3-line fixture above)
+  do
+    local wbuf = H.scratch()
+    vim.api.nvim_buf_set_lines(wbuf, 0, -1, false, { "hello world foo" })
+    vim.api.nvim_win_set_cursor(0, { 1, 8 }) -- inside "world" (0-based col 6-10)
+    local t = scope_m.resolve("word", 0, 0, 0)
+    eq(t.l1, 0, "word: cursor line")
+    eq(t.c1, 7, "word: start column")
+    eq(t.c2, 11, "word: end column")
+
+    vim.api.nvim_win_set_cursor(0, { 1, 5 }) -- the space between "hello" and "world"
+    local t2, err = scope_m.resolve("word", 0, 0, 0)
+    eq(t2, nil, "word: no target on whitespace")
+    eq(err, "cursor is not on a word", "word: whitespace error message")
   end
 end

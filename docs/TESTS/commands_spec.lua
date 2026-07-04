@@ -21,4 +21,14 @@ return function(H)
   local mapping = vim.fn.maparg("<C-e>", "n")
   eq(mapping ~= "", true, "preset on: <C-e> bound")
   eq(cfg.keymaps.preset, true, "config reflects keymaps.preset = true")
+
+  -- "word" scope only clears the whitespace-delimited token under the cursor
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "keep 🚀done here" })
+    vim.api.nvim_win_set_cursor(0, { 1, 8 }) -- inside "🚀done"
+    vim.cmd("Emojis clear word")
+    local line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1]
+    eq(line, "keep done here", "word scope: only the cursor's token is cleared")
+  end
 end

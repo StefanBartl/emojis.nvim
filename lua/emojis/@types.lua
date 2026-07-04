@@ -26,9 +26,13 @@
 ---@class Emojis.Target
 --- A resolved scope: a buffer and an inclusive 0-based line range.
 --- `buf == -1` is the sentinel for the cwd (whole-project) scope.
+--- `c1`/`c2` (1-based inclusive byte columns, `l1 == l2` only) restrict the
+--- scope to a substring of that single line — set by the `word` scope.
 ---@field buf integer
----@field l1  integer  First line, 0-based inclusive
----@field l2  integer  Last line, 0-based inclusive
+---@field l1  integer      First line, 0-based inclusive
+---@field l2  integer      Last line, 0-based inclusive
+---@field c1  integer|nil  First byte column, 1-based inclusive
+---@field c2  integer|nil  Last byte column, 1-based inclusive
 
 ---@class Emojis.Span
 --- One emoji grapheme located inside a line (1-based byte offsets).

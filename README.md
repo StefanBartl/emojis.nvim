@@ -31,7 +31,7 @@ Ohne Argumente: `:Emojis` → `:Emojis clear %` (entfernt alle Emojis im Buffer)
 |---|---|
 | `%` | Gesamter aktueller Buffer (Standard) |
 | `line` | Aktuelle Cursor-Zeile |
-| `word` | Aktuelle Zeile (Wort unter dem Cursor) |
+| `word` | Zusammenhängender, leerzeichenfreier Textabschnitt unter dem Cursor |
 | `visual` | Letzte / aktuelle visuelle Auswahl |
 | `cwd` | Projektweit via ripgrep (asynchron; nur `list`/`count`) |
 
