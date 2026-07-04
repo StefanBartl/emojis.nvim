@@ -108,11 +108,13 @@ command ~
   Name of the registered user command. Default: `"Emojis"`.
 
 picks ~
-  Array of `{ glyph, label }` entries shown by `:Emojis insert`.
+  Array of `{ glyph, label }` entries shown by `:Emojis insert`. The default
+  60+-entry catalog also derives `names` (one shared label per glyph, see
+  `config/DEFAULTS.lua`), so overriding `picks` alone does not affect `names`.
 
 names ~
-  Map of Unicode codepoint to replacement text used by `:Emojis replace`.
-  Unknown emojis fall back to `:U+XXXX:`.
+  Map of Unicode codepoint to replacement text used by `:Emojis
+  replace`/`unreplace`. Unknown emojis fall back to `:U+XXXX:`.
 
 search.cmd ~
   External search binary for the cwd scope. Default: `"rg"`.

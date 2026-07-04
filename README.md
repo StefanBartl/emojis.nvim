@@ -117,12 +117,14 @@ require("emojis").setup({
   default_scope = "%",        -- Scope, wenn keiner angegeben wird
   command       = "Emojis",   -- Name des User-Commands
 
-  -- Einträge des Insert-Pickers: { glyph, label }
+  -- Einträge des Insert-Pickers: { glyph, label }. Beide (picks & names)
+  -- werden intern aus demselben Katalog abgeleitet (60+ Einträge) — ein
+  -- Label speist sowohl den Picker als auch die replace/unreplace-Map.
   picks = {
-    { "✅", "check" }, { "❌", "cross" }, { "⚠️", "warning" }, --[[ … ]]
+    { "✅", "white_check_mark" }, { "❌", "x" }, { "⚠️", "warning" }, --[[ … ]]
   },
 
-  -- Codepoint -> :name: für die replace-Aktion
+  -- Codepoint -> :name: für replace/unreplace (aus `picks` abgeleitet)
   names = {
     [0x2705] = ":white_check_mark:",
     [0x26A0] = ":warning:",
