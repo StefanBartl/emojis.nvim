@@ -6,10 +6,10 @@
 --- the target was resolved earlier and handles can go stale.
 
 local api = vim.api
-local fn  = vim.fn
+local fn = vim.fn
 
 local notify = require("emojis.util.notify")
-local ops    = require("emojis.core.ops")
+local ops = require("emojis.core.ops")
 local config = require("emojis.config")
 
 local M = {}
@@ -90,13 +90,12 @@ function M.count(t)
   end
 
   local lines = api.nvim_buf_get_lines(t.buf, t.l1, t.l2 + 1, false)
-  local n  = ops.count(lines)
+  local n = ops.count(lines)
   local lc = t.l2 - t.l1 + 1
   if n == 0 then
     notify.info(("no emojis in %d line%s"):format(lc, lc == 1 and "" or "s"))
   else
-    notify.info(("Found %d emoji%s in %d line%s"):format(
-      n, n == 1 and "" or "s", lc, lc == 1 and "" or "s"))
+    notify.info(("Found %d emoji%s in %d line%s"):format(n, n == 1 and "" or "s", lc, lc == 1 and "" or "s"))
   end
 end
 

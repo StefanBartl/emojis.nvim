@@ -49,8 +49,7 @@ function M.insert()
     local line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1] or ""
     col = math.min(col, #line)
 
-    api.nvim_buf_set_lines(buf, row - 1, row, false,
-      { line:sub(1, col) .. icon .. line:sub(col + 1) })
+    api.nvim_buf_set_lines(buf, row - 1, row, false, { line:sub(1, col) .. icon .. line:sub(col + 1) })
     pcall(api.nvim_win_set_cursor, win, { row, col + #icon })
   end)
 end

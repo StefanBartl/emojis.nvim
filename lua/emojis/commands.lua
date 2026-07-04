@@ -6,8 +6,8 @@
 
 local api = vim.api
 
-local notify  = require("emojis.util.notify")
-local config  = require("emojis.config")
+local notify = require("emojis.util.notify")
+local config = require("emojis.config")
 local scope_m = require("emojis.core.scope")
 local actions = require("emojis.actions")
 
@@ -24,7 +24,9 @@ local SCOPES = { "word", "line", "visual", "%", "cwd" }
 ---@return boolean
 local function has(list, v)
   for i = 1, #list do
-    if list[i] == v then return true end
+    if list[i] == v then
+      return true
+    end
   end
   return false
 end
@@ -35,7 +37,7 @@ end
 local function execute(cmd_args)
   local default_scope = config.get().default_scope
   local action = (cmd_args.fargs[1] or "clear"):lower()
-  local scope  = (cmd_args.fargs[2] or default_scope):lower()
+  local scope = (cmd_args.fargs[2] or default_scope):lower()
 
   if not has(ACTIONS, action) then
     notify.error(("unknown action %q. Valid: %s"):format(action, table.concat(ACTIONS, ", ")))
@@ -79,8 +81,8 @@ end
 local function complete(_, cmd_line, _)
   local tokens = vim.split(vim.trim(cmd_line), "%s+", { trimempty = true })
   local trailing = cmd_line:sub(-1) == " "
-  local n = #tokens - 1                       -- args after the command name
-  local arg = trailing and (n + 1) or n       -- which arg is being completed
+  local n = #tokens - 1 -- args after the command name
+  local arg = trailing and (n + 1) or n -- which arg is being completed
 
   local cands = (arg <= 1) and ACTIONS or (arg == 2 and SCOPES or {})
   local partial = (not trailing and tokens[#tokens]) or ""

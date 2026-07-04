@@ -5,7 +5,7 @@
 --- of error reporting. Line numbers in the result are 0-based and inclusive.
 
 local api = vim.api
-local fn  = vim.fn
+local fn = vim.fn
 
 local M = {}
 
@@ -19,7 +19,7 @@ function M.resolve(scope, range, line1, line2)
   if not api.nvim_buf_is_valid(buf) then
     return nil, "current buffer is not valid"
   end
-  local last = api.nvim_buf_line_count(buf)  -- 1-based count
+  local last = api.nvim_buf_line_count(buf) -- 1-based count
 
   -- An explicit Vim range (:'<,'>Emojis, :10,20Emojis) always wins.
   if range > 0 then
@@ -30,16 +30,14 @@ function M.resolve(scope, range, line1, line2)
 
   if scope == "%" then
     return { buf = buf, l1 = 0, l2 = last - 1 }, nil
-
   elseif scope == "line" or scope == "word" then
     local win = api.nvim_get_current_win()
     if not api.nvim_win_is_valid(win) then
       return nil, "current window is not valid"
     end
-    local cur = api.nvim_win_get_cursor(win)[1]  -- 1-based
+    local cur = api.nvim_win_get_cursor(win)[1] -- 1-based
     local l = math.min(math.max(1, cur), last) - 1
     return { buf = buf, l1 = l, l2 = l }, nil
-
   elseif scope == "visual" then
     local vs = fn.getpos("'<")
     local ve = fn.getpos("'>")
@@ -50,10 +48,8 @@ function M.resolve(scope, range, line1, line2)
     local l1 = math.max(0, math.min(a, b) - 1)
     local l2 = math.min(last - 1, math.max(a, b) - 1)
     return { buf = buf, l1 = l1, l2 = l2 }, nil
-
   elseif scope == "cwd" then
-    return { buf = -1, l1 = 0, l2 = 0 }, nil  -- sentinel for project scope
-
+    return { buf = -1, l1 = 0, l2 = 0 }, nil -- sentinel for project scope
   else
     return nil, "unknown scope: " .. tostring(scope)
   end

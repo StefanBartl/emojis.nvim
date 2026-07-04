@@ -19,7 +19,9 @@ local VALID_SCOPES = { "word", "line", "visual", "%", "cwd" }
 ---@return boolean
 local function is_one_of(value, allowed)
   for i = 1, #allowed do
-    if allowed[i] == value then return true end
+    if allowed[i] == value then
+      return true
+    end
   end
   return false
 end
@@ -35,10 +37,7 @@ function M.setup(user_opts)
   local merged = vim.tbl_deep_extend("force", vim.deepcopy(DEFAULTS), user_opts)
 
   if not is_one_of(merged.default_scope, VALID_SCOPES) then
-    vim.notify(
-      ("[emojis] invalid default_scope %q, using '%%'"):format(tostring(merged.default_scope)),
-      vim.log.levels.WARN
-    )
+    vim.notify(("[emojis] invalid default_scope %q, using '%%'"):format(tostring(merged.default_scope)), vim.log.levels.WARN)
     merged.default_scope = "%"
   end
 

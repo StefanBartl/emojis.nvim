@@ -27,8 +27,7 @@ local function finish(action, lines, cwd)
   end
 
   if action == "count" then
-    notify.info(("Found %d match%s under %s"):format(
-      #lines, #lines == 1 and "" or "es", fn.fnamemodify(cwd, ":~")))
+    notify.info(("Found %d match%s under %s"):format(#lines, #lines == 1 and "" or "es", fn.fnamemodify(cwd, ":~")))
     return
   end
 
@@ -91,27 +90,49 @@ function M.run(action)
   end
 
   if type(vim.system) == "function" then
-    vim.system(cmd, {
-      text = true,
-      stdout = function(_, d)
-        if not d or d == "" then return end
-        for _, l in ipairs(vim.split(d, "\n", { plain = true })) do
-          if l ~= "" then out[#out + 1] = l end
-        end
-      end,
-      stderr = function(_, d)
-        if d and d ~= "" then err_buf[#err_buf + 1] = d end
-      end,
-    }, vim.schedule_wrap(function(o) on_done(o.code) end))
+    vim.system(
+      cmd,
+      {
+        text = true,
+        stdout = function(_, d)
+          if not d or d == "" then
+            return
+          end
+          for _, l in ipairs(vim.split(d, "\n", { plain = true })) do
+            if l ~= "" then
+              out[#out + 1] = l
+            end
+          end
+        end,
+        stderr = function(_, d)
+          if d and d ~= "" then
+            err_buf[#err_buf + 1] = d
+          end
+        end,
+      },
+      vim.schedule_wrap(function(o)
+        on_done(o.code)
+      end)
+    )
   else
     fn.jobstart(cmd, {
       on_stdout = function(_, d)
-        for _, l in ipairs(d or {}) do if l ~= "" then out[#out + 1] = l end end
+        for _, l in ipairs(d or {}) do
+          if l ~= "" then
+            out[#out + 1] = l
+          end
+        end
       end,
       on_stderr = function(_, d)
-        for _, l in ipairs(d or {}) do if l ~= "" then err_buf[#err_buf + 1] = l end end
+        for _, l in ipairs(d or {}) do
+          if l ~= "" then
+            err_buf[#err_buf + 1] = l
+          end
+        end
       end,
-      on_exit = vim.schedule_wrap(function(_, c) on_done(c) end),
+      on_exit = vim.schedule_wrap(function(_, c)
+        on_done(c)
+      end),
     })
   end
 end
