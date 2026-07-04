@@ -1,6 +1,8 @@
 # emojis.nvim — Roadmap
 
-## Implemented (v0.1)
+## Implemented (v0.2)
+
+### Core (v0.1)
 
 - `:Emojis [action] [scope]` — clear / replace / list / count / insert
 - Scopes: `%`, `line`, `word`, `visual`, `cwd` (async ripgrep)
@@ -17,75 +19,60 @@
   (`keymaps.preset`) and which-key group label
 - `docs/BINDINGS.md` cheatsheet, `docs/TESTS/` headless spec suite
 
----
+### Emoji coverage (v0.2)
 
-## Geplante Features
+- **Table-driven Unicode ranges** — `core/patterns.lua` `RANGES` +
+  `range_pattern()` replace the three hand-derived byte patterns, adding
+  U+2300–23FF (Misc Technical: ⌚⏰⏳). The 1F000–1FFFF band already covers
+  Enclosed Alphanumeric Supplement (incl. Regional Indicator flag letters)
+  and Dingbats in full.
+- **ZWJ sequences, skin-tone modifiers, flag pairs** — Zero-Width-Joiner
+  (U+200D) chains (👨‍👩‍👧), Fitzpatrick modifiers (U+1F3FB–1F3FF, 👍🏽), and
+  paired Regional Indicator flags (🇩🇪) are each treated as one grapheme
+  across `count`/`clear`/`list`/`replace`.
 
-### Emoji-Abdeckung
+### Actions (v0.2)
 
-- ~~**Vollständigere Unicode-Abdeckung**~~ — **erledigt.** Tabellengetriebene
-  Range-Liste (`core/patterns.lua`: `RANGES` + `range_pattern()`) statt fixer
-  Patterns; zusätzlich U+2300–23FF (Misc Technical: ⌚⏰⏳). Das
-  1F000–1FFFF-Band deckt Enclosed Alphanumeric Supplement (inkl.
-  Regional-Indicator-Flaggen) und Dingbats bereits vollständig ab.
+- **`:Emojis unreplace`** — inverse of `replace`: restores `:name:`/
+  `:U+XXXX:` placeholders back to emoji (`core/ops.lua` `unreplace()`,
+  inverse map from `config.names`). Unrecognized `:...:` tokens are left
+  untouched.
+- **`:Emojis first` / `:Emojis next`** — cursor navigation to the
+  first/next emoji in the buffer (`lua/emojis/nav.lua`); `next` wraps to the
+  top.
+- **`:Emojis wrap`** — surrounds each emoji with `config.wrap.prefix`/
+  `suffix` (default `[[`/`]]`) without removing it (`core/ops.lua` `wrap()`,
+  shares `map_spans()` with `replace()`).
 
-- ~~**ZWJ-Sequenzen & Hautton-Modifikatoren**~~ — **erledigt.** Zero-Width-Joiner
-  (U+200D)-Ketten (👨‍👩‍👧), Fitzpatrick-Modifikatoren (U+1F3FB–1F3FF, 👍🏽)
-  und gepaarte Regional-Indicator-Flaggen (🇩🇪) werden als je ein Graphem
-  behandelt — wirkt sich auf `count`/`clear`/`list`/`replace` gleichermaßen aus.
+### Scope / search (v0.2)
 
-### Aktionen
+- **Real `word` scope** — resolves to the whitespace-delimited byte run
+  under the cursor (`core/scope.lua`), not the whole line. `Emojis.Target`
+  carries an optional `c1`/`c2` byte window that `actions.lua` respects for
+  clear/replace/list/count.
+- **`cwd` scope for `clear`/`replace`** — `search.lua` `apply_across_files()`
+  asks for confirmation before mutating any file (default: cancel);
+  `:Emojis list cwd` is the recommended dry-run preview. Buffers with
+  unsaved changes are skipped rather than clobbered.
+- **Glob/filetype filter for `cwd`** — arguments after the `cwd` keyword
+  (e.g. `:Emojis count cwd *.md`) are passed to ripgrep as `--glob`
+  (`search.build_cmd()`).
+- **Configurable gitignore respect** — `config.search.no_ignore = true`
+  appends `--no-ignore`.
 
-- ~~**`replace` rückwärts**~~ — **erledigt.** `:Emojis unreplace` wandelt
-  `:name:`/`:U+XXXX:`-Platzhalter zurück in Emojis (inverse Map aus
-  `config.names`, `core/ops.lua` `unreplace()`). Unbekannte `:...:`-Tokens
-  bleiben unangetastet.
+### UX / integration (v0.2)
 
-- ~~**`Emojis first` / `Emojis next`**~~ — **erledigt.** `lua/emojis/nav.lua`:
-  springt zum ersten/nächsten Emoji im Buffer (Cursor-Navigation statt
-  Quickfix), `next` wrapt am Bufferende zum Anfang.
-
-- ~~**`Emojis wrap`**~~ — **erledigt.** `config.wrap.prefix`/`suffix` (Default
-  `[[`/`]]`) umgibt jedes Emoji, ohne es zu entfernen (`core/ops.lua`
-  `wrap()`, teilt sich `map_spans()` mit `replace()`).
-
-### Scope / Suche
-
-- ~~**Echter `word`-Scope**~~ — **erledigt.** `word` löst jetzt auf den
-  leerzeichenfreien Textabschnitt um die Cursor-Byte-Spalte auf
-  (`core/scope.lua`), nicht mehr auf die ganze Zeile. `Emojis.Target` trägt
-  dafür ein optionales `c1`/`c2`-Byte-Fenster, das `actions.lua` bei
-  clear/replace/list/count respektiert.
-
-- ~~**`cwd`-Scope auch für `clear`/`replace`**~~ — **erledigt.**
-  `search.lua` `apply_across_files()`: Bestätigungsdialog vor jeder Änderung
-  (Standard: Abbruch), `:Emojis list cwd` dient als Dry-Run-Vorschau. Bereits
-  geladene Buffer mit ungespeicherten Änderungen werden übersprungen statt
-  überschrieben.
-
-- ~~**Glob-/Filetype-Filter für `cwd`**~~ — **erledigt.** Argumente nach dem
-  `cwd`-Schlüsselwort (z. B. `:Emojis count cwd *.md`) werden als `--glob`
-  an ripgrep durchgereicht (`search.build_cmd()`).
-
-- ~~**Gitignore-Respekt konfigurierbar**~~ — **erledigt.**
-  `config.search.no_ignore = true` hängt `--no-ignore` an.
-
-### UX / Integration
-
-- ~~**Telescope-/fzf-Picker**~~ — **erledigt.** `config.picker.engine`
-  (Standard `"auto"`): probiert telescope.nvim, dann fzf-lua (beide optional,
-  `picker.lua` `try_telescope()`/`try_fzf_lua()`), fällt sonst auf
-  `vim.ui.select` zurück.
-
-- ~~**Größerer Standard-Emoji-Katalog mit Namen**~~ — **erledigt.**
-  `config/DEFAULTS.lua`: ein `CATALOG` aus 60+ `{ glyph, label }`-Einträgen
-  speist sowohl `picks` (Insert-Picker) als auch `names` (`replace`/
-  `unreplace`) — der Codepoint für `names` wird aus dem Glyph selbst dekodiert
-  (`patterns.codepoint`), nicht von Hand eingetragen.
-
-- ~~**Highlight-Vorschau**~~ — **erledigt.** `config.preview.enable = true`
-  (Standard `false`) hebt die betroffenen Emojis vor `clear`/`replace` kurz
-  hervor (Extmarks, `preview.hl_group`, `preview.duration_ms`,
+- **Telescope/fzf-lua picker** — `config.picker.engine` (default `"auto"`)
+  tries telescope.nvim, then fzf-lua (both optional soft dependencies,
+  `picker.lua` `try_telescope()`/`try_fzf_lua()`), falling back to
+  `vim.ui.select`.
+- **Larger default emoji catalog with names** — `config/DEFAULTS.lua`
+  derives both `picks` (insert picker) and `names` (`replace`/`unreplace`)
+  from one 60+-entry `CATALOG`; the `names` codepoint is decoded from the
+  glyph itself (`patterns.codepoint`), not hand-typed.
+- **Highlight preview** — `config.preview.enable = true` (default `false`)
+  briefly highlights the affected emojis before `clear`/`replace` mutates
+  the buffer (extmarks, `preview.hl_group`, `preview.duration_ms`,
   `actions.lua` `preview_spans()`).
 
 ---
