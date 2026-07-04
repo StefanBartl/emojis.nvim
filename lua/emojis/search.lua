@@ -1,22 +1,114 @@
 ---@module 'emojis.search'
 ---@brief Async project-wide emoji search (cwd scope) via ripgrep.
 ---@description
---- Uses `vim.system` when available and falls back to `jobstart`. Results feed
---- either a notify count or the quickfix list. The ripgrep Unicode codepoint
---- range mirrors the byte patterns used by `core.patterns`.
+--- Uses `vim.system` when available and falls back to `jobstart`. `list`/
+--- `count` feed the quickfix list / a notify count. `clear`/`replace` first
+--- collect the same matches, then ask for confirmation (`:Emojis list cwd`
+--- is the dry-run preview for these) before mutating every matched file.
+--- Buffers with unsaved changes are skipped rather than clobbered. The
+--- ripgrep Unicode codepoint range mirrors the byte patterns used by
+--- `core.patterns`.
 
+local api = vim.api
 local fn = vim.fn
 
 local notify = require("emojis.util.notify")
 local config = require("emojis.config")
+local ops = require("emojis.core.ops")
 
 local M = {}
 
 -- rg Unicode codepoint range — works without --pcre2.
 local RG_PATTERN = [=[[\x{1F000}-\x{1FFFF}\x{2600}-\x{27FF}\x{2B00}-\x{2BFF}]]=]
 
----Turn collected `file:line:text` lines into the count/quickfix result.
----@param action "list"|"count"
+---@type table<string, boolean>  Actions the cwd scope supports.
+local SUPPORTED = { list = true, count = true, clear = true, replace = true }
+
+---Distinct file paths in `file:line:text` order of first appearance.
+---@param lines string[]
+---@return string[]
+local function files_of(lines)
+  local files, seen = {}, {}
+  for i = 1, #lines do
+    local file = lines[i]:match("^(.+):%d+:")
+    if file and not seen[file] then
+      seen[file] = true
+      files[#files + 1] = file
+    end
+  end
+  return files
+end
+
+---Apply `clear`/`replace` to every matched file, after confirmation.
+---@param action "clear"|"replace"
+---@param match_lines string[]  raw rg `file:line:text` output
+---@param confirm_fn fun(msg: string, choices: string, default: integer): integer
+---@return nil
+function M.apply_across_files(action, match_lines, confirm_fn)
+  local files = files_of(match_lines)
+  if #files == 0 then
+    notify.warn("search output could not be parsed")
+    return
+  end
+
+  local verb = (action == "clear") and "Clear" or "Replace"
+  local choice = confirm_fn(("%s emojis across %d file(s)? (see :Emojis list cwd first)"):format(verb, #files), "&Yes\n&No", 2)
+  if choice ~= 1 then
+    notify.info("cancelled")
+    return
+  end
+
+  local names = config.get().names
+  local total_n, total_files, skipped = 0, 0, 0
+
+  for i = 1, #files do
+    local path = files[i]
+    local bufnr = fn.bufnr(path)
+    local loaded = bufnr ~= -1 and api.nvim_buf_is_loaded(bufnr)
+
+    if loaded and vim.bo[bufnr].modified then
+      skipped = skipped + 1
+    else
+      local lines = loaded and api.nvim_buf_get_lines(bufnr, 0, -1, false) or fn.readfile(path)
+
+      local new_lines, n
+      if action == "clear" then
+        new_lines, n = ops.clear(lines)
+      else
+        new_lines, n = ops.replace(lines, names)
+      end
+
+      if n > 0 then
+        if loaded then
+          api.nvim_buf_set_lines(bufnr, 0, -1, false, new_lines)
+          api.nvim_buf_call(bufnr, function()
+            vim.cmd("silent write")
+          end)
+        else
+          fn.writefile(new_lines, path)
+        end
+        total_n = total_n + n
+        total_files = total_files + 1
+      end
+    end
+  end
+
+  local verb_done = (action == "clear") and "Removed" or "Replaced"
+  local msg = ("%s %d emoji%s across %d file%s"):format(
+    verb_done,
+    total_n,
+    total_n == 1 and "" or "s",
+    total_files,
+    total_files == 1 and "" or "s"
+  )
+  if skipped > 0 then
+    msg = msg .. (" (%d skipped: unsaved buffer)"):format(skipped)
+  end
+  notify.info(msg)
+end
+
+---Turn collected `file:line:text` lines into the requested result.
+---@param action "list"|"count"|"clear"|"replace"
 ---@param lines string[]
 ---@param cwd string
 ---@return nil
@@ -28,6 +120,11 @@ local function finish(action, lines, cwd)
 
   if action == "count" then
     notify.info(("Found %d match%s under %s"):format(#lines, #lines == 1 and "" or "es", fn.fnamemodify(cwd, ":~")))
+    return
+  end
+
+  if action == "clear" or action == "replace" then
+    M.apply_across_files(action, lines, fn.confirm)
     return
   end
 
@@ -53,12 +150,12 @@ local function finish(action, lines, cwd)
   notify.info(("Found %d match%s -> quickfix"):format(#qf, #qf == 1 and "" or "es"))
 end
 
----Run the async cwd search for `list` or `count`.
----@param action "list"|"count"
+---Run the async cwd search for `list`, `count`, `clear`, or `replace`.
+---@param action "list"|"count"|"clear"|"replace"
 ---@return nil
 function M.run(action)
-  if action ~= "list" and action ~= "count" then
-    notify.warn("cwd scope only supports list/count")
+  if not SUPPORTED[action] then
+    notify.warn("cwd scope only supports list/count/clear/replace")
     return
   end
 

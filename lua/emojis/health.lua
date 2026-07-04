@@ -21,9 +21,9 @@ function M.check()
 
   local cmd = require("emojis.config").get().search.cmd
   if vim.fn.executable(cmd) == 1 then
-    vim.health.ok(("'%s' found on PATH (cwd scope)"):format(cmd))
+    vim.health.ok(("'%s' found on PATH (cwd scope: list/count/clear/replace)"):format(cmd))
   else
-    vim.health.warn(("'%s' not found — :Emojis list/count cwd will not work"):format(cmd))
+    vim.health.warn(("'%s' not found — :Emojis list/count/clear/replace cwd will not work"):format(cmd))
   end
 
   if type(vim.system) == "function" then

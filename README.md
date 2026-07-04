@@ -37,7 +37,7 @@ Ohne Argumente: `:Emojis` → `:Emojis clear %` (entfernt alle Emojis im Buffer)
 | `line` | Aktuelle Cursor-Zeile |
 | `word` | Zusammenhängender, leerzeichenfreier Textabschnitt unter dem Cursor |
 | `visual` | Letzte / aktuelle visuelle Auswahl |
-| `cwd` | Projektweit via ripgrep (asynchron; nur `list`/`count`) |
+| `cwd` | Projektweit via ripgrep (asynchron; `list`/`count`/`clear`/`replace`) |
 
 Ein expliziter Vim-Range (`:'<,'>Emojis`, `:10,20Emojis`) überschreibt das
 Scope-Schlüsselwort.
@@ -59,6 +59,22 @@ Emoji-Folge) auf **ein** Leerzeichen:
 
 Zusätzlich werden VS16-Emojis (z. B. ⚠️) korrekt als **ein** Emoji behandelt —
 sie wurden zuvor doppelt gezählt und in `replace` zu `:warning::U+FE0F:`.
+
+---
+
+## Projektweites `clear`/`replace` (`cwd`-Scope)
+
+`:Emojis clear cwd` / `:Emojis replace cwd` durchsuchen das Projekt asynchron
+via ripgrep und fragen **vor** jeder Änderung per Bestätigungsdialog nach
+(Standard: Abbruch). Empfohlener Ablauf:
+
+```vim
+:Emojis list cwd         " Dry-Run: erst prüfen, was betroffen wäre
+:Emojis clear cwd        " dann anwenden (Dialog bestätigen)
+```
+
+Bereits geöffnete Buffer mit ungespeicherten Änderungen werden übersprungen
+(nicht überschrieben) und in der Zusammenfassung als "skipped" gezählt.
 
 ---
 
@@ -165,6 +181,8 @@ Alle Felder sind optional und werden über die Defaults gemerged.
 :Emojis list %           " Emojis des Buffers in die Quickfix-Liste
 :Emojis count cwd        " projektweit zählen (async, rg)
 :Emojis list cwd         " projektweit in die Quickfix-Liste
+:Emojis clear cwd        " projektweit entfernen (Bestätigungsdialog)
+:Emojis replace cwd      " projektweit -> :name: (Bestätigungsdialog)
 :Emojis insert           " Emoji-Picker am Cursor
 :Emojis first            " zum ersten Emoji im Buffer springen
 :Emojis next             " zum nächsten Emoji springen (wrapt am Ende)

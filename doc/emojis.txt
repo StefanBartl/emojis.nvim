@@ -194,7 +194,11 @@ word    The whitespace-delimited run of text containing the cursor byte
         (clear/replace/list/count) narrow to this sub-range.
 visual  The lines of the last / current visual selection.
 cwd     All files under the working directory, searched asynchronously with
-        ripgrep. Only `list` and `count` support this scope.
+        ripgrep. `list`/`count` report results directly; `clear`/`replace`
+        first show the same matches, then ask for confirmation (default:
+        cancel) before mutating every matched file. Run `:Emojis list cwd`
+        first as a dry-run preview. Buffers with unsaved changes are skipped
+        rather than clobbered.
 
 ==============================================================================
 6. SPACE-COLLAPSE BEHAVIOUR                              *emojis-clear-spaces*
