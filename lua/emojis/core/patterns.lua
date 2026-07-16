@@ -232,19 +232,12 @@ end
 
 ---Decode the Unicode codepoint of the base emoji at the start of `glyph`.
 ---A trailing VS16, skin-tone modifier, ZWJ chain, or flag pair (if any) is
----ignored — only the first component is decoded.
+---ignored — only the first component is decoded. Delegates (soft dep, see
+---util/lib.lua) to lib.lua.strings.utf8.decode.
 ---@param glyph string
 ---@return integer
 function M.codepoint(glyph)
-  local b1 = glyph:byte(1) or 0
-  if b1 >= 0xF0 and #glyph >= 4 then
-    local b2, b3, b4 = glyph:byte(2), glyph:byte(3), glyph:byte(4)
-    return ((b1 - 0xF0) * 0x40000) + ((b2 - 0x80) * 0x1000) + ((b3 - 0x80) * 0x40) + (b4 - 0x80)
-  elseif b1 >= 0xE0 and #glyph >= 3 then
-    local b2, b3 = glyph:byte(2), glyph:byte(3)
-    return ((b1 - 0xE0) * 0x1000) + ((b2 - 0x80) * 0x40) + (b3 - 0x80)
-  end
-  return b1
+  return require("emojis.util.lib").utf8_decode(glyph, 1) or (glyph:byte(1) or 0)
 end
 
 return M
