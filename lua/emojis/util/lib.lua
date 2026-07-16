@@ -55,6 +55,29 @@ function M.notifier()
   return _notifier
 end
 
+---Deduplicate a list, preserving first-occurrence order. Uses
+---`lib.lua.tables.dedup_list` if available, else a local fallback.
+---@param list any[]
+---@return any[]
+function M.dedup_list(list)
+  local lib_tables = try_require("lib.lua.tables")
+  if lib_tables and type(lib_tables.dedup_list) == "function" then
+    local ok, result = pcall(lib_tables.dedup_list, list)
+    if ok then
+      return result
+    end
+  end
+
+  local seen, out = {}, {}
+  for _, v in ipairs(list) do
+    if not seen[v] then
+      seen[v] = true
+      out[#out + 1] = v
+    end
+  end
+  return out
+end
+
 ---Set a keymap. Uses `lib.nvim.map` if available, else `vim.keymap.set`.
 ---@param mode string|string[]
 ---@param lhs string

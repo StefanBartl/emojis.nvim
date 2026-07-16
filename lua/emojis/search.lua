@@ -15,6 +15,7 @@ local fn = vim.fn
 local notify = require("emojis.util.notify")
 local config = require("emojis.config")
 local ops = require("emojis.core.ops")
+local lib = require("emojis.util.lib")
 
 local M = {}
 
@@ -28,15 +29,14 @@ local SUPPORTED = { list = true, count = true, clear = true, replace = true }
 ---@param lines string[]
 ---@return string[]
 local function files_of(lines)
-  local files, seen = {}, {}
+  local files = {}
   for i = 1, #lines do
     local file = lines[i]:match("^(.+):%d+:")
-    if file and not seen[file] then
-      seen[file] = true
+    if file then
       files[#files + 1] = file
     end
   end
-  return files
+  return lib.dedup_list(files)
 end
 
 ---Apply `clear`/`replace` to every matched file, after confirmation.
