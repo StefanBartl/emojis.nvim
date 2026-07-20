@@ -23,6 +23,7 @@ local api = vim.api
 
 local config = require("emojis.config")
 local notify = require("emojis.util.notify")
+local lib = require("emojis.util.lib")
 local insert = require("emojis.core.insert")
 local frecency = require("emojis.overlay.frecency")
 
@@ -215,7 +216,7 @@ end
 local function bind(show_keys)
   local buf = state.surf.bufnr
   local function nmap(lhs, fn)
-    vim.keymap.set("n", lhs, fn, { buffer = buf, nowait = true, silent = true })
+    lib.map("n", lhs, fn, { buffer = buf, nowait = true, silent = true })
   end
 
   nmap("h", function() move(0, -1) end)
