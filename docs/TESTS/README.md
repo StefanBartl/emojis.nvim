@@ -3,12 +3,18 @@
 Headless spec suite for emojis.nvim. The tokenizer/ops/scope layers are pure
 functions on strings — trivially testable without a UI.
 
+`commands_spec.lua` calls `emojis.setup()`, which registers `:Emojis` via
+`lib.nvim.usercmd.composer` — a real runtime dependency as of that migration,
+not an optional extra. Check out `lib.nvim` as a sibling of this repo (same
+convention as every other `StefanBartl/*.nvim` repo's test suite) and add it
+to the runtimepath.
+
 ## Run
 
-From the repo root:
+From the repo root, with `../lib.nvim` checked out as a sibling:
 
 ```sh
-nvim --headless -u NONE -c "set rtp+=." -c "luafile docs/TESTS/run.lua" -c "qa!"
+nvim --headless -u NONE -c "set rtp+=.,../lib.nvim" -c "luafile docs/TESTS/run.lua" -c "qa!"
 ```
 
 The runner prints one line per spec and exits non-zero on the first failure

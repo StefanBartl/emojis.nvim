@@ -31,6 +31,13 @@ Without arguments: `:Emojis` -> `:Emojis clear %` (removes all emojis in the buf
 
 An explicit Vim range (`:'<,'>Emojis`, `:10,20Emojis`) overrides the scope keyword.
 
+Built via `lib.nvim.usercmd.composer`: one route per action, forwarding to
+the same dispatch function as before this migration (`emojis.commands`'
+`execute()`, unchanged). An unknown action now reports composer's own
+"unknown subcommand" usage block instead of the plain `unknown action %q`
+error string; `insert`/`first`/`next` still silently ignore a garbage
+second argument, same as before.
+
 ## Fixed bug: double space
 
 When removing emojis, the old version left two spaces behind:
