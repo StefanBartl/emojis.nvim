@@ -13,6 +13,15 @@ function M.check()
     vim.health.warn("Neovim 0.9+ recommended")
   end
 
+  -- lib.nvim.notify/map (emojis.util.lib) stay soft — native fallback if
+  -- absent — but lib.nvim.usercmd.composer is a hard dependency of the
+  -- :Emojis command layer as of the composer migration, no fallback.
+  if pcall(require, "lib.nvim.usercmd.composer") then
+    vim.health.ok("lib.nvim.usercmd.composer available (:Emojis command layer)")
+  else
+    vim.health.error(":Emojis will fail to register — lib.nvim.usercmd.composer not found; install StefanBartl/lib.nvim")
+  end
+
   if type(vim.ui) == "table" and type(vim.ui.select) == "function" then
     vim.health.ok("vim.ui.select is available (insert picker fallback)")
   else

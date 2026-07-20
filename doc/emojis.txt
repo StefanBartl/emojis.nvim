@@ -27,8 +27,9 @@ emojis.nvim provides a single `:Emojis` command to remove, count, list,
 replace, or insert emojis across several scopes — the current line, the visual
 selection, the whole buffer, or the entire project (via ripgrep).
 
-Standalone plugin (no hard lib.nvim dependency), cross-platform. Emoji
-detection uses a pure UTF-8 byte tokenizer; no external library is required.
+Cross-platform. Emoji detection uses a pure UTF-8 byte tokenizer; no external
+library is required. Requires lib.nvim — the `:Emojis` command is registered
+via `lib.nvim.usercmd.composer`.
 
 ==============================================================================
 2. REQUIREMENTS                                          *emojis-requirements*
@@ -37,8 +38,10 @@ detection uses a pure UTF-8 byte tokenizer; no external library is required.
   - ripgrep (`rg`) — only for the `cwd` scope
   - telescope.nvim or fzf-lua — optional; live-search picker for `:Emojis
     insert` (`picker.engine = "auto"`), falls back to `vim.ui.select`
-  - lib.nvim (StefanBartl/lib.nvim) — optional; used for notify/map when
-    installed, native fallback otherwise (no hard dependency)
+  - lib.nvim (StefanBartl/lib.nvim) — required; the `:Emojis` command is
+    registered via `lib.nvim.usercmd.composer`, with no fallback
+    (`notify`/`map` specifically still degrade to a native fallback if
+    somehow absent at that call site, but the command layer itself does not)
 
 ==============================================================================
 3. INSTALLATION                                          *emojis-installation*
@@ -46,7 +49,7 @@ detection uses a pure UTF-8 byte tokenizer; no external library is required.
 lazy.nvim: >lua
   {
     "StefanBartl/emojis.nvim",
-    dependencies = { "StefanBartl/lib.nvim" }, -- optional
+    dependencies = { "StefanBartl/lib.nvim" }, -- required
     cmd = "Emojis",
     opts = {},
   }
@@ -55,7 +58,7 @@ lazy.nvim: >lua
 packer.nvim: >lua
   use {
     "StefanBartl/emojis.nvim",
-    requires = { "StefanBartl/lib.nvim" }, -- optional
+    requires = { "StefanBartl/lib.nvim" }, -- required
     config = function()
       require("emojis").setup()
     end,
@@ -63,7 +66,7 @@ packer.nvim: >lua
 <
 
 vim-plug: >vim
-  Plug 'StefanBartl/lib.nvim' " optional
+  Plug 'StefanBartl/lib.nvim' " required
   Plug 'StefanBartl/emojis.nvim'
 
   lua require("emojis").setup()
@@ -180,6 +183,11 @@ With no arguments, `:Emojis` is equivalent to `:Emojis clear %`.
 An explicit Vim range (`:'<,'>Emojis`, `:10,20Emojis`) always overrides the
 `scope` keyword.
 
+Built via `lib.nvim.usercmd.composer`: one route per action, forwarding to
+the same dispatch function as before (unchanged). An unrecognized action now
+reports composer's own usage block (every registered action, one per line)
+instead of the old plain-string error.
+
 ------------------------------------------------------------------------------
 5.1 Actions                                                   *emojis-actions*
 
@@ -259,8 +267,8 @@ emoji grapheme — counted once and replaced as one placeholder.
 `:Emojis` completes the action at the first argument and the scope at the
 second: >
 
-  :Emojis <Tab>          clear  insert  list  count  replace  unreplace
-                         first  next  wrap
+  :Emojis <Tab>          clear  count  first  insert  list  next  replace
+                         unreplace  wrap
   :Emojis clear <Tab>    word  line  visual  %  cwd
 <
 
@@ -299,6 +307,8 @@ ops()                                                          *emojis.ops()*
 
 Checks:
   - Neovim >= 0.9
+  - `lib.nvim.usercmd.composer` available (required for the `:Emojis`
+    command layer, no fallback)
   - `vim.ui.select` available (insert picker)
   - ripgrep on PATH (cwd scope)
   - `vim.system` available (async search)

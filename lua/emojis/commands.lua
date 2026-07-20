@@ -1,10 +1,21 @@
 ---@module 'emojis.commands'
----@brief :Emojis user command — dispatch + tab completion.
+---@brief :Emojis user command — dispatch + tab completion, built on
+---lib.nvim.usercmd.composer.
 ---@description
 --- Parses `[action] [scope]`, validates them, and routes to the action handlers,
 --- the picker, or the async cwd search. A Vim range overrides the scope keyword.
+---
+--- execute() is the unchanged dispatch engine: one composer route per literal
+--- action reconstructs the `{fargs, range, line1, line2}` shape
+--- nvim_create_user_command's callback always passed and forwards it here —
+--- so validation (has(ACTIONS,...)/has(SCOPES,...), the NO_SCOPE bypass, cwd's
+--- extra_globs tail) never had to be re-expressed in the route declarations.
+--- This is why the scope arg stays a soft `STRING` (completion hint only, via
+--- `values`), not a hard composer `enum`: NO_SCOPE actions (insert/first/next)
+--- silently ignore a garbage second token today, and a hard enum would reject
+--- it before execute() ever got a chance to apply that bypass.
 
-local api = vim.api
+local composer = require("lib.nvim.usercmd.composer")
 
 local notify = require("emojis.util.notify")
 local config = require("emojis.config")
@@ -93,40 +104,63 @@ local function execute(cmd_args)
   end
 end
 
----Context-aware tab completion: first arg = action, second arg = scope.
----@param _ string
----@param cmd_line string
----@return string[]
-local function complete(_, cmd_line, _)
-  local tokens = vim.split(vim.trim(cmd_line), "%s+", { trimempty = true })
-  local trailing = cmd_line:sub(-1) == " "
-  local n = #tokens - 1 -- args after the command name
-  local arg = trailing and (n + 1) or n -- which arg is being completed
+---@type table<string, string>
+local ACTION_DESC = {
+  clear = "Remove emojis from the given scope",
+  insert = "Open the insert picker",
+  list = "List emojis found in the given scope",
+  count = "Count emojis in the given scope",
+  replace = "Replace emojis with :shortcode: placeholders in the given scope",
+  unreplace = "Restore :shortcode: placeholders back to emojis in the given scope",
+  first = "Jump to the first emoji in the buffer",
+  next = "Jump to the next emoji in the buffer (wraps)",
+  wrap = "Surround emojis with the configured marker in the given scope",
+}
 
-  local cands = (arg <= 1) and ACTIONS or (arg == 2 and SCOPES or {})
-  local partial = (not trailing and tokens[#tokens]) or ""
-  if partial == "" then
-    return cands
+---Reconstruct the {fargs, range, line1, line2} shape execute() expects from a
+---composer ctx and dispatch — see the module doc for why forwarding to the
+---unchanged execute() (rather than re-deriving its validation here) matters.
+---@param action string
+---@param ctx table
+---@return nil
+local function forward(action, ctx)
+  local fargs = { action }
+  if ctx.pos[1] then
+    fargs[#fargs + 1] = ctx.pos[1]
   end
-
-  local out = {}
-  for i = 1, #cands do
-    if vim.startswith(cands[i], partial) then
-      out[#out + 1] = cands[i]
-    end
+  for _, v in ipairs(ctx.rest) do
+    fargs[#fargs + 1] = v
   end
-  return out
+  execute({ fargs = fargs, range = ctx.range.range, line1 = ctx.range.line1, line2 = ctx.range.line2 })
 end
 
----Register the :Emojis command using the configured name.
+---@param action string
+---@return table
+local function action_route(action)
+  return {
+    path = { action },
+    args = { { name = "scope", type = "STRING", values = SCOPES, optional = true } },
+    desc = ACTION_DESC[action],
+    run = function(ctx) forward(action, ctx) end,
+  }
+end
+
+---Register the :Emojis command (name from cfg.command) via
+---lib.nvim.usercmd.composer.
 ---@param cfg Emojis.Config
 ---@return nil
 function M.register(cfg)
-  api.nvim_create_user_command(cfg.command, execute, {
-    desc = "[emojis] :" .. cfg.command .. " [clear|insert|list|count|replace|unreplace|first|next|wrap] [word|line|visual|%|cwd]",
-    nargs = "*",
+  local routes = {}
+  for i = 1, #ACTIONS do
+    routes[i] = action_route(ACTIONS[i])
+  end
+
+  composer.verb(cfg.command, {
+    desc = "[emojis] :" .. cfg.command
+      .. " [clear|insert|list|count|replace|unreplace|first|next|wrap] [word|line|visual|%|cwd]",
     range = true,
-    complete = complete,
+    default = function(ctx) forward("clear", ctx) end,
+    routes = routes,
   })
 end
 

@@ -21,14 +21,18 @@ Only active when `keymaps.preset = true` is set (default `false`).
 
 ## User Commands
 
-Always defined, regardless of `keymaps.preset`.
+Always defined, regardless of `keymaps.preset`. Built via
+`lib.nvim.usercmd.composer` (`lua/emojis/commands.lua`) — a required
+dependency of the command layer, unlike the soft `lib.nvim.notify`/`map`
+helpers in `util/lib.lua`.
 
 | name | args | range | desc |
 | --- | --- | --- | --- |
 | `:Emojis` | `[action] [scope]` | yes | clear / replace / unreplace / wrap / list / count / insert / first / next an emoji scope (see `doc/emojis.txt`) |
 
-Tab completion: first argument completes `clear insert list count replace unreplace first next wrap`,
-second argument completes `word line visual % cwd` (ignored for `insert`/`first`/`next`).
+Tab completion: first argument completes `clear count first insert list next replace unreplace wrap`
+(alphabetical, one composer route per action), second argument completes
+`word line visual % cwd` (ignored for `insert`/`first`/`next`).
 
 ## Autocommands
 

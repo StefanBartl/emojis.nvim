@@ -4,8 +4,9 @@ A universal `:Emojis` command for Neovim: **remove**, **count**, **list**,
 **replace**, or **insert** emojis — across different scopes (current line,
 visual selection, whole buffer, or project-wide via ripgrep).
 
-Standalone plugin with no hard dependency on `lib.nvim`, cross-platform.
-Emoji detection runs on a pure UTF-8 byte tokenizer (no external library).
+Cross-platform; emoji detection runs on a pure UTF-8 byte tokenizer (no
+external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim)
+— the `:Emojis` command is registered via `lib.nvim.usercmd.composer`.
 
 ## Quickstart
 
@@ -13,7 +14,7 @@ Emoji detection runs on a pure UTF-8 byte tokenizer (no external library).
 -- lazy.nvim
 {
   "StefanBartl/emojis.nvim",
-  dependencies = { "StefanBartl/lib.nvim" }, -- optional: nicer notify/map if present
+  dependencies = { "StefanBartl/lib.nvim" }, -- required
   cmd = "Emojis",
   opts = {},
 }
