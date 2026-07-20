@@ -5,6 +5,7 @@
 --- via `get()`. No global state — the active table is module-local.
 
 local DEFAULTS = require("emojis.config.DEFAULTS")
+local notify = require("emojis.util.notify")
 
 local M = {}
 
@@ -61,20 +62,17 @@ function M.setup(user_opts)
   end
 
   if not is_one_of(merged.overlay.mode, VALID_OVERLAY_MODES) then
-    vim.notify(
-      ("[emojis] invalid overlay.mode %q, using 'grid'"):format(tostring(merged.overlay.mode)),
-      vim.log.levels.WARN
-    )
+    notify.warn(("invalid overlay.mode %q, using 'grid'"):format(tostring(merged.overlay.mode)))
     merged.overlay.mode = "grid"
   end
 
   if type(merged.overlay.columns) ~= "number" or merged.overlay.columns < 1 then
-    vim.notify("[emojis] invalid overlay.columns, using 5", vim.log.levels.WARN)
+    notify.warn("invalid overlay.columns, using 5")
     merged.overlay.columns = 5
   end
 
   if not is_one_of(merged.default_scope, VALID_SCOPES) then
-    vim.notify(("[emojis] invalid default_scope %q, using '%%'"):format(tostring(merged.default_scope)), vim.log.levels.WARN)
+    notify.warn(("invalid default_scope %q, using '%%'"):format(tostring(merged.default_scope)))
     merged.default_scope = "%"
   end
 
