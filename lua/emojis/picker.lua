@@ -7,33 +7,19 @@
 --- configured picks by value, not by parsing the display string, which is
 --- robust against labels that contain spaces.
 
-local api = vim.api
-
 local notify = require("emojis.util.notify")
 local config = require("emojis.config")
+local insert = require("emojis.core.insert")
 
 local M = {}
 
----Insert `icon` at the cursor position in the current buffer/window.
+---Insert `icon` at the cursor position in the current buffer/window. Thin alias
+---for the shared helper, which also records the use for the overlay's frecency
+---ordering.
 ---@param icon string
 ---@return nil
 local function insert_at_cursor(icon)
-  local win = api.nvim_get_current_win()
-  if not api.nvim_win_is_valid(win) then
-    return
-  end
-  local pos = api.nvim_win_get_cursor(win)
-  local row, col = pos[1], pos[2]
-
-  local buf = api.nvim_get_current_buf()
-  if not api.nvim_buf_is_valid(buf) then
-    return
-  end
-  local line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1] or ""
-  col = math.min(col, #line)
-
-  api.nvim_buf_set_lines(buf, row - 1, row, false, { line:sub(1, col) .. icon .. line:sub(col + 1) })
-  pcall(api.nvim_win_set_cursor, win, { row, col + #icon })
+  insert.at_cursor(icon)
 end
 
 ---Try the telescope.nvim picker. Returns true if it took over.

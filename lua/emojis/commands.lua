@@ -25,13 +25,22 @@ local actions = require("emojis.actions")
 local M = {}
 
 ---@type string[]
-local ACTIONS = { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next", "wrap" }
+local ACTIONS =
+  { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next", "wrap", "overlay", "toggle" }
 
 ---@type string[]
 local SCOPES = { "word", "line", "visual", "%", "cwd" }
 
 ---@type table<string, boolean>  Actions that ignore the scope argument entirely.
-local NO_SCOPE = { insert = true, first = true, next = true }
+--- `toggle` is scope-bypassing in the same sense as `overlay`: its second
+--- positional is a checkbox set name, not a scope. Its *line* range still comes
+--- from an explicit Vim range, defaulting to the cursor line — a checkbox
+--- belongs to one line, and defaulting to the whole buffer would silently flip
+--- every box in the file.
+local NO_SCOPE = { insert = true, first = true, next = true, overlay = true, toggle = true }
+
+---@type string[]  Second positional of `overlay` — a UI mode, not a scope.
+local OVERLAY_MODES = { "grid", "grid_keys", "list" }
 
 ---@param list string[]
 ---@param v string
@@ -64,6 +73,23 @@ local function execute(cmd_args)
 
   if action == "insert" then
     require("emojis.picker").insert()
+    return
+  end
+  if action == "toggle" then
+    -- Range wins, else the cursor line (scope.resolve applies that precedence).
+    local target, err = scope_m.resolve("line", cmd_args.range, cmd_args.line1, cmd_args.line2)
+    if not target then
+      notify.error("scope error: " .. tostring(err))
+      return
+    end
+    actions.checkbox("toggle", target, cmd_args.fargs[2])
+    return
+  end
+  if action == "overlay" then
+    -- The second positional is a mode here, not a scope; `nil` means "use the
+    -- configured default". The NO_SCOPE bypass above already skipped scope
+    -- validation, so `cmd_args.fargs[2]` is still raw.
+    require("emojis.overlay").open(cmd_args.fargs[2] and cmd_args.fargs[2]:lower() or nil)
     return
   end
   if action == "first" then
@@ -115,6 +141,8 @@ local ACTION_DESC = {
   first = "Jump to the first emoji in the buffer",
   next = "Jump to the next emoji in the buffer (wraps)",
   wrap = "Surround emojis with the configured marker in the given scope",
+  overlay = "Open the quick-insert overlay (grid|grid_keys|list)",
+  toggle = "Cycle the emoji checkbox on the cursor line (or the given range)",
 }
 
 ---Reconstruct the {fargs, range, line1, line2} shape execute() expects from a
@@ -137,9 +165,22 @@ end
 ---@param action string
 ---@return table
 local function action_route(action)
+  -- `overlay` is the one action whose second positional is a UI mode rather
+  -- than a scope, so it advertises its own completion values.
+  local arg
+  if action == "overlay" then
+    arg = { name = "mode", type = "STRING", values = OVERLAY_MODES, optional = true }
+  elseif action == "toggle" then
+    -- Completion values are read at registration time from the *configured*
+    -- sets, so a user-defined set completes just like a built-in one.
+    arg = { name = "set", type = "STRING", values = config.checkbox_set_names(), optional = true }
+  else
+    arg = { name = "scope", type = "STRING", values = SCOPES, optional = true }
+  end
+
   return {
     path = { action },
-    args = { { name = "scope", type = "STRING", values = SCOPES, optional = true } },
+    args = { arg },
     desc = ACTION_DESC[action],
     run = function(ctx) forward(action, ctx) end,
   }
@@ -157,7 +198,8 @@ function M.register(cfg)
 
   composer.verb(cfg.command, {
     desc = "[emojis] :" .. cfg.command
-      .. " [clear|insert|list|count|replace|unreplace|first|next|wrap] [word|line|visual|%|cwd]",
+      .. " [clear|insert|list|count|replace|unreplace|first|next|wrap|overlay|toggle]"
+      .. " [word|line|visual|%|cwd]",
     range = true,
     default = function(ctx) forward("clear", ctx) end,
     routes = routes,

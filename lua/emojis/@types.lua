@@ -19,6 +19,8 @@
 ---| '"first"'      # Move the cursor to the first emoji in the buffer
 ---| '"next"'       # Move the cursor to the next emoji (wraps to the top)
 ---| '"wrap"'       # Surround each emoji with config.wrap.prefix/suffix
+---| '"overlay"'    # Open the frecency-ordered quick-insert overlay
+---| '"toggle"'     # Cycle the emoji checkbox on the current line / range
 
 ---@alias Emojis.Scope
 ---| '"word"'    # Current line (the line holding the word under the cursor)
@@ -82,6 +84,25 @@
 ---@class Emojis.Config.Picker
 ---@field engine Emojis.Config.Picker.Engine  Insert-picker engine (default "auto")
 
+---@class Emojis.Config.Checkbox
+---@field default_set string                    Set used by `:Emojis toggle` with no argument; "" = search all
+---@field sets        table<string, string[]>   Named cycles; order within a set is the cycle order
+---@field order       string[]                  Search order across sets (ambiguity resolution)
+
+---@alias Emojis.Config.Overlay.Mode
+---| '"grid"'       # 2D grid, hjkl/arrows + <CR> (default)
+---| '"grid_keys"'  # 2D grid with a direct hotkey per cell
+---| '"list"'       # One glyph per row, via the kit chooser
+
+---@class Emojis.Config.Overlay
+---@field mode     Emojis.Config.Overlay.Mode  Interaction mode (default "grid")
+---@field picks    Emojis.Config.PickEntry[]   Curated quick-insert set, in starting order
+---@field frecency boolean                     Reorder `picks` by recorded usage (default true)
+---@field columns  integer                     Cells per row in the grid modes (default 5)
+---@field limit    integer                     Maximum cells shown (default 20)
+---@field title    string                      Float title
+---@field theme    any                         lib.nvim.ui.kit theme arg (preset name or override table)
+
 ---@class Emojis.Config
 ---@field default_scope Emojis.Scope                      Scope used when none is given
 ---@field command       string                            Name of the user command
@@ -92,5 +113,7 @@
 ---@field wrap          Emojis.Config.Wrap                 Marker for the wrap action
 ---@field preview       Emojis.Config.Preview              Opt-in clear/replace highlight preview
 ---@field picker        Emojis.Config.Picker               Insert-picker engine selection
+---@field overlay       Emojis.Config.Overlay              Quick-insert overlay
+---@field checkbox      Emojis.Config.Checkbox             Emoji checkbox cycles
 
 return {}

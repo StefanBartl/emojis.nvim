@@ -84,6 +84,50 @@ for i = 1, #CATALOG do
   names[patterns.codepoint(glyph)] = ":" .. label .. ":"
 end
 
+---@type string[]  Curated quick-insert set for the overlay, in starting order.
+--- Deliberately short and developer-shaped (status, review, diagnostics) rather
+--- than a slice of CATALOG: the overlay's value is that everything is reachable
+--- in one glance, which stops being true past ~20 cells. Frecency reorders this
+--- list at runtime; it never grows it.
+local OVERLAY_LABELS = {
+  "white_check_mark",
+  "x",
+  "warning",
+  "bug",
+  "fire",
+  "rocket",
+  "bulb",
+  "memo",
+  "wrench",
+  "gear",
+  "pushpin",
+  "dart",
+  "lock",
+  "question",
+  "exclamation",
+  "eyes",
+  "thumbsup",
+  "sparkles",
+  "boom",
+  "tada",
+}
+
+---@type table<string, string>  label -> glyph, for the overlay lookup below.
+local by_label = {}
+for i = 1, #CATALOG do
+  by_label[CATALOG[i][2]] = CATALOG[i][1]
+end
+
+---@type Emojis.Config.PickEntry[]
+local overlay_picks = {}
+for i = 1, #OVERLAY_LABELS do
+  local label = OVERLAY_LABELS[i]
+  local glyph = by_label[label]
+  if glyph then
+    overlay_picks[#overlay_picks + 1] = { glyph, label }
+  end
+end
+
 ---@type Emojis.Config
 local DEFAULTS = {
   default_scope = "%",
@@ -131,6 +175,46 @@ local DEFAULTS = {
   -- optional), falling back to vim.ui.select.
   picker = {
     engine = "auto",
+  },
+
+  -- Emoji checkbox cycles (`:Emojis toggle [set]`).
+  --
+  -- Order matters twice over: within a set it is the cycle order, and across
+  -- sets it breaks ambiguity — a glyph appearing in two sets belongs to the
+  -- one listed first. `default_set` picks which cycle `:Emojis toggle` uses
+  -- with no argument; "" (the empty string) means "search every set", which is
+  -- what makes a single keymap work across mixed checkbox styles in one file.
+  -- The default sets are deliberately *disjoint*: no glyph appears in two of
+  -- them, so "search every set" is unambiguous and every set stays reachable.
+  -- Overlapping alternatives (e.g. a 3-state `{ "🔲", "✅", "❌" }`) are meant
+  -- to *replace* `checkbox` rather than sit beside it — see
+  -- docs/configuration.md#checkboxes.
+  checkbox = {
+    default_set = "",
+    sets = {
+      checkbox = { "🔲", "✅" },
+      status = { "🔴", "🟡", "🟢" },
+      review = { "👍", "👎" },
+    },
+    -- Order in which sets are searched when no `default_set` is configured.
+    -- Sets missing from this list are appended in a stable (name-sorted) order,
+    -- so adding a set never silently disables it.
+    order = { "checkbox", "status", "review" },
+  },
+
+  -- Quick-insert overlay (`:Emojis overlay [mode]`).
+  overlay = {
+    -- "grid" navigates with hjkl/arrows + <CR>; "grid_keys" adds a direct
+    -- hotkey per cell; "list" is a one-per-row chooser.
+    mode = "grid",
+    picks = overlay_picks,
+    -- Reorder `picks` by recorded usage (never adds/removes entries).
+    frecency = true,
+    columns = 5,
+    limit = 20,
+    title = " Emojis ",
+    -- Any lib.nvim.ui.kit theme arg: preset name or override table.
+    theme = "rounded",
   },
 }
 

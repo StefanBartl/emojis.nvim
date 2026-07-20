@@ -16,6 +16,8 @@ Only active when `keymaps.preset = true` is set (default `false`).
 | lhs | mode | action | desc |
 | --- | --- | --- | --- |
 | `<C-e>` | n, i | `emojis.insert` | Insert picker at cursor (telescope/fzf-lua if available, else vim.ui.select) |
+| `<leader>ee` | n | `emojis.overlay` | Quick-insert overlay (frecency-ordered grid) |
+| `<leader>et` | n, x | `emojis.toggle` | Toggle emoji checkbox (cursor line, or visual range) |
 | `<leader>ec` | n | `emojis.count` | Count emojis in buffer |
 | `<leader>el` | n | `emojis.list` (via `actions.list`) | List emojis in buffer -> quickfix |
 
@@ -30,9 +32,11 @@ helpers in `util/lib.lua`.
 | --- | --- | --- | --- |
 | `:Emojis` | `[action] [scope]` | yes | clear / replace / unreplace / wrap / list / count / insert / first / next an emoji scope (see `doc/emojis.txt`) |
 
-Tab completion: first argument completes `clear count first insert list next replace unreplace wrap`
-(alphabetical, one composer route per action), second argument completes
-`word line visual % cwd` (ignored for `insert`/`first`/`next`).
+Tab completion: first argument completes `clear count first insert list next
+overlay replace toggle unreplace wrap` (alphabetical, one composer route per
+action), second argument completes `word line visual % cwd` (ignored for
+`insert`/`first`/`next`); for `overlay` it instead completes `grid grid_keys
+list`, and for `toggle` the configured `config.checkbox.sets` names.
 
 ## Autocommands
 

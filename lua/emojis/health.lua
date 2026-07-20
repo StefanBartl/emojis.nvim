@@ -22,6 +22,15 @@ function M.check()
     vim.health.error(":Emojis will fail to register — lib.nvim.usercmd.composer not found; install StefanBartl/lib.nvim")
   end
 
+  -- The overlay draws on lib.nvim.ui.kit. Only the overlay needs it, so a
+  -- lib.nvim predating the kit degrades to "no overlay" rather than a broken
+  -- plugin — hence warn, not error.
+  if pcall(require, "lib.nvim.ui.kit") then
+    vim.health.ok("lib.nvim.ui.kit available (:Emojis overlay)")
+  else
+    vim.health.warn(":Emojis overlay unavailable — lib.nvim.ui.kit not found; update StefanBartl/lib.nvim")
+  end
+
   if type(vim.ui) == "table" and type(vim.ui.select) == "function" then
     vim.health.ok("vim.ui.select is available (insert picker fallback)")
   else
@@ -65,9 +74,18 @@ function M.check()
   end
 
   if require("emojis.config").get().keymaps.preset then
-    vim.health.ok("keymaps.preset enabled (<C-e>, <leader>ec, <leader>el bound)")
+    vim.health.ok("keymaps.preset enabled (<C-e>, <leader>ee, <leader>et, <leader>ec, <leader>el bound)")
   else
     vim.health.info("keymaps.preset disabled (default) — set keymaps.preset = true to opt in")
+  end
+
+  -- Purely informational: cascade_groups() is a data function with no hard
+  -- dependency on cascade, so this never affects emojis.nvim's own health.
+  if pcall(require, "cascade") then
+    vim.health.info("cascade.nvim found — require('emojis').cascade_groups() can feed its cycle.groups")
+  else
+    vim.health.info("cascade.nvim not found (optional) — :Emojis toggle still works on its own; "
+      .. "see docs/configuration.md#cascadenvim-bridge to wire the two together")
   end
 end
 
