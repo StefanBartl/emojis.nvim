@@ -75,6 +75,37 @@
   the buffer (extmarks, `preview.hl_group`, `preview.duration_ms`,
   `actions.lua` `preview_spans()`).
 
+## Implemented (v0.3)
+
+### Quick-insert overlay
+
+- **`:Emojis overlay [grid|grid_keys|list]`** / `<leader>ee` — a small float
+  holding a curated, developer-shaped set of emojis (`config.overlay.picks`),
+  drawn with `lib.nvim`'s `ui.kit` (`lua/emojis/overlay/`). Three interaction
+  modes: `grid` (hjkl/arrows + `<CR>`, default), `grid_keys` (one hotkey per
+  cell), `list` (delegates to `kit.select`).
+- **Frecency ordering** — every insertion, from the overlay *and* the
+  `insert` picker (`core/insert.lua` shared helper), is recorded to
+  `stdpath("data")/emojis.nvim/frecency.json` and reorders `overlay.picks`
+  (most-used-first, 30-day recency half-life). Sorting only ever reorders the
+  configured set; it never adds or removes entries. `overlay.frecency = false`
+  disables both the reordering and the file write.
+
+### Emoji checkboxes
+
+- **`:Emojis toggle [set]`** / `<leader>et` (normal + visual, range-aware) —
+  cycles an emoji "checkbox" glyph found anywhere on the line (`core/checkbox.lua`),
+  e.g. `🔲 1. Hallo` → `✅ 1. Hallo`. Line-scoped rather than cursor-scoped, so
+  the cursor can sit anywhere on the line.
+- **Configurable cycle sets** — `config.checkbox.sets` (default: disjoint
+  `checkbox`, `status`, `review` cycles), `checkbox.order` for ambiguity
+  resolution when searching every set, `checkbox.default_set` to pin one.
+- **cascade.nvim bridge** — `require("emojis").cascade_groups()` returns the
+  configured sets in cascade's `cycle.groups` format, so the same glyph
+  vocabulary drives both cascade's cursor-precise `<C-y>` cycling and
+  emojis.nvim's line-scoped `:Emojis toggle` — no glyph list duplicated
+  between the two plugins.
+
 ---
 
 ## Nicht geplant

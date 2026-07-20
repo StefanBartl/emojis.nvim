@@ -116,6 +116,63 @@ function M.edit(action, t)
   notify.info(("%s %d emoji%s"):format(VERB[action], n, n == 1 and "" or "s"))
 end
 
+---@type table<string, {fn: string, verb: string}>  checkbox op -> pure fn + message verb
+local CHECKBOX_OPS = {
+  toggle = { fn = "toggle", verb = "Toggled" },
+  add = { fn = "add", verb = "Added" },
+  remove = { fn = "remove", verb = "Removed" },
+}
+
+---Cycle / add / remove emoji checkboxes across a target's lines.
+---
+---Unlike `M.edit`, this ignores a `word` sub-range: a checkbox belongs to its
+---whole line, and cycling it based on which word the cursor happens to sit in
+---would be surprising. The scope only ever selects *which lines* are affected.
+---@param op "toggle"|"add"|"remove"
+---@param t Emojis.Target
+---@param set_name? string  nil/"" searches every configured set
+---@param dir? integer      1 forward (default), -1 backward; `toggle` only
+---@return nil
+function M.checkbox(op, t, set_name, dir)
+  if not buf_ok(t.buf) then
+    notify.error("buffer is no longer valid")
+    return
+  end
+
+  local spec = CHECKBOX_OPS[op]
+  if not spec then
+    notify.error(("unknown checkbox op %q"):format(tostring(op)))
+    return
+  end
+
+  local sets, err = config.checkbox_sets(set_name)
+  if err then
+    notify.error(err .. ". Valid: " .. table.concat(config.checkbox_set_names(), ", "))
+    return
+  end
+  if #sets == 0 then
+    notify.warn("no checkbox sets configured")
+    return
+  end
+
+  local lines = api.nvim_buf_get_lines(t.buf, t.l1, t.l2 + 1, false)
+  if #lines == 0 then
+    notify.info("range is empty")
+    return
+  end
+
+  local checkbox = require("emojis.core.checkbox")
+  local new_lines, n = checkbox[spec.fn](lines, sets, dir)
+
+  if n == 0 then
+    notify.info(op == "add" and "every line already has a checkbox" or "no checkbox found in scope")
+    return
+  end
+
+  api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
+  notify.info(("%s %d checkbox%s"):format(spec.verb, n, n == 1 and "" or "es"))
+end
+
 ---List emojis in scope into the quickfix list.
 ---@param t Emojis.Target
 ---@return nil

@@ -16,7 +16,8 @@ function M.setup()
     return false
   end
   if type(wk.add) == "function" then
-    wk.add({ { "<leader>e", group = "Emojis", mode = { "n" } } })
+    -- Visual mode too: `<leader>et` (checkbox toggle) is range-aware.
+    wk.add({ { "<leader>e", group = "Emojis", mode = { "n", "x" } } })
     return true
   elseif type(wk.register) == "function" then
     wk.register({ ["<leader>e"] = { name = "+Emojis" } }, { mode = "n" })

@@ -18,6 +18,8 @@ Without arguments: `:Emojis` -> `:Emojis clear %` (removes all emojis in the buf
 | `list` | Collects all emojis in the scope into the quickfix list |
 | `count` | Counts the emojis in the scope and reports the result |
 | `insert` | Opens a picker at the cursor for inserting an emoji |
+| `overlay` | Opens the quick-insert overlay (see below) |
+| `toggle` | Cycles the emoji checkbox on the cursor line / range (see below) |
 | `first` | Jumps to the first emoji in the buffer (cursor navigation) |
 | `next` | Jumps to the next emoji, wrapping to the top at the end of the buffer |
 
@@ -37,6 +39,76 @@ the same dispatch function as before this migration (`emojis.commands`'
 "unknown subcommand" usage block instead of the plain `unknown action %q`
 error string; `insert`/`first`/`next` still silently ignore a garbage
 second argument, same as before.
+
+## Quick-insert overlay
+
+```
+:Emojis overlay [grid|grid_keys|list]
+```
+
+A small float holding the ~20 emojis a developer actually reaches for, ordered
+by how often *you* use them. Unlike `insert` (which searches the full catalog),
+the overlay is meant to be opened and dismissed in a second or two.
+
+The second argument is an interaction **mode**, not a scope. Omit it to use
+`config.overlay.mode`:
+
+| Mode | Behaviour |
+|---|---|
+| `grid` | 2D grid; `h`/`j`/`k`/`l` or arrows move, `<CR>` inserts (default) |
+| `grid_keys` | Same grid, plus a direct hotkey per cell — one keypress inserts |
+| `list` | One glyph per row with its shortcode, via the `lib.nvim` kit chooser |
+
+`<Esc>` or `q` closes without inserting.
+
+```
+        ╭─ Emojis ─────────────────────╮
+        │  ✅    ❌    ⚠️    🐛    🔥  │
+        │  🚀    💡    📝    🔧    ⚙️  │
+        │  📌    🎯    🔒    ❓    ❗  │
+        │  👀    👍    ✨    💥    🎉  │
+        ╰──────────────────────────────╯
+```
+
+Every insertion — from the overlay *and* from the `insert` picker — is recorded,
+and the recorded counts reorder the grid (most-used first, with recency decay).
+The overlay only ever **reorders** `config.overlay.picks`; it never adds glyphs
+you did not configure. See
+[`docs/configuration.md`](configuration.md#overlay) to pin your own set, change
+the column count, or turn the usage tracking off.
+
+## Emoji checkboxes
+
+```
+:Emojis toggle [set]
+:[range]Emojis toggle [set]
+```
+
+Cycles an emoji "checkbox" glyph one step through a configured set, e.g.
+`🔲 1. Hallo` → `✅ 1. Hallo` → back again. Unlike the other actions, the
+second argument here is a **set name**, not a scope — and unlike them, the
+scope is always a line range (an explicit Vim range, or else the cursor
+line/visual selection), never `word`, `%`, or `cwd`: a checkbox belongs to a
+whole line, and defaulting to the whole buffer would silently flip every box
+in the file.
+
+The glyph is found anywhere on the line, not just under the cursor — the
+cursor can sit at the end of the text you're writing:
+
+```vim
+:Emojis toggle            " cycle using every configured set, cursor line
+:Emojis toggle status     " cycle only the "status" set (🔴 -> 🟡 -> 🟢)
+:'<,'>Emojis toggle       " cycle every line in the visual selection
+```
+
+Bound to `<leader>et` (normal and visual mode) when `keymaps.preset = true`.
+
+Sets are configured under `config.checkbox.sets`; see
+[`docs/configuration.md`](configuration.md#checkboxes) to add your own or
+change the search order. The same sets can drive
+[cascade.nvim](https://github.com/StefanBartl/cascade.nvim)'s cursor-precise
+`<C-y>` cycling via `require("emojis").cascade_groups()` — see
+[`docs/configuration.md#cascadenvim-bridge`](configuration.md#cascadenvim-bridge).
 
 ## Fixed bug: double space
 

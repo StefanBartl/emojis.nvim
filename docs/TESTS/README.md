@@ -27,11 +27,13 @@ The runner prints one line per spec and exits non-zero on the first failure
 | `harness.lua`       | Shared assertions (`eq`, `ok`) and a `scratch(ft)` buffer helper. |
 | `patterns_spec.lua` | Tokenizer: base emoji matching, VS16 grapheme handling, spans.   |
 | `ops_spec.lua`      | `clear`/`replace`/`unreplace`/`wrap`/`count`/`list` on string arrays, space-collapse. |
+| `checkbox_spec.lua` | Emoji checkbox cycle/add/remove: line-scoped find, wrap, ambiguous-set resolution, VS16 glyphs. |
 | `scope_spec.lua`    | Scope resolution: `%`, `line`, `word`, `visual`, range override, `cwd`. |
 | `config_spec.lua`   | DEFAULTS catalog: `picks`/`names` stay in sync, no codepoint collisions. |
 | `commands_spec.lua` | `:Emojis` actions/scopes; `keymaps.preset` gates the preset keys.  |
 | `search_spec.lua`   | `build_cmd()` glob/no_ignore flags; `apply_across_files()` confirm-gated cwd clear/replace. |
 | `picker_spec.lua`   | Insert picker: engine selection falls back to `vim.ui.select`.    |
+| `overlay_spec.lua`  | Quick-insert overlay: grid/grid_keys/list modes, frecency reordering. |
 | `run.lua`           | Runner: loads every `*_spec.lua`, reports results, sets exit code. |
 
 ## Adding a spec
