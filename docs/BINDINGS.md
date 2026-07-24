@@ -41,6 +41,5 @@ list`, and for `toggle` the configured `config.checkbox.sets` names.
 ## Autocommands
 
 None. emojis.nvim is deliberately free of autocmd-driven behaviour (e.g. no
-auto-clear on save) — see "Nicht geplant" in [`docs/ROADMAP.md`](ROADMAP.md).
-`lua/emojis/bindings/autocmds.lua` exists only for structural symmetry with
-usrcmds/keymaps.
+auto-clear on save). `lua/emojis/bindings/autocmds.lua` exists only for
+structural symmetry with usrcmds/keymaps.
