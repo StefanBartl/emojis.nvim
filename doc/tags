@@ -3,6 +3,7 @@ emojis-actions	emojis.txt	/*emojis-actions*
 emojis-api	emojis.txt	/*emojis-api*
 emojis-architecture	emojis.txt	/*emojis-architecture*
 emojis-bindings	emojis.txt	/*emojis-bindings*
+emojis-checkboxes	emojis.txt	/*emojis-checkboxes*
 emojis-clear-spaces	emojis.txt	/*emojis-clear-spaces*
 emojis-completion	emojis.txt	/*emojis-completion*
 emojis-config	emojis.txt	/*emojis-config*
@@ -10,12 +11,18 @@ emojis-contents	emojis.txt	/*emojis-contents*
 emojis-health	emojis.txt	/*emojis-health*
 emojis-installation	emojis.txt	/*emojis-installation*
 emojis-intro	emojis.txt	/*emojis-intro*
+emojis-overlay	emojis.txt	/*emojis-overlay*
 emojis-requirements	emojis.txt	/*emojis-requirements*
 emojis-scopes	emojis.txt	/*emojis-scopes*
+emojis.cascade_groups()	emojis.txt	/*emojis.cascade_groups()*
+emojis.checkbox_add()	emojis.txt	/*emojis.checkbox_add()*
+emojis.checkbox_remove()	emojis.txt	/*emojis.checkbox_remove()*
 emojis.clear()	emojis.txt	/*emojis.clear()*
 emojis.count()	emojis.txt	/*emojis.count()*
 emojis.insert()	emojis.txt	/*emojis.insert()*
 emojis.nvim	emojis.txt	/*emojis.nvim*
 emojis.ops()	emojis.txt	/*emojis.ops()*
+emojis.overlay()	emojis.txt	/*emojis.overlay()*
 emojis.setup()	emojis.txt	/*emojis.setup()*
+emojis.toggle()	emojis.txt	/*emojis.toggle()*
 emojis.txt	emojis.txt	/*emojis.txt*

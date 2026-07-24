@@ -1,7 +1,7 @@
 *emojis.txt*  Emoji operations for Neovim                            *emojis.nvim*
 
 Author:   Stefan Bartl
-Version:  0.2.0
+Version:  0.3.0
 
 ==============================================================================
 CONTENTS                                                     *emojis-contents*
@@ -19,6 +19,8 @@ CONTENTS                                                     *emojis-contents*
   9. Health check .............. |emojis-health|
  10. Bindings .................. |emojis-bindings|
  11. Architecture .............. |emojis-architecture|
+ 12. Quick-insert overlay ...... |emojis-overlay|
+ 13. Emoji checkboxes .......... |emojis-checkboxes|
 
 ==============================================================================
 1. INTRODUCTION                                                 *emojis-intro*
@@ -113,6 +115,26 @@ vim-plug: >vim
     picker = {                    -- insert-picker engine
       engine = "auto",            -- "auto" | "telescope" | "fzf-lua" | "select"
     },
+
+    overlay = {                   -- quick-insert overlay (`:Emojis overlay`)
+      mode = "grid",               -- "grid" | "grid_keys" | "list"
+      frecency = true,             -- reorder picks by recorded usage
+      columns = 5,
+      limit = 20,
+      title = " Emojis ",
+      theme = "rounded",           -- any lib.nvim.ui.kit theme arg
+      -- picks = { { "✅", "white_check_mark" }, … } -- replaces the default list
+    },
+
+    checkbox = {                  -- emoji checkbox cycles (`:Emojis toggle [set]`)
+      default_set = "",            -- "" = search every set below; or e.g. "status"
+      sets = {
+        checkbox = { "🔲", "✅" },
+        status   = { "🔴", "🟡", "🟢" },
+        review   = { "👍", "👎" },
+      },
+      order = { "checkbox", "status", "review" }, -- search order when default_set = ""
+    },
   })
 <
 
@@ -169,6 +191,48 @@ picker.engine ~
   optional), falling back to `vim.ui.select`; `"telescope"`/`"fzf-lua"` force
   one (still falling back if not installed); `"select"` always uses
   `vim.ui.select`. Default: `"auto"`.
+
+overlay.mode ~
+  Default interaction mode for `:Emojis overlay`: `"grid"` (hjkl/arrows +
+  `<CR>`), `"grid_keys"` (one hotkey per cell), or `"list"` (delegates to
+  `kit.chooser`). Default: `"grid"`. See |emojis-overlay|.
+
+overlay.frecency ~
+  When `true`, every insertion (overlay and `insert` picker alike) is
+  recorded and `overlay.picks` is reordered most-used-first with a 30-day
+  recency half-life. Default: `true`. See |emojis-overlay|.
+
+overlay.columns ~
+  Grid width in `grid`/`grid_keys` mode. Default: `5`.
+
+overlay.limit ~
+  Maximum number of cells shown. Default: `20`.
+
+overlay.title ~
+  Float title. Default: `" Emojis "`.
+
+overlay.theme ~
+  Any `lib.nvim.ui.kit` theme argument: a preset name (`"minimal"`,
+  `"rounded"`, `"solid"`, `"double"`, `"ascii"`) or an override table.
+  Default: `"rounded"`.
+
+overlay.picks ~
+  `{ glyph, label }` entries for the overlay grid. Unlike most options, this
+  **replaces** the default list rather than merging into it.
+
+checkbox.sets ~
+  Table of named glyph cycles used by `:Emojis toggle [set]`. A set you
+  redefine replaces the default's states rather than merging into it. The
+  defaults (`checkbox`, `status`, `review`) are deliberately disjoint.
+
+checkbox.default_set ~
+  Set used when `:Emojis toggle` is called with no `set` argument. Empty
+  string (default) searches every set in `checkbox.order`.
+
+checkbox.order ~
+  Search order across sets when `checkbox.default_set = ""`, and the
+  tie-break for a glyph appearing in more than one set. Sets not listed here
+  are still searched, appended in name-sorted order.
 
 ==============================================================================
 5. THE :Emojis COMMAND                                              *:Emojis*
@@ -227,6 +291,17 @@ wrap ~
   Surround each emoji with `config.wrap.prefix`/`config.wrap.suffix` (default
   `[[`/`]]`), without removing it — e.g. for downstream machine processing.
 
+overlay ~
+  Open the quick-insert overlay (`config.overlay`). The `scope` argument is
+  instead an interaction mode: `grid`|`grid_keys`|`list`. See
+  |emojis-overlay|.
+
+toggle ~
+  Cycle the emoji checkbox glyph found on the cursor line (or every line in
+  a range/visual selection) one step through a configured
+  `config.checkbox.sets` cycle. The `scope` argument is instead a set name.
+  See |emojis-checkboxes|.
+
 ------------------------------------------------------------------------------
 5.2 Scopes                                                     *emojis-scopes*
 
@@ -267,9 +342,11 @@ emoji grapheme — counted once and replaced as one placeholder.
 `:Emojis` completes the action at the first argument and the scope at the
 second: >
 
-  :Emojis <Tab>          clear  count  first  insert  list  next  replace
-                         unreplace  wrap
+  :Emojis <Tab>          clear  count  first  insert  list  next  overlay
+                         replace  toggle  unreplace  wrap
   :Emojis clear <Tab>    word  line  visual  %  cwd
+  :Emojis overlay <Tab>  grid  grid_keys  list
+  :Emojis toggle <Tab>   <configured config.checkbox.sets names>
 <
 
 ==============================================================================
@@ -290,6 +367,26 @@ count()                                                      *emojis.count()*
 
 insert()                                                    *emojis.insert()*
   Open the insert picker at the cursor.
+
+overlay({mode})                                            *emojis.overlay()*
+  Open the quick-insert overlay. `mode` is optional:
+  `"grid"`|`"grid_keys"`|`"list"`, defaulting to `config.overlay.mode`.
+
+toggle({set}, {dir})                                        *emojis.toggle()*
+  Cycle the checkbox glyph on the cursor line, or every line in the current
+  visual range. `set` is optional (defaults to `config.checkbox.default_set`).
+
+checkbox_add({set})                                    *emojis.checkbox_add()*
+  Add a checkbox glyph to the cursor line / visual range if it lacks one.
+
+checkbox_remove({set})                              *emojis.checkbox_remove()*
+  Remove the checkbox glyph from the cursor line / visual range.
+
+cascade_groups({set})                                *emojis.cascade_groups()*
+  Return `config.checkbox.sets` in cascade.nvim's `cycle.groups` format, so
+  the same glyph vocabulary drives both plugins. Pure data function — never
+  `require("cascade")` itself, safe to call whether or not cascade.nvim is
+  installed.
 
 ops()                                                          *emojis.ops()*
   Return the pure operations module (clear/count/list/replace) that works on
@@ -321,10 +418,16 @@ Checks:
 
 Full cheatsheet of every keymap, user command, and autocommand: see
 `docs/BINDINGS.md` in the repository. Only the `:Emojis` command is always
-registered; the preset keymaps (`<C-e>`, `<leader>ec`, `<leader>el`) require
-|emojis-config| `keymaps.preset = true` and are labelled under the
-`<leader>e` group in which-key if it is installed (optional, no hard
-dependency). emojis.nvim defines no autocommands.
+registered; the preset keymaps (`<C-e>`, `<leader>ee`, `<leader>et`,
+`<leader>ec`, `<leader>el`) require |emojis-config| `keymaps.preset = true`
+and are labelled under the `<leader>e` group in which-key if it is installed
+(optional, no hard dependency). emojis.nvim defines no autocommands.
+
+  <C-e>          n, i    Insert picker at the cursor
+  <leader>ee     n       Quick-insert overlay
+  <leader>et     n, x    Toggle emoji checkbox (line / visual range)
+  <leader>ec     n       Count emojis in the buffer
+  <leader>el     n       List emojis in the buffer -> quickfix
 
 ==============================================================================
 11. ARCHITECTURE                                         *emojis-architecture*
@@ -343,18 +446,74 @@ dependency). emojis.nvim defines no autocommands.
       patterns.lua           Pure UTF-8 emoji tokenizer (graphemes incl. VS16)
       ops.lua                Pure clear/count/list/replace operations
       scope.lua              Scope (+ range) -> buffer line range
+      insert.lua             Shared insert helper (picker + overlay), records frecency
+      checkbox.lua           Pure line-scoped checkbox find/cycle
     bindings/
       init.lua               Orchestrates usrcmds/keymaps/autocmds
       usrcmds.lua            Registers :Emojis (via commands.lua)
       keymaps.lua            Opt-in preset keymaps (keymaps.preset)
       which_key.lua          Optional which-key group label
-      autocmds.lua           Empty (no autocmds by design, see ROADMAP)
+      autocmds.lua           Empty (no autocmds by design)
+    overlay/
+      init.lua               Quick-insert overlay (grid/grid_keys/list modes)
+      frecency.lua           Usage tracking (stdpath("data")/emojis.nvim/frecency.json)
     actions.lua              Buffer-facing handlers (edit/list/count)
     nav.lua                  Cursor navigation (first/next)
     picker.lua               Insert picker (vim.ui.select)
     search.lua               Async cwd search (ripgrep)
     commands.lua             :Emojis dispatch + tab completion
     health.lua               checkhealth provider
+
+==============================================================================
+12. QUICK-INSERT OVERLAY                                      *emojis-overlay*
+
+>
+  :Emojis overlay [grid|grid_keys|list]
+<
+
+A small float holding the ~20 emojis a developer actually reaches for
+(`config.overlay.picks`), ordered by how often you use them. Unlike
+`insert` (full catalog), the overlay is meant to be opened and dismissed in
+a second or two. Bound to `<leader>ee` when `keymaps.preset = true`.
+
+The second argument is an interaction mode, not a scope. Omit it to use
+`config.overlay.mode`:
+
+  grid          2D grid; hjkl/arrows move, <CR> inserts (default)
+  grid_keys     Same grid, plus a direct hotkey per cell (one keypress inserts)
+  list          One glyph per row with its shortcode, via lib.nvim's kit chooser
+
+`<Esc>` or `q` closes without inserting.
+
+Every insertion — from the overlay and the `insert` picker — is recorded
+to `stdpath("data")/emojis.nvim/frecency.json` and reorders
+`config.overlay.picks` (most-used-first, 30-day recency half-life). Sorting
+only ever reorders the configured set; it never adds or removes entries.
+`overlay.frecency = false` disables both the reordering and the file write;
+clear the history at any time with `require("emojis.overlay.frecency").reset()`.
+
+==============================================================================
+13. EMOJI CHECKBOXES                                       *emojis-checkboxes*
+
+>
+  :Emojis toggle [set]
+  :[range]Emojis toggle [set]
+<
+
+Cycles an emoji "checkbox" glyph one step through a configured
+`config.checkbox.sets` cycle, e.g. `🔲 1. Hallo` -> `✅ 1. Hallo` -> back
+again. The glyph is found anywhere on the line (line-scoped, not
+cursor-scoped), so the cursor can sit at the end of the text being written.
+
+Unlike the other actions, the second argument is a set name, not a scope —
+and the scope is always a line range (explicit Vim range, or the cursor
+line/visual selection), never `word`, `%`, or `cwd`. Bound to `<leader>et`
+(normal and visual mode) when `keymaps.preset = true`.
+
+`require("emojis").cascade_groups()` returns `config.checkbox.sets` in
+cascade.nvim's `cycle.groups` format, so the same glyph vocabulary drives
+both cascade's cursor-precise `<C-y>` cycling and emojis.nvim's line-scoped
+`:Emojis toggle` — see |emojis.cascade_groups()|.
 
 The pure logic in core/* is isolated from every API/UI layer and is therefore
 unit-testable on plain string arrays (see `docs/TESTS/`).
