@@ -100,15 +100,20 @@ local function select_fallback(picks)
     items[i] = picks[i][1] .. "  " .. picks[i][2]
   end
 
-  vim.ui.select(items, { prompt = "Insert emoji:" }, function(_, idx)
-    if not idx then
-      return
-    end
-    local entry = picks[idx]
-    if entry then
-      insert_at_cursor(entry[1])
-    end
-  end)
+  require("lib.nvim.ui.kit").select({
+    items = items,
+    title = "Insert emoji:",
+    respect_override = true,
+    on_select = function(_, idx)
+      if not idx then
+        return
+      end
+      local entry = picks[idx]
+      if entry then
+        insert_at_cursor(entry[1])
+      end
+    end,
+  })
 end
 
 ---Open the insert picker at the cursor (telescope/fzf-lua per
