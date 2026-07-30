@@ -31,9 +31,36 @@ local M = {}
 
 ---@type string[]  Hotkey labels for `grid_keys`, in cell order (home row first).
 local HOTKEYS = {
-  "a", "s", "d", "f", "g", "h", "j", "k", "l", ";",
-  "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
-  "z", "x", "c", "v", "b", "n", "m", ",", ".", "/",
+  "a",
+  "s",
+  "d",
+  "f",
+  "g",
+  "h",
+  "j",
+  "k",
+  "l",
+  ";",
+  "q",
+  "w",
+  "e",
+  "r",
+  "t",
+  "y",
+  "u",
+  "i",
+  "o",
+  "p",
+  "z",
+  "x",
+  "c",
+  "v",
+  "b",
+  "n",
+  "m",
+  ",",
+  ".",
+  "/",
 }
 
 ---@type table<string, boolean>  Modes accepted by `open`.
@@ -95,8 +122,7 @@ local function render(items, cols, show_keys)
   local row = 0
   local line = ""
   for i = 1, #items do
-    local cell = show_keys and (" " .. (HOTKEYS[i] or "·") .. " " .. items[i][1] .. " ")
-      or ("  " .. items[i][1] .. "  ")
+    local cell = show_keys and (" " .. (HOTKEYS[i] or "·") .. " " .. items[i][1] .. " ") or ("  " .. items[i][1] .. "  ")
 
     spans[i] = { row = row, col_start = #line, col_end = #line + #cell }
     line = line .. cell
@@ -219,18 +245,38 @@ local function bind(show_keys)
     lib.map("n", lhs, fn, { buffer = buf, nowait = true, silent = true })
   end
 
-  nmap("h", function() move(0, -1) end)
-  nmap("<Left>", function() move(0, -1) end)
-  nmap("l", function() move(0, 1) end)
-  nmap("<Right>", function() move(0, 1) end)
-  nmap("k", function() move(-1, 0) end)
-  nmap("<Up>", function() move(-1, 0) end)
-  nmap("j", function() move(1, 0) end)
-  nmap("<Down>", function() move(1, 0) end)
+  nmap("h", function()
+    move(0, -1)
+  end)
+  nmap("<Left>", function()
+    move(0, -1)
+  end)
+  nmap("l", function()
+    move(0, 1)
+  end)
+  nmap("<Right>", function()
+    move(0, 1)
+  end)
+  nmap("k", function()
+    move(-1, 0)
+  end)
+  nmap("<Up>", function()
+    move(-1, 0)
+  end)
+  nmap("j", function()
+    move(1, 0)
+  end)
+  nmap("<Down>", function()
+    move(1, 0)
+  end)
 
   nmap("<CR>", submit)
-  nmap("<Esc>", function() close_then() end)
-  nmap("q", function() close_then() end)
+  nmap("<Esc>", function()
+    close_then()
+  end)
+  nmap("q", function()
+    close_then()
+  end)
 
   if show_keys then
     for i = 1, #state.items do

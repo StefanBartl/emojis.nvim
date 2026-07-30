@@ -84,8 +84,10 @@ function M.check()
   if pcall(require, "cascade") then
     vim.health.info("cascade.nvim found — require('emojis').cascade_groups() can feed its cycle.groups")
   else
-    vim.health.info("cascade.nvim not found (optional) — :Emojis toggle still works on its own; "
-      .. "see docs/configuration.md#cascadenvim-bridge to wire the two together")
+    vim.health.info(
+      "cascade.nvim not found (optional) — :Emojis toggle still works on its own; "
+        .. "see docs/configuration.md#cascadenvim-bridge to wire the two together"
+    )
   end
 end
 

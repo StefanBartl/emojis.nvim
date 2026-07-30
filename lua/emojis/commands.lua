@@ -25,8 +25,7 @@ local actions = require("emojis.actions")
 local M = {}
 
 ---@type string[]
-local ACTIONS =
-  { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next", "wrap", "overlay", "toggle" }
+local ACTIONS = { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next", "wrap", "overlay", "toggle" }
 
 ---@type string[]
 local SCOPES = { "word", "line", "visual", "%", "cwd" }
@@ -182,7 +181,9 @@ local function action_route(action)
     path = { action },
     args = { arg },
     desc = ACTION_DESC[action],
-    run = function(ctx) forward(action, ctx) end,
+    run = function(ctx)
+      forward(action, ctx)
+    end,
   }
 end
 
@@ -197,11 +198,14 @@ function M.register(cfg)
   end
 
   composer.verb(cfg.command, {
-    desc = "[emojis] :" .. cfg.command
+    desc = "[emojis] :"
+      .. cfg.command
       .. " [clear|insert|list|count|replace|unreplace|first|next|wrap|overlay|toggle]"
       .. " [word|line|visual|%|cwd]",
     range = true,
-    default = function(ctx) forward("clear", ctx) end,
+    default = function(ctx)
+      forward("clear", ctx)
+    end,
     routes = routes,
   })
 end
