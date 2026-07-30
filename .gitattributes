@@ -1,0 +1,6 @@
+# Normalize all text to LF in the repo and on checkout, so the LF-enforcing
+# stylua config (line_endings = "Unix") behaves identically on every platform.
+# Without this, a Windows checkout (core.autocrlf=true) is CRLF while CI is LF,
+# so `stylua --check` disagrees between the two and the format job is not
+# reproducible locally.
+* text=auto eol=lf
