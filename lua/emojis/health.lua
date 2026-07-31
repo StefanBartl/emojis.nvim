@@ -89,6 +89,8 @@ function M.check()
         .. "see docs/configuration.md#cascadenvim-bridge to wire the two together"
     )
   end
+
+  require("lib.nvim.usercmd.composer").checkhealth(require("emojis.config").get().command)
 end
 
 return M
