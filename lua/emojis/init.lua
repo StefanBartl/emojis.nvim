@@ -56,7 +56,8 @@ function M.overlay(mode)
 end
 
 ---Resolve the line range a checkbox action should act on: an explicit visual
----selection, else the cursor line.
+---selection, else the cursor line -- or, in normal mode with a count > 1,
+---the next `count` lines starting at the cursor.
 ---@return Emojis.Target|nil target, string|nil err
 local function checkbox_target()
   local scope_m = require("emojis.core.scope")
@@ -64,7 +65,22 @@ local function checkbox_target()
   if mode == "v" or mode == "V" or mode == "\22" then
     return scope_m.resolve("visual", 0, 0, 0)
   end
-  return scope_m.resolve("line", 0, 0, 0)
+
+  local count = vim.v.count1
+  if count <= 1 then
+    return scope_m.resolve("line", 0, 0, 0)
+  end
+
+  -- Normal mode with a count > 1: extend the target to the next `count`
+  -- lines starting at the cursor. Reuses the explicit-range path (the same
+  -- one `:10,20Emojis toggle` takes, see commands.lua) so buffer-bounds
+  -- clamping stays in scope.resolve, in one place.
+  local win = vim.api.nvim_get_current_win()
+  if not vim.api.nvim_win_is_valid(win) then
+    return nil, "current window is not valid"
+  end
+  local cur = vim.api.nvim_win_get_cursor(win)[1] -- 1-based
+  return scope_m.resolve("line", 2, cur, cur + count - 1)
 end
 
 ---Cycle the emoji checkbox on the cursor line (or the visual selection).
