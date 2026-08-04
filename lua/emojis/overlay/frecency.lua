@@ -1,6 +1,6 @@
 ---@module 'emojis.overlay.frecency'
----@brief Usage store that reorders the overlay's curated picks by frecency.
----@description
+--- Usage store that reorders the overlay's curated picks by frecency.
+---
 --- The overlay starts from a curated, config-owned list (`overlay.picks`) so a
 --- fresh install is immediately useful and deterministic. This module only ever
 --- *reorders* that list — it never adds or removes entries, so a user who pins
@@ -46,6 +46,7 @@ end
 ---Read the whole file, or nil if it does not exist / cannot be read.
 ---@param path string
 ---@return string|nil
+---@internal
 local function read_file(path)
   local fd = uv.fs_open(path, "r", 438)
   if not fd then
@@ -59,6 +60,7 @@ end
 
 ---Load the store from disk (once per session).
 ---@return table<string, {count: integer, last: integer}>
+---@internal
 local function load()
   if _store then
     return _store
@@ -89,6 +91,7 @@ end
 
 ---Persist the store. Best-effort: failures are silent by design (see module doc).
 ---@return nil
+---@internal
 local function save()
   if not _store then
     return
@@ -148,6 +151,7 @@ end
 ---@param glyph string
 ---@param now integer
 ---@return number
+---@internal
 local function score(glyph, now)
   local entry = load()[glyph]
   if not entry then

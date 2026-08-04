@@ -1,6 +1,6 @@
 ---@module 'emojis'
----@brief Public entry point for emojis.nvim.
----@description
+--- Public entry point for emojis.nvim.
+---
 --- Registers the `:Emojis [action] [scope]` command and exposes a small Lua API.
 --- Idempotent — the first `setup()` wins.
 ---
@@ -59,6 +59,7 @@ end
 ---selection, else the cursor line -- or, in normal mode with a count > 1,
 ---the next `count` lines starting at the cursor.
 ---@return Emojis.Target|nil target, string|nil err
+---@internal
 local function checkbox_target()
   local scope_m = require("emojis.core.scope")
   local mode = vim.fn.mode()

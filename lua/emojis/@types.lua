@@ -1,7 +1,7 @@
 ---@meta
 ---@module 'emojis.@types'
----@brief Type definitions for emojis.nvim.
----@description
+--- Type definitions for emojis.nvim.
+---
 --- Central type catalog so the source files stay free of long annotation blocks.
 --- All `@types` modules return an empty table.
 

@@ -1,6 +1,6 @@
 ---@module 'emojis.bindings.usrcmds'
----@brief The `:Emojis` user command (always defined).
----@description
+--- The `:Emojis` user command (always defined).
+---
 --- Thin wrapper so the whole binding surface (usrcmds/keymaps/autocmds) lives
 --- under `bindings/`. Parsing, validation, and dispatch stay in
 --- `emojis.commands` — this module only registers it.

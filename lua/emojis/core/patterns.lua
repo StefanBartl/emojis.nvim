@@ -1,6 +1,6 @@
 ---@module 'emojis.core.patterns'
----@brief Pure UTF-8 byte-pattern emoji tokenizer. No Neovim API calls.
----@description
+--- Pure UTF-8 byte-pattern emoji tokenizer. No Neovim API calls.
+---
 --- Table-driven Unicode ranges instead of individually hand-derived byte
 --- patterns: `RANGES` lists inclusive codepoints, `range_pattern` compiles
 --- each into a Lua byte-class pattern at load time. Adding a range is a
@@ -23,6 +23,7 @@ local sc = string.char
 ---bitwise ops, for Lua 5.1 / LuaJIT compatibility).
 ---@param cp integer
 ---@return integer[] bytes
+---@internal
 local function encode(cp)
   if cp < 0x80 then
     return { cp }
@@ -46,6 +47,7 @@ end
 
 ---@param bytes integer[]
 ---@return string
+---@internal
 local function encode_str(bytes)
   if #bytes == 1 then
     return sc(bytes[1])
@@ -65,6 +67,7 @@ end
 ---@param lo integer
 ---@param hi integer
 ---@return string pattern
+---@internal
 local function range_pattern(lo, hi)
   local a, b = encode(lo), encode(hi)
   assert(#a == #b, "range crosses a UTF-8 length boundary")
@@ -130,6 +133,7 @@ end
 ---@param s string
 ---@param i integer
 ---@return integer|nil end_byte
+---@internal
 local function match_base(s, i)
   for k = 1, #BASE_ANCHORED do
     local a, b = s:find(BASE_ANCHORED[k], i)
@@ -145,6 +149,7 @@ end
 ---@param s string
 ---@param i integer
 ---@return integer|nil end_byte, boolean is_regional
+---@internal
 local function match_unit(s, i)
   local b = match_base(s, i)
   if not b then

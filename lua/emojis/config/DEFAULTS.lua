@@ -1,6 +1,6 @@
 ---@module 'emojis.config.DEFAULTS'
----@brief Immutable default configuration for emojis.nvim.
----@description
+--- Immutable default configuration for emojis.nvim.
+---
 --- Single source of truth. `config/init.lua` deep-merges user options over a
 --- copy of this table, so it is never mutated at runtime.
 ---

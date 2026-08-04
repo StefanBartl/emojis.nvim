@@ -1,5 +1,5 @@
 ---@module 'emojis.health'
----@brief :checkhealth emojis provider.
+--- :checkhealth emojis provider.
 
 local M = {}
 

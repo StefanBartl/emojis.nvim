@@ -1,6 +1,6 @@
 ---@module 'emojis.util.notify'
----@brief Prefixed notification wrapper.
----@description
+--- Prefixed notification wrapper.
+---
 --- Only the UI/action layer calls this — the pure core (patterns, ops) stays
 --- silent and returns values instead. Delegates to `lib.nvim.notify` when
 --- available (see `emojis.util.lib`), else a plain `vim.notify` wrapper.

@@ -1,7 +1,6 @@
 ---@module 'emojis.overlay'
----@brief Quick-insert overlay — a frecency-ordered grid of the emojis a
----developer reaches for most.
----@description
+--- Quick-insert overlay — a frecency-ordered grid of the emojis a developer reaches for most.
+---
 --- Three interaction modes over one shared model (`config.overlay.mode`, or a
 --- per-invocation override from `:Emojis overlay <mode>`):
 ---
@@ -74,6 +73,7 @@ local ns = api.nvim_create_namespace("emojis_overlay")
 
 ---Load `lib.nvim.ui.kit`, or nil when lib.nvim is too old to ship it.
 ---@return table|nil
+---@internal
 local function load_kit()
   local ok, kit = pcall(require, "lib.nvim.ui.kit")
   if ok and type(kit) == "table" then
@@ -85,6 +85,7 @@ end
 ---The overlay's entries: curated picks, reordered by frecency, capped at `limit`.
 ---@param cfg Emojis.Config
 ---@return Emojis.Config.PickEntry[]
+---@internal
 local function entries(cfg)
   local overlay = cfg.overlay
   local picks = overlay.picks
@@ -116,6 +117,7 @@ end
 ---@param cols integer
 ---@param show_keys boolean
 ---@return string[] lines, {row: integer, col_start: integer, col_end: integer}[] spans
+---@internal
 local function render(items, cols, show_keys)
   local lines, spans = {}, {}
 
@@ -139,6 +141,7 @@ end
 
 ---Paint the cursor cell.
 ---@return nil
+---@internal
 local function highlight()
   if not state or not api.nvim_buf_is_valid(state.surf.bufnr) then
     return
@@ -167,6 +170,7 @@ end
 ---buffer.
 ---@param fn? fun(): nil
 ---@return nil
+---@internal
 local function close_then(fn)
   if not state then
     return
@@ -188,6 +192,7 @@ end
 ---@param drow integer
 ---@param dcol integer
 ---@return nil
+---@internal
 local function move(drow, dcol)
   if not state then
     return
@@ -223,6 +228,7 @@ end
 
 ---Insert the glyph under the grid cursor.
 ---@return nil
+---@internal
 local function submit()
   if not state then
     return
@@ -239,6 +245,7 @@ end
 ---Bind the grid's keys on the overlay buffer.
 ---@param show_keys boolean
 ---@return nil
+---@internal
 local function bind(show_keys)
   local buf = state.surf.bufnr
   local function nmap(lhs, fn)
@@ -298,6 +305,7 @@ end
 ---@param items Emojis.Config.PickEntry[]
 ---@param show_keys boolean
 ---@return nil
+---@internal
 local function open_grid(kit, cfg, items, show_keys)
   local cols = math.max(1, math.min(cfg.overlay.columns, #items))
   local lines, spans = render(items, cols, show_keys)
@@ -333,6 +341,7 @@ end
 ---@param cfg Emojis.Config
 ---@param items Emojis.Config.PickEntry[]
 ---@return nil
+---@internal
 local function open_list(kit, cfg, items)
   local labels = {}
   for i = 1, #items do

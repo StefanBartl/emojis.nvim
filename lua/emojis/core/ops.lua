@@ -1,6 +1,6 @@
 ---@module 'emojis.core.ops'
----@brief Pure emoji operations on string arrays. No Neovim API calls.
----@description
+--- Pure emoji operations on string arrays. No Neovim API calls.
+---
 --- All four operations build on the grapheme tokenizer in `core.patterns`, so a
 --- VS16-decorated emoji like ⚠️ is consistently treated as a single emoji.
 ---
@@ -17,6 +17,7 @@ local M = {}
 ---emoji run to one space.
 ---@param s string
 ---@return string cleaned, integer removed
+---@internal
 function M._clear_line(s)
   local pieces, total = {}, 0
   local len = #s
@@ -123,6 +124,7 @@ end
 ---@param lines string[]
 ---@param transform fun(glyph: string): string
 ---@return string[] out, integer count
+---@internal
 local function map_spans(lines, transform)
   local out, total = {}, 0
 
