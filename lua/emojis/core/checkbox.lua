@@ -1,6 +1,6 @@
 ---@module 'emojis.core.checkbox'
----@brief Pure line-scoped emoji checkbox toggling / cycling.
----@description
+--- Pure line-scoped emoji checkbox toggling / cycling.
+---
 --- Advances the emoji "checkbox" on a line one step through a configured cycle
 --- set: `🔲 1. Hallo` -> `✅ 1. Hallo` -> back again.
 ---
@@ -33,6 +33,7 @@ local M = {}
 ---@param sets string[][]
 ---@param glyph string
 ---@return integer|nil set_idx, integer|nil pos
+---@internal
 local function locate(sets, glyph)
   for i = 1, #sets do
     local set = sets[i]

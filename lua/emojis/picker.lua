@@ -1,6 +1,6 @@
 ---@module 'emojis.picker'
----@brief Insert an emoji at the cursor — telescope/fzf-lua if available, else vim.ui.select.
----@description
+--- Insert an emoji at the cursor — telescope/fzf-lua if available, else vim.ui.select.
+---
 --- telescope.nvim and fzf-lua are optional soft dependencies for a live-search
 --- picker over the full catalog (`config.picker.engine`); `vim.ui.select` is
 --- the built-in fallback and always works. Selection is mapped back to the
@@ -18,6 +18,7 @@ local M = {}
 ---ordering.
 ---@param icon string
 ---@return nil
+---@internal
 local function insert_at_cursor(icon)
   insert.at_cursor(icon)
 end
@@ -25,6 +26,7 @@ end
 ---Try the telescope.nvim picker. Returns true if it took over.
 ---@param picks Emojis.Config.PickEntry[]
 ---@return boolean
+---@internal
 local function try_telescope(picks)
   local ok_p, pickers = pcall(require, "telescope.pickers")
   local ok_f, finders = pcall(require, "telescope.finders")
@@ -64,6 +66,7 @@ end
 ---Try the fzf-lua picker. Returns true if it took over.
 ---@param picks Emojis.Config.PickEntry[]
 ---@return boolean
+---@internal
 local function try_fzf_lua(picks)
   local ok, fzf_lua = pcall(require, "fzf-lua")
   if not ok then
@@ -94,6 +97,7 @@ end
 ---Fallback: vim.ui.select over the configured picks.
 ---@param picks Emojis.Config.PickEntry[]
 ---@return nil
+---@internal
 local function select_fallback(picks)
   local items = {}
   for i = 1, #picks do

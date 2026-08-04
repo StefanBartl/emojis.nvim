@@ -1,6 +1,6 @@
 ---@module 'emojis.bindings'
----@brief Orchestrates emojis.nvim's bindings: usrcmds, keymaps, autocmds.
----@description
+--- Orchestrates emojis.nvim's bindings: usrcmds, keymaps, autocmds.
+---
 --- Always registers the `:Emojis` command. When `keymaps.preset` is enabled
 --- it also binds the preset keymaps and labels the `<leader>e` group in
 --- which-key (no-op if not installed).

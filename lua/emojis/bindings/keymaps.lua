@@ -1,6 +1,6 @@
 ---@module 'emojis.bindings.keymaps'
----@brief Opt-in preset keymaps (`config.keymaps.preset`).
----@description
+--- Opt-in preset keymaps (`config.keymaps.preset`).
+---
 --- Maps straight onto the public API in `emojis` — no `<Plug>` indirection.
 --- which-key (if installed) labels the `<leader>e` prefix via
 --- `emojis.bindings.which_key`; individual key descriptions come from each

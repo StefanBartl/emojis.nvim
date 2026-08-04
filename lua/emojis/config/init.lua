@@ -1,6 +1,6 @@
 ---@module 'emojis.config'
----@brief Runtime configuration store for emojis.nvim.
----@description
+--- Runtime configuration store for emojis.nvim.
+---
 --- Merges user options over the immutable DEFAULTS and exposes the active config
 --- via `get()`. No global state — the active table is module-local.
 
@@ -21,6 +21,7 @@ local VALID_OVERLAY_MODES = { "grid", "grid_keys", "list" }
 ---@param value any
 ---@param allowed any[]
 ---@return boolean
+---@internal
 local function is_one_of(value, allowed)
   for i = 1, #allowed do
     if allowed[i] == value then

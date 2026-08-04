@@ -1,6 +1,6 @@
 ---@module 'emojis.actions'
----@brief Buffer-facing action handlers (clear / replace / list / count).
----@description
+--- Buffer-facing action handlers (clear / replace / list / count).
+---
 --- These bridge the pure `core.ops` results to the editor: read lines, call the
 --- pure op, write back, and notify. Buffer validity is re-checked here because
 --- the target was resolved earlier and handles can go stale.
@@ -26,6 +26,7 @@ local PREVIEW_NS = api.nvim_create_namespace("emojis_preview")
 ---@param col_offset integer  byte offset added to span columns (word scope)
 ---@param cfg Emojis.Config.Preview
 ---@return nil
+---@internal
 local function preview_spans(buf, base_line, work, col_offset, cfg)
   if not cfg.enable then
     return
@@ -47,6 +48,7 @@ end
 
 ---@param buf integer
 ---@return boolean
+---@internal
 local function buf_ok(buf)
   return type(buf) == "number" and api.nvim_buf_is_valid(buf)
 end
@@ -57,6 +59,7 @@ end
 ---@param t Emojis.Target
 ---@param lines string[]
 ---@return string[] work, integer col_offset
+---@internal
 local function scoped(t, lines)
   if t.c1 and t.c2 and #lines == 1 then
     return { lines[1]:sub(t.c1, t.c2) }, t.c1 - 1

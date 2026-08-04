@@ -1,6 +1,6 @@
 ---@module 'emojis.core.scope'
----@brief Resolve a scope (+ optional Vim range) to a buffer line range.
----@description
+--- Resolve a scope (+ optional Vim range) to a buffer line range.
+---
 --- Returns a `(target, err)` pair instead of raising, so callers stay in control
 --- of error reporting. Line numbers in the result are 0-based and inclusive.
 

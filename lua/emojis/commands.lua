@@ -1,7 +1,6 @@
 ---@module 'emojis.commands'
----@brief :Emojis user command — dispatch + tab completion, built on
----lib.nvim.usercmd.composer.
----@description
+--- :Emojis user command — dispatch + tab completion, built on lib.nvim.usercmd.composer.
+---
 --- Parses `[action] [scope]`, validates them, and routes to the action handlers,
 --- the picker, or the async cwd search. A Vim range overrides the scope keyword.
 ---
@@ -44,6 +43,7 @@ local OVERLAY_MODES = { "grid", "grid_keys", "list" }
 ---@param list string[]
 ---@param v string
 ---@return boolean
+---@internal
 local function has(list, v)
   for i = 1, #list do
     if list[i] == v then
@@ -56,6 +56,7 @@ end
 ---Dispatch a parsed command invocation.
 ---@param cmd_args table  nvim_create_user_command argument table
 ---@return nil
+---@internal
 local function execute(cmd_args)
   local default_scope = config.get().default_scope
   local action = (cmd_args.fargs[1] or "clear"):lower()
@@ -150,6 +151,7 @@ local ACTION_DESC = {
 ---@param action string
 ---@param ctx table
 ---@return nil
+---@internal
 local function forward(action, ctx)
   local fargs = { action }
   if ctx.pos[1] then
@@ -163,6 +165,7 @@ end
 
 ---@param action string
 ---@return table
+---@internal
 local function action_route(action)
   -- `overlay` is the one action whose second positional is a UI mode rather
   -- than a scope, so it advertises its own completion values.

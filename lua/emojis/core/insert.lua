@@ -1,6 +1,6 @@
 ---@module 'emojis.core.insert'
----@brief Insert a glyph at the cursor and record the use for frecency.
----@description
+--- Insert a glyph at the cursor and record the use for frecency.
+---
 --- Extracted from `emojis.picker` so the insert picker and the overlay share one
 --- implementation. That sharing is the point: both entry points must feed the
 --- same usage histogram, otherwise the overlay's frecency ordering would only

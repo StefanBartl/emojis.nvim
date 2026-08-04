@@ -1,6 +1,6 @@
 ---@module 'emojis.util.lib'
----@brief Soft, guarded bridge to the optional `lib.nvim` helper library.
----@description
+--- Soft, guarded bridge to the optional `lib.nvim` helper library.
+---
 --- emojis.nvim prefers `lib.nvim.notify` / `lib.nvim.map` when present, but
 --- every accessor here probes the corresponding module with `pcall` and falls
 --- back to the native Neovim API — no hard dependency on THESE specific
@@ -13,6 +13,7 @@ local M = {}
 
 ---@param name string
 ---@return table|nil
+---@internal
 local function try_require(name)
   local ok, mod = pcall(require, name)
   if ok and type(mod) == "table" then

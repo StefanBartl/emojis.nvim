@@ -1,6 +1,6 @@
 ---@module 'emojis.bindings.which_key'
----@brief Optional, guarded which-key group label for the `<leader>e` prefix.
----@description
+--- Optional, guarded which-key group label for the `<leader>e` prefix.
+---
 --- which-key is a **soft** dependency: if it is not installed this is a no-op.
 --- Only the preset's `<leader>e*` keys need a group label; `<C-e>` already
 --- carries its own `desc`. Supports both which-key v3 (`add`) and v2

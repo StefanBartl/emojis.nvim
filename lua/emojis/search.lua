@@ -1,6 +1,6 @@
 ---@module 'emojis.search'
----@brief Async project-wide emoji search (cwd scope) via ripgrep.
----@description
+--- Async project-wide emoji search (cwd scope) via ripgrep.
+---
 --- Uses `vim.system` when available and falls back to `jobstart`. `list`/
 --- `count` feed the quickfix list / a notify count. `clear`/`replace` first
 --- collect the same matches, then ask for confirmation (`:Emojis list cwd`
@@ -28,6 +28,7 @@ local SUPPORTED = { list = true, count = true, clear = true, replace = true }
 ---Distinct file paths in `file:line:text` order of first appearance.
 ---@param lines string[]
 ---@return string[]
+---@internal
 local function files_of(lines)
   local files = {}
   for i = 1, #lines do
@@ -112,6 +113,7 @@ end
 ---@param lines string[]
 ---@param cwd string
 ---@return nil
+---@internal
 local function finish(action, lines, cwd)
   if #lines == 0 then
     notify.info("no emojis found under cwd")

@@ -1,6 +1,6 @@
 ---@module 'emojis.nav'
----@brief Cursor navigation to the first / next emoji in the buffer.
----@description
+--- Cursor navigation to the first / next emoji in the buffer.
+---
 --- Moves the cursor instead of populating the quickfix list (see
 --- `actions.list` for that). `next()` wraps around to the top of the buffer
 --- if nothing is found below the cursor.
@@ -19,6 +19,7 @@ local M = {}
 ---@param from_col integer  1-based byte column on from_line
 ---@param to_line integer
 ---@return integer|nil line, integer|nil col  0-based line, 0-based byte col
+---@internal
 local function scan(buf, from_line, from_col, to_line)
   for l = from_line, to_line do
     local line = api.nvim_buf_get_lines(buf, l, l + 1, false)[1] or ""
@@ -38,6 +39,8 @@ end
 ---@param start_line integer  0-based
 ---@param start_col integer   1-based byte column
 ---@param wrap boolean
+---@return nil
+---@internal
 local function goto_emoji(start_line, start_col, wrap)
   local win = api.nvim_get_current_win()
   local buf = api.nvim_get_current_buf()
