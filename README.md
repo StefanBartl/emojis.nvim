@@ -18,8 +18,12 @@
 > and cascade's cycle (cursor-scoped) drive one shared vocabulary.
 
 A universal `:Emojis` command for Neovim: **remove**, **count**, **list**,
-**replace**, or **insert** emojis — across different scopes (current line,
-visual selection, whole buffer, or project-wide via ripgrep).
+**replace**/**unreplace**, or **wrap** emojis — across different scopes
+(current line, visual selection, whole buffer, or project-wide via ripgrep).
+It also **inserts** emojis, either via a searchable picker or a quick-insert
+**overlay** of your most-used glyphs, jumps the cursor to the **first**/**next**
+emoji in the buffer, and cycles emoji **checkboxes** (`🔲` → `✅`) on a line or
+range.
 
 Cross-platform; emoji detection runs on a pure UTF-8 byte tokenizer (no
 external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim)
@@ -29,8 +33,28 @@ external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim
 
 ## Table of Contents
 
+- [Capabilities](#capabilities)
 - [Quickstart](#quickstart)
 - [Documentation](#documentation)
+
+---
+
+## Capabilities
+
+| Command | Description | Docs |
+|---|---|---|
+| `:Emojis clear [scope]` | Remove emojis from the scope (default action) | [Commands](docs/commands.md) |
+| `:Emojis count [scope]` | Count emojis in the scope | [Commands](docs/commands.md) |
+| `:Emojis list [scope]` | Collect emojis into the quickfix list | [Commands](docs/commands.md) |
+| `:Emojis replace [scope]` | Replace emojis with `:name:` placeholders | [Commands](docs/commands.md) |
+| `:Emojis unreplace [scope]` | Restore `:name:`/`:U+XXXX:` placeholders back to emojis | [Commands](docs/commands.md) |
+| `:Emojis wrap [scope]` | Surround emojis with the configured marker, without removing them | [Commands](docs/commands.md) |
+| `:Emojis insert` | Open the searchable insert picker at the cursor | [Commands](docs/commands.md) |
+| `:Emojis overlay [grid\|grid_keys\|list]` | Quick-insert float of your most-used emojis | [Commands](docs/commands.md#quick-insert-overlay) |
+| `:Emojis toggle [set]` | Cycle an emoji checkbox on the cursor line / range | [Commands](docs/commands.md#emoji-checkboxes) |
+| `:Emojis first` / `:Emojis next` | Jump the cursor to the first / next emoji in the buffer | [Commands](docs/commands.md) |
+| `:Emojis clear\|replace\|list\|count cwd` | Project-wide search via ripgrep; `clear`/`replace` ask for confirmation | [Commands](docs/commands.md#project-wide-clearreplace-cwd-scope) |
+| `require("emojis").cascade_groups()` | Feed the configured checkbox sets into [cascade.nvim](https://github.com/StefanBartl/cascade.nvim)'s cursor-precise cycling | [Configuration](docs/configuration.md#cascadenvim-bridge) |
 
 ---
 
