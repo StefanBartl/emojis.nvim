@@ -71,18 +71,17 @@ return function(H)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "keep 🚀 this" })
     require("emojis.config").setup({ preview = { enable = true, duration_ms = 1 } })
 
-    local seen_extmark = false
-    local orig_wait = vim.wait
-    vim.wait = function(ms)
-      -- while the highlight is up, an extmark must exist in this buffer
-      local ns = vim.api.nvim_create_namespace("emojis_preview")
-      local marks = vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, {})
-      seen_extmark = #marks > 0
-      return orig_wait(ms)
-    end
-
+    -- The preview no longer blocks with vim.wait(); it sets the extmarks,
+    -- returns, and clears + mutates from a vim.defer_fn callback. So we sample
+    -- the extmarks synchronously right after the command (the highlight is up
+    -- at that point) and then pump the loop until the mutation has landed.
+    local ns = vim.api.nvim_create_namespace("emojis_preview")
     vim.cmd("Emojis clear %")
-    vim.wait = orig_wait
+    local seen_extmark = #vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, {}) > 0
+
+    vim.wait(1000, function()
+      return vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] == "keep this"
+    end, 5)
     require("emojis.config").setup({ preview = { enable = false } })
 
     eq(seen_extmark, true, "preview: extmark set on the emoji span before clearing")

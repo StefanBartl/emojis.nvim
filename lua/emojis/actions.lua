@@ -17,18 +17,25 @@ local M = {}
 
 local PREVIEW_NS = api.nvim_create_namespace("emojis_preview")
 
----Briefly highlight the emoji spans about to be mutated. No-op unless
----`cfg.enable` is true. Blocks for `cfg.duration_ms` (redrawing first) so the
----highlight is actually visible before the caller mutates the buffer.
+---Briefly highlight the emoji spans about to be mutated, then invoke `done`.
+---No-op (calls `done` straight away) unless `cfg.enable` is true.
+---
+---Previously this blocked the UI thread with `vim.wait(cfg.duration_ms)` so the
+---highlight was visible before the caller mutated the buffer. It now schedules
+---the clear-and-continue step via `vim.defer_fn`, so Neovim stays responsive
+---during the preview. The mutation moved into `done` to keep the original
+---ordering (highlight first, mutate afterwards).
 ---@param buf integer
 ---@param base_line integer  0-based first line of `work`
 ---@param work string[]
 ---@param col_offset integer  byte offset added to span columns (word scope)
 ---@param cfg Emojis.Config.Preview
+---@param done fun()  runs once the preview window has elapsed
 ---@return nil
 ---@internal
-local function preview_spans(buf, base_line, work, col_offset, cfg)
+local function preview_spans(buf, base_line, work, col_offset, cfg, done)
   if not cfg.enable then
+    done()
     return
   end
   for li = 1, #work do
@@ -42,8 +49,13 @@ local function preview_spans(buf, base_line, work, col_offset, cfg)
     end
   end
   vim.cmd("redraw")
-  vim.wait(cfg.duration_ms)
-  api.nvim_buf_clear_namespace(buf, PREVIEW_NS, 0, -1)
+  vim.defer_fn(function()
+    -- The buffer can be closed while the preview is up.
+    if api.nvim_buf_is_valid(buf) then
+      api.nvim_buf_clear_namespace(buf, PREVIEW_NS, 0, -1)
+    end
+    done()
+  end, cfg.duration_ms)
 end
 
 ---@param buf integer
@@ -88,35 +100,46 @@ function M.edit(action, t)
 
   local work, col_offset = scoped(t, lines)
 
+  -- The mutation now lives in a callback: preview_spans() highlights first and
+  -- calls back once its (non-blocking) preview window has elapsed. Without a
+  -- preview configured the callback runs inline, so behaviour is unchanged.
+  local function apply()
+    if not buf_ok(t.buf) then
+      return
+    end
+
+    local new_lines, n
+    if action == "clear" then
+      new_lines, n = ops.clear(work)
+    elseif action == "replace" then
+      new_lines, n = ops.replace(work, config.get().names)
+    elseif action == "unreplace" then
+      new_lines, n = ops.unreplace(work, config.get().names)
+    else
+      local wrap_cfg = config.get().wrap
+      new_lines, n = ops.wrap(work, wrap_cfg.prefix, wrap_cfg.suffix)
+    end
+
+    if n == 0 then
+      notify.info("no emojis found in scope")
+      return
+    end
+
+    if t.c1 and t.c2 and #lines == 1 then
+      local full = lines[1]
+      local rebuilt = full:sub(1, t.c1 - 1) .. new_lines[1] .. full:sub(t.c2 + 1)
+      api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, { rebuilt })
+    else
+      api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
+    end
+    notify.info(("%s %d emoji%s"):format(VERB[action], n, n == 1 and "" or "s"))
+  end
+
   if action == "clear" or action == "replace" then
-    preview_spans(t.buf, t.l1, work, col_offset, config.get().preview)
-  end
-
-  local new_lines, n
-  if action == "clear" then
-    new_lines, n = ops.clear(work)
-  elseif action == "replace" then
-    new_lines, n = ops.replace(work, config.get().names)
-  elseif action == "unreplace" then
-    new_lines, n = ops.unreplace(work, config.get().names)
+    preview_spans(t.buf, t.l1, work, col_offset, config.get().preview, apply)
   else
-    local wrap_cfg = config.get().wrap
-    new_lines, n = ops.wrap(work, wrap_cfg.prefix, wrap_cfg.suffix)
+    apply()
   end
-
-  if n == 0 then
-    notify.info("no emojis found in scope")
-    return
-  end
-
-  if t.c1 and t.c2 and #lines == 1 then
-    local full = lines[1]
-    local rebuilt = full:sub(1, t.c1 - 1) .. new_lines[1] .. full:sub(t.c2 + 1)
-    api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, { rebuilt })
-  else
-    api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
-  end
-  notify.info(("%s %d emoji%s"):format(VERB[action], n, n == 1 and "" or "s"))
 end
 
 ---@type table<string, {fn: string, verb: string}>  checkbox op -> pure fn + message verb
