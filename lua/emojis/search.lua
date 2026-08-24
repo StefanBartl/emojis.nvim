@@ -181,13 +181,23 @@ end
 ---@param action "list"|"count"|"clear"|"replace"
 ---@param extra_globs string[]|nil  extra `--glob` patterns (args after the scope keyword)
 ---@return nil
-function M.run(action, extra_globs)
+---@param action string
+---@param extra_globs string[]|nil
+---@param no_ignore boolean|nil  # force `--no-ignore` for this call only,
+---       without changing `search.no_ignore`
+function M.run(action, extra_globs, no_ignore)
   if not SUPPORTED[action] then
     notify.warn("cwd scope only supports list/count/clear/replace")
     return
   end
 
   local cfg = config.get().search
+  if no_ignore then
+    -- A shallow copy so the override lasts exactly this invocation: mutating
+    -- the config would make one `:Emojis! clear cwd` silently change every
+    -- later search in the session.
+    cfg = vim.tbl_extend("force", {}, cfg, { no_ignore = true })
+  end
   if fn.executable(cfg.cmd) ~= 1 then
     notify.error(("'%s' not found on PATH; cwd scope needs ripgrep"):format(cfg.cmd))
     return

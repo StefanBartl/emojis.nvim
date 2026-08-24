@@ -117,6 +117,26 @@ one keypress inserts. `list`: one glyph per row with its shortcode via
 the `lib.nvim` kit chooser. `<Esc>`/`q` closes without inserting. The
 mode argument overrides `opts.overlay.mode` for that one invocation.
 
+### Type-to-filter in the grid (2026-08-24)
+
+`/` in either grid mode prompts for a filter and re-renders with only the
+matching emojis; an empty query widens back to the full set. It matches the
+shortcode, and the glyph itself, so pasting an emoji narrows to it. Closes
+the flag/option audit's entry — `list` mode has had filtering via
+`kit.chooser` from the start, and the grid had no way to narrow at all, so
+finding one glyph in a full grid meant scanning it by eye.
+
+A prompt behind `/` rather than a live input line: the grid is a
+fixed-layout hotkey surface — in `grid_keys` every printable key is already
+an insert action — so an input line would make it a different widget. `/` is
+the obvious key for "narrow this" and is not a hotkey.
+
+Filtering re-opens the float rather than patching the buffer in place: the
+cell byte-spans and the per-cell hotkeys are both derived from the item list,
+so rebuilding is the only way to keep all three in step. The unfiltered set
+is kept in state, so a second filter widens from the original list instead of
+compounding onto the first.
+
 - **Module:** `lua/emojis/overlay/init.lua`
 - **Usercmds:** `:Emojis overlay [grid|grid_keys|list]`
   ([commands.md](commands.md))

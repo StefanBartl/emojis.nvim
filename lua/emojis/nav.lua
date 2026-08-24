@@ -39,9 +39,12 @@ end
 ---@param start_line integer  0-based
 ---@param start_col integer   1-based byte column
 ---@param wrap boolean
+---@param quiet boolean|nil  # suppress the "no emoji found" notice: a counted
+---       walk that runs out mid-way has already moved, so the notice would be
+---       both wrong and repeated
 ---@return nil
 ---@internal
-local function goto_emoji(start_line, start_col, wrap)
+local function goto_emoji(start_line, start_col, wrap, quiet)
   local win = api.nvim_get_current_win()
   local buf = api.nvim_get_current_buf()
   if not (api.nvim_win_is_valid(win) and api.nvim_buf_is_valid(buf)) then
@@ -54,7 +57,9 @@ local function goto_emoji(start_line, start_col, wrap)
     l, c = scan(buf, 0, 1, start_line)
   end
   if not l then
-    notify.info("no emoji found")
+    if not quiet then
+      notify.info("no emoji found")
+    end
     return
   end
   api.nvim_win_set_cursor(win, { l + 1, c })
@@ -68,14 +73,31 @@ end
 
 ---Move the cursor to the next emoji after the cursor, wrapping to the top of
 ---the buffer if none is found below.
+---
+--- `count` jumps that many emoji forward. Applied by stepping, not by
+--- scanning for the Nth match: each step starts from where the previous one
+--- landed, so the wrap-around stays correct at every one — a count that runs
+--- past the last emoji continues from the top rather than giving up.
+---
+--- A step that finds nothing stops the walk instead of reporting "no emoji
+--- found" once per remaining step.
+---@param count integer|nil  defaults to 1
 ---@return nil
-function M.next()
+function M.next(count)
   local win = api.nvim_get_current_win()
   if not api.nvim_win_is_valid(win) then
     return
   end
-  local pos = api.nvim_win_get_cursor(win) -- { 1-based row, 0-based col }
-  goto_emoji(pos[1] - 1, pos[2] + 2, true)
+
+  for i = 1, math.max(count or 1, 1) do
+    local before = api.nvim_win_get_cursor(win)
+    local pos = before -- { 1-based row, 0-based col }
+    goto_emoji(pos[1] - 1, pos[2] + 2, true, i > 1)
+    local after = api.nvim_win_get_cursor(win)
+    if after[1] == before[1] and after[2] == before[2] then
+      break
+    end
+  end
 end
 
 return M

@@ -88,6 +88,61 @@ return function(H)
     eq(vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1], "keep this", "preview: buffer still cleared correctly")
   end
 
+  -- ─────────────────────────────── :Emojis next [count]
+  --
+  -- A positional rather than a command count: `:3Emojis next` would be an
+  -- address (line 3), which is not what "three emoji onward" means.
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "a ✅ b", "c 🚀 d", "e 🎯 f", "g" })
+
+    local function jump(cmd)
+      vim.api.nvim_win_set_cursor(0, { 1, 0 })
+      vim.cmd(cmd)
+      return vim.api.nvim_win_get_cursor(0)[1]
+    end
+
+    eq(jump("Emojis next"), 1, "next: lands on the first emoji")
+    eq(jump("Emojis next 2"), 2, "next 2: two emoji forward")
+    eq(jump("Emojis next 3"), 3, "next 3: three emoji forward")
+    -- Stepping (rather than scanning for the Nth match) is what keeps the
+    -- wrap correct: five steps over three emoji comes back round to the
+    -- second, not to nothing.
+    eq(jump("Emojis next 5"), 2, "next 5: wraps past the last emoji")
+  end
+
+  -- ─────────────────────────────── the `!` variants
+  --
+  -- One bang, two actions, no ambiguity: they are disjoint. On `toggle` it
+  -- steps the checkbox backward; on a cwd-scoped search it forces
+  -- --no-ignore for that call only.
+  do
+    local actions = require("emojis.actions")
+    local real, seen_dir = actions.checkbox, nil
+    actions.checkbox = function(_, _, _, dir)
+      seen_dir = dir
+    end
+    vim.cmd("Emojis toggle")
+    eq(seen_dir, 1, "toggle: forward by default")
+    vim.cmd("Emojis! toggle")
+    eq(seen_dir, -1, "toggle!: backward — previously Lua-API only")
+    actions.checkbox = real
+
+    local search = require("emojis.search")
+    local real_run, seen_ni = search.run, nil
+    search.run = function(_, _, no_ignore)
+      seen_ni = no_ignore
+    end
+    vim.cmd("Emojis clear cwd")
+    eq(seen_ni, false, "cwd search: honours the configured no_ignore")
+    vim.cmd("Emojis! clear cwd")
+    eq(seen_ni, true, "cwd search!: forces --no-ignore")
+    search.run = real_run
+
+    -- The override must not leak into later searches.
+    eq(require("emojis.config").get().search.no_ignore, false, "the bang does not mutate search.no_ignore")
+  end
+
   -- "word" scope only clears the whitespace-delimited token under the cursor
   do
     local buf = H.scratch()

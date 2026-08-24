@@ -82,7 +82,9 @@ local function execute(cmd_args)
       notify.error("scope error: " .. tostring(err))
       return
     end
-    actions.checkbox("toggle", target, cmd_args.fargs[2])
+    -- `!` means "the other direction" here: `checkbox.toggle` has always
+    -- taken a `dir`, but only the Lua API could reach the backward one.
+    actions.checkbox("toggle", target, cmd_args.fargs[2], cmd_args.bang and -1 or 1)
     return
   end
   if action == "overlay" then
@@ -97,7 +99,10 @@ local function execute(cmd_args)
     return
   end
   if action == "next" then
-    require("emojis.nav").next()
+    -- `:Emojis next 3` jumps three emoji forward. A positional rather than a
+    -- command count: `:3Emojis next` would be an address (line 3), which is
+    -- not what "three emoji onward" means.
+    require("emojis.nav").next(tonumber(cmd_args.fargs[2]))
     return
   end
   if scope == "cwd" then
@@ -105,7 +110,10 @@ local function execute(cmd_args)
     for i = 3, #cmd_args.fargs do
       extra_globs[#extra_globs + 1] = cmd_args.fargs[i]
     end
-    require("emojis.search").run(action, extra_globs)
+    -- `!` forces --no-ignore for this call only. Reaching ignored files used
+    -- to mean flipping `search.no_ignore` in the config and reloading, for
+    -- what is usually a one-off question.
+    require("emojis.search").run(action, extra_globs, cmd_args.bang)
     return
   end
 
@@ -154,13 +162,22 @@ local ACTION_DESC = {
 ---@internal
 local function forward(action, ctx)
   local fargs = { action }
-  if ctx.pos[1] then
-    fargs[#fargs + 1] = ctx.pos[1]
+  if ctx.pos[1] ~= nil then
+    -- `fargs` mirrors nvim's own callback table, which is always strings.
+    -- A typed positional (INT for `next`) arrives coerced, and `execute`
+    -- lowercases fargs[2] to read it as a scope -- which raises on a number.
+    fargs[#fargs + 1] = tostring(ctx.pos[1])
   end
   for _, v in ipairs(ctx.rest) do
     fargs[#fargs + 1] = v
   end
-  execute({ fargs = fargs, range = ctx.range.range, line1 = ctx.range.line1, line2 = ctx.range.line2 })
+  execute({
+    fargs = fargs,
+    range = ctx.range.range,
+    line1 = ctx.range.line1,
+    line2 = ctx.range.line2,
+    bang = ctx.bang,
+  })
 end
 
 ---@param action string
@@ -172,6 +189,9 @@ local function action_route(action)
   local arg
   if action == "overlay" then
     arg = { name = "mode", type = "STRING", values = OVERLAY_MODES, optional = true }
+  elseif action == "next" then
+    -- A jump count, not a scope.
+    arg = { name = "count", type = "INT", optional = true }
   elseif action == "toggle" then
     -- Completion values are read at registration time from the *configured*
     -- sets, so a user-defined set completes just like a built-in one.
@@ -183,6 +203,11 @@ local function action_route(action)
   return {
     path = { action },
     args = { arg },
+    -- `!` is "the alternate form of this action". The two it applies to are
+    -- disjoint, so one bang carries both without ambiguity: on `toggle` it
+    -- steps the checkbox backward, and on a `cwd`-scoped search it forces
+    -- --no-ignore for that call.
+    bang = true,
     desc = ACTION_DESC[action],
     run = function(ctx)
       forward(action, ctx)

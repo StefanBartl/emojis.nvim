@@ -285,6 +285,49 @@ local function bind(show_keys)
     close_then()
   end)
 
+  -- Type-to-filter. `list` mode has had this via kit.chooser from the start;
+  -- the grid had no way to narrow at all, so finding one glyph in a full grid
+  -- meant scanning it by eye.
+  --
+  -- A prompt behind `/` rather than a live input line: the grid is a
+  -- fixed-layout hotkey surface (in `grid_keys` every printable key is
+  -- already an insert action), so it has no room for one without becoming a
+  -- different widget. `/` is the obvious key for "narrow this" and is not a
+  -- hotkey.
+  nmap("/", function()
+    local kit_mod = load_kit()
+    if not kit_mod then
+      return
+    end
+    local base = state and state.all or {}
+    local show_keys_now = state and state.show_keys or false
+    kit_mod.input({
+      title = "filter emojis: ",
+      on_submit = function(query)
+        query = vim.trim(query or "")
+        local kept = {}
+        for _, entry in ipairs(base) do
+          -- Match the label, and the glyph itself so pasting one narrows to it.
+          local label = tostring(entry[2] or ""):lower()
+          if query == "" or label:find(query:lower(), 1, true) or entry[1] == query then
+            kept[#kept + 1] = entry
+          end
+        end
+        if #kept == 0 then
+          notify.warn(("no emoji matching %q"):format(query))
+          return
+        end
+        -- Re-open rather than patch the buffer in place: the cell spans and
+        -- the per-cell hotkeys are both derived from the item list, so
+        -- rebuilding is the only way to keep all three in step.
+        close_then(function()
+          local cfg_now = config.get()
+          open_grid(load_kit(), cfg_now, kept, show_keys_now, base)
+        end)
+      end,
+    })
+  end)
+
   if show_keys then
     for i = 1, #state.items do
       local key, entry = HOTKEYS[i], state.items[i]
@@ -304,9 +347,11 @@ end
 ---@param cfg Emojis.Config
 ---@param items Emojis.Config.PickEntry[]
 ---@param show_keys boolean
+---@param all Emojis.Config.PickEntry[]|nil  # the unfiltered set, so `/` can
+---       widen again from the original list rather than from what is on screen
 ---@return nil
 ---@internal
-local function open_grid(kit, cfg, items, show_keys)
+local function open_grid(kit, cfg, items, show_keys, all)
   local cols = math.max(1, math.min(cfg.overlay.columns, #items))
   local lines, spans = render(items, cols, show_keys)
 
@@ -326,7 +371,18 @@ local function open_grid(kit, cfg, items, show_keys)
     return
   end
 
-  state = { surf = surf, items = items, spans = spans, cols = cols, index = 1 }
+  -- `all` is the unfiltered set: `/` narrows from it rather than from
+  -- whatever is currently displayed, so a second filter widens instead of
+  -- compounding onto the first.
+  state = {
+    surf = surf,
+    items = items,
+    all = all or items,
+    show_keys = show_keys,
+    spans = spans,
+    cols = cols,
+    index = 1,
+  }
 
   surf:on_close(function()
     state = nil

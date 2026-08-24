@@ -21,7 +21,7 @@ Without arguments: `:Emojis` -> `:Emojis clear %` (removes all emojis in the buf
 | `overlay` | Opens the quick-insert overlay (see below) |
 | `toggle` | Cycles the emoji checkbox on the cursor line / range (see below) |
 | `first` | Jumps to the first emoji in the buffer (cursor navigation) |
-| `next` | Jumps to the next emoji, wrapping to the top at the end of the buffer |
+| `next` | Jumps to the next emoji, wrapping to the top at the end of the buffer. `:Emojis next 3` jumps three forward. |
 
 | Scope | Description |
 |---|---|
@@ -99,6 +99,9 @@ cursor can sit at the end of the text you're writing:
 :Emojis toggle            " cycle using every configured set, cursor line
 :Emojis toggle status     " cycle only the "status" set (🔴 -> 🟡 -> 🟢)
 :'<,'>Emojis toggle       " cycle every line in the visual selection
+:Emojis! toggle           " cycle backward (🟢 -> 🟡 -> 🔴)
+:Emojis next 3            " jump three emoji forward
+:Emojis! clear cwd        " ...also in files the ignore rules would skip
 ```
 
 Bound to `<leader>et` (normal and visual mode) when `keymaps.preset = true`.
