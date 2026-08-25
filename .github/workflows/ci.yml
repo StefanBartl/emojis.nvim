@@ -18,7 +18,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
-          args: --check lua docs/TESTS
+          args: --check lua TESTS
 
   luacheck:
     name: luacheck (lint)
@@ -35,7 +35,7 @@ jobs:
           luaVersion: "5.4"
       - uses: leafo/gh-actions-luarocks@v4
       - run: luarocks install luacheck
-      - run: luacheck lua docs/TESTS
+      - run: luacheck lua TESTS
 
   tests:
     name: tests (headless nvim)
@@ -48,7 +48,7 @@ jobs:
       # :Emojis command layer) as of the composer migration, not just a
       # lazily required optional extra -- checked out as a sibling so
       # `rtp+=../lib.nvim` matches the local dev convention documented in
-      # docs/TESTS/README.md.
+      # TESTS/README.md.
       - uses: actions/checkout@v4
         with:
           repository: StefanBartl/lib.nvim
@@ -57,6 +57,6 @@ jobs:
         with:
           neovim: true
           version: stable
-      - name: Run docs/TESTS suite
+      - name: Run TESTS suite
         working-directory: emojis.nvim
-        run: nvim --headless -u NONE -c "set rtp+=.,../lib.nvim" -c "luafile docs/TESTS/run.lua" -c "qa!"
+        run: nvim --headless -u NONE -c "set rtp+=.,../lib.nvim" -c "luafile TESTS/run.lua" -c "qa!"

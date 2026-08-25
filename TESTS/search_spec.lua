@@ -1,6 +1,6 @@
--- docs/TESTS/search_spec.lua — cwd clear/replace across files (apply_across_files).
+-- TESTS/search_spec.lua — cwd clear/replace across files (apply_across_files).
 -- Exercises the confirm-gated, on-disk file mutation directly (bypassing the
--- async rg plumbing, which docs/TESTS has no need to depend on).
+-- async rg plumbing, which TESTS has no need to depend on).
 
 return function(H)
   local eq = H.eq

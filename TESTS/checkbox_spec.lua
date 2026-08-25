@@ -1,4 +1,4 @@
--- docs/TESTS/checkbox_spec.lua — emoji checkbox cycle/add/remove on string arrays.
+-- TESTS/checkbox_spec.lua — emoji checkbox cycle/add/remove on string arrays.
 
 return function(H)
   local eq = H.eq

@@ -1,4 +1,4 @@
--- docs/TESTS/patterns_spec.lua — tokenizer: base emoji matching, VS16, spans.
+-- TESTS/patterns_spec.lua — tokenizer: base emoji matching, VS16, spans.
 
 return function(H)
   local eq = H.eq

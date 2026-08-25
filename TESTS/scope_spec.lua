@@ -1,4 +1,4 @@
--- docs/TESTS/scope_spec.lua — scope resolution: %, line, word, visual, range, cwd.
+-- TESTS/scope_spec.lua — scope resolution: %, line, word, visual, range, cwd.
 ---@diagnostic disable: need-check-nil, param-type-mismatch
 
 return function(H)

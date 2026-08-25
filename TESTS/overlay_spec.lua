@@ -1,4 +1,4 @@
--- docs/TESTS/overlay_spec.lua — quick-insert overlay: layout, navigation,
+-- TESTS/overlay_spec.lua — quick-insert overlay: layout, navigation,
 -- mode validation and frecency ordering.
 --
 -- The frecency store is redirected to a temp file by run.lua, so recording a

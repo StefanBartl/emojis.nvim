@@ -1,4 +1,4 @@
--- docs/TESTS/config_spec.lua — DEFAULTS catalog: picks/names stay in sync.
+-- TESTS/config_spec.lua — DEFAULTS catalog: picks/names stay in sync.
 
 return function(H)
   local eq = H.eq

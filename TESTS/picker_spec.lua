@@ -1,4 +1,4 @@
--- docs/TESTS/picker_spec.lua — insert picker: engine selection + fallback.
+-- TESTS/picker_spec.lua — insert picker: engine selection + fallback.
 -- telescope.nvim/fzf-lua are not on rtp in this headless harness, so "auto"
 -- must gracefully fall back to vim.ui.select without erroring.
 

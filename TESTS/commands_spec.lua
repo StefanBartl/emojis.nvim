@@ -1,4 +1,4 @@
--- docs/TESTS/commands_spec.lua — :Emojis exists; keymaps.preset gates the preset keys.
+-- TESTS/commands_spec.lua — :Emojis exists; keymaps.preset gates the preset keys.
 ---@diagnostic disable: missing-fields, need-check-nil, param-type-mismatch
 
 return function(H)

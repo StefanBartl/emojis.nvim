@@ -516,7 +516,7 @@ both cascade's cursor-precise `<C-y>` cycling and emojis.nvim's line-scoped
 `:Emojis toggle` — see |emojis.cascade_groups()|.
 
 The pure logic in core/* is isolated from every API/UI layer and is therefore
-unit-testable on plain string arrays (see `docs/TESTS/`).
+unit-testable on plain string arrays (see `TESTS/`).
 
 ==============================================================================
 vim:tw=78:ts=8:noet:ft=help:norl:

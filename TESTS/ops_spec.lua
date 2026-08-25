@@ -1,4 +1,4 @@
--- docs/TESTS/ops_spec.lua — clear/count/list/replace on string arrays.
+-- TESTS/ops_spec.lua — clear/count/list/replace on string arrays.
 
 return function(H)
   local eq = H.eq

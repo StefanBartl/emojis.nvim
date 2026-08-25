@@ -35,7 +35,7 @@ lua/emojis/
 ```
 
 Cheatsheet of all keymaps/commands/autocmds: [`docs/BINDINGS.md`](BINDINGS.md).
-Test suite (purely functional, headless): [`docs/TESTS/README.md`](TESTS/README.md).
+Test suite (purely functional, headless): [`TESTS/README.md`](../TESTS/README.md).
 
 Pure logic (`core/*`) is separated from all API/UI layers and is therefore
 independently testable.
