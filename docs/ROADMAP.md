@@ -17,8 +17,8 @@ updated first — the moment new work starts.
 
 ## Nicht geplant
 
-- **Emoji-Rendering / Font-Handling** — Sache des Terminals/GUI, nicht des Plugins.
+- **Emoji rendering / font handling** — a matter for the terminal/GUI, not the plugin.
 - **Eigene Unicode-Datenbank als Abhängigkeit** — die kompakten Byte-Ranges
-  decken den praktischen Bedarf ab; eine vollständige UCD wäre überdimensioniert.
-- **Autocmd-getriebenes Auto-Clear beim Speichern** — zu invasiv; bewusst ein
-  explizit aufgerufener Befehl (siehe Leitlinie „Event oder Command?").
+  cover the practical need; a complete UCD would be overkill.
+- **Autocmd-driven auto-clear on save** — too invasive; deliberately a command
+  invoked explicitly (see the guideline "event or command?").
