@@ -71,6 +71,13 @@ local state = nil
 ---@type integer
 local ns = api.nvim_create_namespace("emojis_overlay")
 
+-- Forward declaration: `bind`'s `/`-filter closure re-opens the grid, which
+-- means it references `open_grid` several hundred lines before the definition
+-- below. Without this the name resolved to a (nil) global at call time and the
+-- filter blew up instead of re-rendering.
+---@type fun(kit: table, cfg: table, items: table[], show_keys: boolean, all: table[]|nil)
+local open_grid
+
 ---Load `lib.nvim.ui.kit`, or nil when lib.nvim is too old to ship it.
 ---@return table|nil
 ---@internal
@@ -351,7 +358,7 @@ end
 ---       widen again from the original list rather than from what is on screen
 ---@return nil
 ---@internal
-local function open_grid(kit, cfg, items, show_keys, all)
+function open_grid(kit, cfg, items, show_keys, all)
   local cols = math.max(1, math.min(cfg.overlay.columns, #items))
   local lines, spans = render(items, cols, show_keys)
 
