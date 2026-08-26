@@ -1,12 +1,12 @@
 ---@module 'emojis.util.lib'
 --- Soft, guarded bridge to the optional `lib.nvim` helper library.
 ---
---- emojis.nvim prefers `lib.nvim.notify` / `lib.nvim.map` when present, but
+--- emojis.nvim prefers `lib.nvim.notify` / `lib.nvim.bindings.keymap` when present, but
 --- every accessor here probes the corresponding module with `pcall` and falls
 --- back to the native Neovim API — no hard dependency on THESE specific
 --- helpers is ever introduced. `lib.nvim` as a whole, however, IS a hard
 --- dependency since the composer migration: the `:Emojis` command itself is
---- registered via `lib.nvim.usercmd.composer` (`emojis.commands`), with no
+--- registered via `lib.nvim.bindings.usercmd.composer` (`emojis.commands`), with no
 --- raw-`nvim_create_user_command` fallback. See `docs/installation.md`.
 
 local M = {}
@@ -109,7 +109,7 @@ function M.utf8_decode(str, i)
   return b1
 end
 
----Set a keymap. Uses `lib.nvim.map` if available, else `vim.keymap.set`.
+---Set a keymap. Uses `lib.nvim.bindings.keymap` if available, else `vim.keymap.set`.
 ---@param mode string|string[]
 ---@param lhs string
 ---@param rhs string|function
@@ -117,7 +117,7 @@ end
 ---@return nil
 function M.map(mode, lhs, rhs, opts)
   opts = opts or {}
-  local ok, lib_map = pcall(require, "lib.nvim.map")
+  local ok, lib_map = pcall(require, "lib.nvim.bindings.keymap")
   if ok and type(lib_map) == "function" then
     local desc = opts.desc
     opts.desc = nil

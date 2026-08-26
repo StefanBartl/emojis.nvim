@@ -14,12 +14,14 @@ function M.check()
   end
 
   -- lib.nvim.notify/map (emojis.util.lib) stay soft — native fallback if
-  -- absent — but lib.nvim.usercmd.composer is a hard dependency of the
+  -- absent — but lib.nvim.bindings.usercmd.composer is a hard dependency of the
   -- :Emojis command layer as of the composer migration, no fallback.
-  if pcall(require, "lib.nvim.usercmd.composer") then
-    vim.health.ok("lib.nvim.usercmd.composer available (:Emojis command layer)")
+  if pcall(require, "lib.nvim.bindings.usercmd.composer") then
+    vim.health.ok("lib.nvim.bindings.usercmd.composer available (:Emojis command layer)")
   else
-    vim.health.error(":Emojis will fail to register — lib.nvim.usercmd.composer not found; install StefanBartl/lib.nvim")
+    vim.health.error(
+      ":Emojis will fail to register — lib.nvim.bindings.usercmd.composer not found; install StefanBartl/lib.nvim"
+    )
   end
 
   -- The overlay draws on lib.nvim.ui.kit. Only the overlay needs it, so a
@@ -90,7 +92,7 @@ function M.check()
     )
   end
 
-  require("lib.nvim.usercmd.composer").checkhealth(require("emojis.config").get().command)
+  require("lib.nvim.bindings.usercmd.composer").checkhealth(require("emojis.config").get().command)
 end
 
 return M

@@ -5,7 +5,7 @@
 - Neovim 0.9+
 - `ripgrep` (`rg`) — only needed for the `cwd` scope, and only optionally
 - [`lib.nvim`](https://github.com/StefanBartl/lib.nvim) — **required**; the
-  `:Emojis` command is registered via `lib.nvim.usercmd.composer`, with no
+  `:Emojis` command is registered via `lib.nvim.bindings.usercmd.composer`, with no
   fallback. (`notify`/`map` specifically stay soft internally — native
   fallback if `lib.nvim` were somehow missing at that call site — but the
   command layer itself hard-requires the composer module, so treat the

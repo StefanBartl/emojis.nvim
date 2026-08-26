@@ -14,7 +14,7 @@ buffer). Actions: `clear`, `replace`, `unreplace`, `wrap`, `list`,
 `count`, `insert`, `overlay`, `toggle`, `first`, `next`. Scopes: `%`
 (buffer, default), `line`, `word`, `visual`, `cwd` (project-wide via
 ripgrep). An explicit Vim range (`:'<,'>Emojis`, `:10,20Emojis`) overrides
-the scope keyword. Built via `lib.nvim.usercmd.composer` — one route per
+the scope keyword. Built via `lib.nvim.bindings.usercmd.composer` — one route per
 action, forwarding to `emojis.commands`'s `execute()`.
 
 - **Module:** `lua/emojis/commands.lua` (`M.execute`),

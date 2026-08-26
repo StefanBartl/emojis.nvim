@@ -31,7 +31,7 @@ selection, the whole buffer, or the entire project (via ripgrep).
 
 Cross-platform. Emoji detection uses a pure UTF-8 byte tokenizer; no external
 library is required. Requires lib.nvim — the `:Emojis` command is registered
-via `lib.nvim.usercmd.composer`.
+via `lib.nvim.bindings.usercmd.composer`.
 
 ==============================================================================
 2. REQUIREMENTS                                          *emojis-requirements*
@@ -41,7 +41,7 @@ via `lib.nvim.usercmd.composer`.
   - telescope.nvim or fzf-lua — optional; live-search picker for `:Emojis
     insert` (`picker.engine = "auto"`), falls back to `vim.ui.select`
   - lib.nvim (StefanBartl/lib.nvim) — required; the `:Emojis` command is
-    registered via `lib.nvim.usercmd.composer`, with no fallback
+    registered via `lib.nvim.bindings.usercmd.composer`, with no fallback
     (`notify`/`map` specifically still degrade to a native fallback if
     somehow absent at that call site, but the command layer itself does not)
 
@@ -247,7 +247,7 @@ With no arguments, `:Emojis` is equivalent to `:Emojis clear %`.
 An explicit Vim range (`:'<,'>Emojis`, `:10,20Emojis`) always overrides the
 `scope` keyword.
 
-Built via `lib.nvim.usercmd.composer`: one route per action, forwarding to
+Built via `lib.nvim.bindings.usercmd.composer`: one route per action, forwarding to
 the same dispatch function as before (unchanged). An unrecognized action now
 reports composer's own usage block (every registered action, one per line)
 instead of the old plain-string error.
@@ -404,7 +404,7 @@ ops()                                                          *emojis.ops()*
 
 Checks:
   - Neovim >= 0.9
-  - `lib.nvim.usercmd.composer` available (required for the `:Emojis`
+  - `lib.nvim.bindings.usercmd.composer` available (required for the `:Emojis`
     command layer, no fallback)
   - `vim.ui.select` available (insert picker)
   - ripgrep on PATH (cwd scope)

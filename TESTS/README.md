@@ -4,7 +4,7 @@ Headless spec suite for emojis.nvim. The tokenizer/ops/scope layers are pure
 functions on strings — trivially testable without a UI.
 
 `commands_spec.lua` calls `emojis.setup()`, which registers `:Emojis` via
-`lib.nvim.usercmd.composer` — a real runtime dependency as of that migration,
+`lib.nvim.bindings.usercmd.composer` — a real runtime dependency as of that migration,
 not an optional extra. Check out `lib.nvim` as a sibling of this repo (same
 convention as every other `StefanBartl/*.nvim` repo's test suite) and add it
 to the runtimepath.

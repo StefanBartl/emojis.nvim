@@ -27,7 +27,7 @@ range.
 
 Cross-platform; emoji detection runs on a pure UTF-8 byte tokenizer (no
 external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim)
-— the `:Emojis` command is registered via `lib.nvim.usercmd.composer`.
+— the `:Emojis` command is registered via `lib.nvim.bindings.usercmd.composer`.
 
 ---
 

@@ -1,5 +1,5 @@
 ---@module 'emojis.commands'
---- :Emojis user command — dispatch + tab completion, built on lib.nvim.usercmd.composer.
+--- :Emojis user command — dispatch + tab completion, built on lib.nvim.bindings.usercmd.composer.
 ---
 --- Parses `[action] [scope]`, validates them, and routes to the action handlers,
 --- the picker, or the async cwd search. A Vim range overrides the scope keyword.
@@ -14,7 +14,7 @@
 --- silently ignore a garbage second token today, and a hard enum would reject
 --- it before execute() ever got a chance to apply that bypass.
 
-local composer = require("lib.nvim.usercmd.composer")
+local composer = require("lib.nvim.bindings.usercmd.composer")
 
 local notify = require("emojis.util.notify")
 local config = require("emojis.config")
@@ -216,7 +216,7 @@ local function action_route(action)
 end
 
 ---Register the :Emojis command (name from cfg.command) via
----lib.nvim.usercmd.composer.
+---lib.nvim.bindings.usercmd.composer.
 ---@param cfg Emojis.Config
 ---@return nil
 function M.register(cfg)

@@ -30,7 +30,7 @@ comment, which is what the count audit flagged.
 ## User Commands
 
 Always defined, regardless of `keymaps.preset`. Built via
-`lib.nvim.usercmd.composer` (`lua/emojis/commands.lua`) — a required
+`lib.nvim.bindings.usercmd.composer` (`lua/emojis/commands.lua`) — a required
 dependency of the command layer, unlike the soft `lib.nvim.notify`/`map`
 helpers in `util/lib.lua`.
 
