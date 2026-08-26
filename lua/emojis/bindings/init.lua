@@ -1,9 +1,9 @@
 ---@module 'emojis.bindings'
 --- Orchestrates emojis.nvim's bindings: usrcmds, keymaps, autocmds.
 ---
---- Always registers the `:Emojis` command. When `keymaps.preset` is enabled
---- it also binds the preset keymaps and labels the `<leader>e` group in
---- which-key (no-op if not installed).
+--- Always registers the `:Emojis` command and declares the preset's keymap
+--- actions. Whether any of them are actually bound is the keymap registry's
+--- decision, from `keymaps.preset` and the per-action overrides.
 
 local M = {}
 
@@ -13,10 +13,11 @@ local M = {}
 function M.setup(cfg)
   require("emojis.bindings.usrcmds").setup(cfg)
 
-  if cfg.keymaps and cfg.keymaps.preset then
-    require("emojis.bindings.keymaps").bind_preset()
-    require("emojis.bindings.which_key").setup()
-  end
+  -- Called unconditionally, including with `keymaps.preset = false`: the
+  -- registry honours `preset` itself, and binding nothing is not the same as
+  -- declaring nothing -- :checkhealth and generated docs ask what EXISTS.
+  -- The which-key group label moved into the keymap spec.
+  require("emojis.bindings.keymaps").bind_preset(cfg)
 
   require("emojis.bindings.autocmds").setup(cfg)
 end

@@ -152,9 +152,17 @@ local DEFAULTS = {
     no_ignore = false,
   },
 
-  -- Opt-in preset keymaps: <C-e> insert, <leader>ec count %, <leader>el list %.
+  -- Opt-in preset keymaps. `preset = false` binds nothing; each action is
+  -- also individually overridable by name -- `insert = "<C-y>"` moves one,
+  -- `count = false` drops one -- and a wrong name is reported rather than
+  -- silently binding nothing. Declared in bindings/keymaps.lua.
   keymaps = {
     preset = false,
+    -- insert  = "<C-e>",      -- picker
+    -- overlay = "<leader>ee", -- quick-insert overlay
+    -- toggle  = "<leader>et", -- toggle checkbox (n, x)
+    -- count   = "<leader>ec", -- count buffer
+    -- list    = "<leader>el", -- list buffer
   },
 
   -- Marker used by the `wrap` action to surround (not remove) each emoji.

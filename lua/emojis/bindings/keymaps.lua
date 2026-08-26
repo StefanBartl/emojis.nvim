@@ -1,39 +1,79 @@
 ---@module 'emojis.bindings.keymaps'
---- Opt-in preset keymaps (`config.keymaps.preset`).
+--- The opt-in preset keymaps, declared as named actions.
 ---
---- Maps straight onto the public API in `emojis` — no `<Plug>` indirection.
---- which-key (if installed) labels the `<leader>e` prefix via
---- `emojis.bindings.which_key`; individual key descriptions come from each
---- mapping's `desc`.
+--- The keys used to be hard-coded here, with only `keymaps.preset` deciding
+--- whether they were bound at all -- so a user who wanted four of the five had
+--- to switch the preset off and rebuild the set by hand. Declaring them
+--- through `lib.nvim.bindings.keymap`'s registry makes each one an
+--- individually overridable value: `keymaps = { count = "<leader>x" }` moves
+--- one, `count = false` drops one, and `preset = false` still binds nothing.
+---
+--- Maps straight onto the public API in `emojis` -- no `<Plug>` indirection.
+--- which-key needs no registration for the individual keys: it reads them
+--- itself and labels each from its own `desc`. Only the `<leader>e` group
+--- label is outside what it can infer, and that is declared in the spec below.
 
-local lib = require("emojis.util.lib")
+local keymap = require("lib.nvim.bindings.keymap")
 
 local M = {}
 
----Bind the preset keymaps: <C-e> insert, <leader>ee overlay, <leader>ec count,
----<leader>el list.
----@return nil
-function M.bind_preset()
+--- Declare and bind the preset's actions.
+---@param cfg Emojis.Config
+---@return Lib.Keymap.Registered[]
+function M.bind_preset(cfg)
   local api = require("emojis")
 
-  lib.map({ "n", "i" }, "<C-e>", api.insert, { desc = "emojis: insert picker" })
-  lib.map("n", "<leader>ee", function()
-    api.overlay()
-  end, { desc = "emojis: quick-insert overlay" })
-  -- Also in visual mode: the checkbox actions are range-aware, so `<leader>et`
-  -- over a selection ticks a whole block.
-  lib.map({ "n", "x" }, "<leader>et", function()
-    api.toggle()
-  end, { desc = "emojis: toggle checkbox" })
+  ---@type Lib.Keymap.Spec
+  local spec = {
+    -- Only the `<leader>e*` keys form a group; `<C-e>` stands alone and needs
+    -- no label beyond its own desc.
+    prefix = "<leader>e",
+    which_key = { group = "Emojis", mode = { "n", "x" } },
+    order = { "insert", "overlay", "toggle", "count", "list" },
+    actions = {
+      insert = {
+        default = "<C-e>",
+        mode = { "n", "i" },
+        rhs = api.insert,
+        desc = "insert picker",
+      },
 
-  lib.map("n", "<leader>ec", api.count, { desc = "emojis: count buffer" })
-  lib.map("n", "<leader>el", function()
-    local scope_m = require("emojis.core.scope")
-    local target = scope_m.resolve("%", 0, 0, 0)
-    if target then
-      require("emojis.actions").list(target)
-    end
-  end, { desc = "emojis: list buffer" })
+      overlay = {
+        default = "<leader>ee",
+        rhs = function()
+          api.overlay()
+        end,
+        desc = "quick-insert overlay",
+      },
+
+      -- Also in visual mode: the checkbox actions are range-aware, so this
+      -- over a selection ticks a whole block.
+      toggle = {
+        default = "<leader>et",
+        mode = { "n", "x" },
+        rhs = function()
+          api.toggle()
+        end,
+        desc = "toggle checkbox",
+      },
+
+      count = { default = "<leader>ec", rhs = api.count, desc = "count buffer" },
+
+      list = {
+        default = "<leader>el",
+        rhs = function()
+          local scope_m = require("emojis.core.scope")
+          local target = scope_m.resolve("%", 0, 0, 0)
+          if target then
+            require("emojis.actions").list(target)
+          end
+        end,
+        desc = "list buffer",
+      },
+    },
+  }
+
+  return keymap.register("emojis", spec, cfg and cfg.keymaps)
 end
 
 return M

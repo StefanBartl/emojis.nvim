@@ -69,7 +69,7 @@ function M.check()
     vim.health.warn("plugin guard not set — call require('emojis').setup()")
   end
 
-  if require("emojis.bindings.which_key").available() then
+  if pcall(require, "which-key") then
     vim.health.ok("which-key found (preset keymaps get labeled group)")
   else
     vim.health.info("which-key not installed (optional; only labels the preset's <leader>e group)")
