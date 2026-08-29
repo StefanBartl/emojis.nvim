@@ -16,6 +16,7 @@ local notify = require("emojis.util.notify")
 local config = require("emojis.config")
 local ops = require("emojis.core.ops")
 local lib = require("emojis.util.lib")
+local list = require("lib.nvim.ui.list")
 
 local M = {}
 
@@ -148,8 +149,7 @@ local function finish(action, lines, cwd)
     notify.warn("search output could not be parsed")
     return
   end
-  fn.setqflist({}, "r", { title = "Emojis (cwd)", items = qf })
-  vim.cmd("copen")
+  list.qf(qf, "Emojis (cwd)", { action = "r" })
   notify.info(("Found %d match%s -> quickfix"):format(#qf, #qf == 1 and "" or "es"))
 end
 

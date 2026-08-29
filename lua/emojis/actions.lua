@@ -12,6 +12,7 @@ local notify = require("emojis.util.notify")
 local ops = require("emojis.core.ops")
 local config = require("emojis.config")
 local patterns = require("emojis.core.patterns")
+local list = require("lib.nvim.ui.list")
 
 local M = {}
 
@@ -227,8 +228,7 @@ function M.list(t)
     local e = entries[i]
     qf[i] = { bufnr = t.buf, filename = name, lnum = e.lnum, col = e.col + 1, text = "emoji " .. e.text }
   end
-  fn.setqflist({}, "r", { title = "Emojis", items = qf })
-  vim.cmd("copen")
+  list.qf(qf, "Emojis", { action = "r" })
   notify.info(("Found %d emoji%s -> quickfix"):format(#entries, #entries == 1 and "" or "s"))
 end
 
