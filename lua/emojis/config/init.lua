@@ -32,7 +32,7 @@ local function is_one_of(value, allowed)
 end
 
 ---Merge user options over the defaults and store the result.
----@param user_opts? Emojis.Config|table
+---@param user_opts? Emojis.Opts
 ---@return Emojis.Config
 function M.setup(user_opts)
   if type(user_opts) ~= "table" then
@@ -44,8 +44,9 @@ function M.setup(user_opts)
   -- tbl_deep_extend merges lists index-wise, so a user list shorter than the
   -- default would keep the default's tail. For a curated set that is wrong:
   -- "these five glyphs" must mean exactly five. Replace it wholesale instead.
-  if type(user_opts.overlay) == "table" and type(user_opts.overlay.picks) == "table" then
-    merged.overlay.picks = vim.deepcopy(user_opts.overlay.picks)
+  local user_picks = user_opts.overlay and user_opts.overlay.picks
+  if type(user_picks) == "table" then
+    merged.overlay.picks = vim.deepcopy(user_picks)
   end
 
   -- Same index-wise merge problem, for each individual checkbox cycle: a user
@@ -58,8 +59,9 @@ function M.setup(user_opts)
       end
     end
   end
-  if type(user_opts.checkbox) == "table" and type(user_opts.checkbox.order) == "table" then
-    merged.checkbox.order = vim.deepcopy(user_opts.checkbox.order)
+  local user_order = user_opts.checkbox and user_opts.checkbox.order
+  if type(user_order) == "table" then
+    merged.checkbox.order = vim.deepcopy(user_order)
   end
 
   if not is_one_of(merged.overlay.mode, VALID_OVERLAY_MODES) then

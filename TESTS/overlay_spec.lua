@@ -35,6 +35,9 @@ return function(H)
   eq(frecency.sort(PICKS)[1][1], "✅", "frecency: reset clears recorded usage")
 
   -- -------------------------------------------------------- config validation
+  -- Deliberately invalid: the point is that setup() falls back rather than
+  -- that the value typechecks.
+  ---@diagnostic disable-next-line: assign-type-mismatch
   config.setup({ overlay = { mode = "nonsense" } })
   eq(config.get().overlay.mode, "grid", "config: an invalid overlay.mode falls back to grid")
 

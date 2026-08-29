@@ -14,7 +14,7 @@ local M = {}
 local _done = false
 
 ---Configure and activate emojis.nvim.
----@param opts? Emojis.Config|table
+---@param opts? Emojis.Opts
 ---@return nil
 function M.setup(opts)
   if _done then

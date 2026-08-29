@@ -116,4 +116,54 @@
 ---@field overlay       Emojis.Config.Overlay              Quick-insert overlay
 ---@field checkbox      Emojis.Config.Checkbox             Emoji checkbox cycles
 
+--- What `setup()` accepts: the shape of `Emojis.Config` with every field
+--- optional, nested tables included. The resolved `Emojis.Config` stays
+--- strict, so a partial call is legal without every read of `cfg.overlay.mode`
+--- becoming a nil check.
+---@class Emojis.Opts
+---@field default_scope? Emojis.Scope                      Scope used when none is given
+---@field command?       string                            Name of the user command
+---@field picks?         Emojis.Config.PickEntry[]         Entries for the insert picker
+---@field names?         table<integer, string>            Codepoint -> :name: for replace
+---@field search?        Emojis.Opts.Search              cwd search configuration
+---@field keymaps?       Emojis.Opts.Keymaps              Opt-in preset keymaps
+---@field wrap?          Emojis.Opts.Wrap                 Marker for the wrap action
+---@field preview?       Emojis.Opts.Preview              Opt-in clear/replace highlight preview
+---@field picker?        Emojis.Opts.Picker               Insert-picker engine selection
+---@field overlay?       Emojis.Opts.Overlay              Quick-insert overlay
+---@field checkbox?      Emojis.Opts.Checkbox             Emoji checkbox cycles
+
+---@class Emojis.Opts.Search
+---@field cmd?        string    External search binary (default "rg")
+---@field extra_args? string[]  Extra args appended before the pattern
+---@field no_ignore?  boolean   Pass --no-ignore so rg also searches gitignored files
+
+---@class Emojis.Opts.Keymaps
+---@field preset? boolean  Bind the opt-in preset keymaps (default false)
+
+---@class Emojis.Opts.Wrap
+---@field prefix? string  Text inserted before each emoji by `wrap`
+---@field suffix? string  Text inserted after each emoji by `wrap`
+
+---@class Emojis.Opts.Preview
+---@field enable?      boolean  Highlight affected emojis before clear/replace (default false)
+---@field duration_ms? integer  How long to show the highlight before mutating
+---@field hl_group?    string   Highlight group used for the preview extmarks
+
+---@class Emojis.Opts.Picker
+---@field engine? Emojis.Config.Picker.Engine  Insert-picker engine (default "auto")
+
+---@class Emojis.Opts.Checkbox
+---@field default_set? string                    Set used by `:Emojis toggle` with no argument; "" = search all
+---@field sets?        table<string, string[]>   Named cycles; order within a set is the cycle order
+---@field order?       string[]                  Search order across sets (ambiguity resolution)
+
+---@class Emojis.Opts.Overlay
+---@field mode?     Emojis.Config.Overlay.Mode  Interaction mode (default "grid")
+---@field picks?    Emojis.Config.PickEntry[]   Curated quick-insert set, in starting order
+---@field frecency? boolean                     Reorder `picks` by recorded usage (default true)
+---@field columns?  integer                     Cells per row in the grid modes (default 5)
+---@field limit?    integer                     Maximum cells shown (default 20)
+---@field title?    string                      Float title
+---@field theme?    any                         lib.nvim.ui.kit theme arg (preset name or override table)
 return {}
