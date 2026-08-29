@@ -86,5 +86,4 @@ external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim
 - [Lua API](docs/api.md) — public API and pure operations for scripts/tests.
 - [Architecture](docs/architecture.md) — module layout and design notes.
 - [Bindings cheatsheet](docs/BINDINGS.md) — machine-readable overview of every keymap, command, and autocommand.
-- [Roadmap](docs/ROADMAP.md) — implementation status and deliberately-not-planned items.
 - [Test suite](TESTS/README.md) — headless, purely functional test suite.
