@@ -91,3 +91,7 @@ external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim
 - [Architecture](docs/architecture.md) — module layout and design notes.
 - [Bindings cheatsheet](docs/BINDINGS.md) — machine-readable overview of every keymap, command, and autocommand.
 - [Test suite](TESTS/README.md) — headless, purely functional test suite.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
