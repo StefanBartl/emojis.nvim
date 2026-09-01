@@ -1,5 +1,7 @@
 -- TESTS/commands_spec.lua — :Emojis exists; keymaps.preset gates the preset keys.
----@diagnostic disable: missing-fields, need-check-nil, param-type-mismatch
+-- The stdlib and module fields replaced below are test doubles: each one is
+-- swapped for the length of a single case and restored on the next line.
+---@diagnostic disable: missing-fields, need-check-nil, param-type-mismatch, duplicate-set-field
 
 return function(H)
   local eq = H.eq

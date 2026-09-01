@@ -1,6 +1,10 @@
 -- TESTS/picker_spec.lua — insert picker: engine selection + fallback.
 -- telescope.nvim/fzf-lua are not on rtp in this headless harness, so "auto"
 -- must gracefully fall back to vim.ui.select without erroring.
+--
+-- `vim.ui.select` is replaced below as a test double, for the length of one
+-- case, and restored right after.
+---@diagnostic disable: duplicate-set-field
 
 return function(H)
   local eq = H.eq

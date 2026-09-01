@@ -180,11 +180,9 @@ end
 ---Run the async cwd search for `list`, `count`, `clear`, or `replace`.
 ---@param action "list"|"count"|"clear"|"replace"
 ---@param extra_globs string[]|nil  extra `--glob` patterns (args after the scope keyword)
+---@param no_ignore boolean|nil  force `--no-ignore` for this call only, without
+---       changing `search.no_ignore`
 ---@return nil
----@param action string
----@param extra_globs string[]|nil
----@param no_ignore boolean|nil  # force `--no-ignore` for this call only,
----       without changing `search.no_ignore`
 function M.run(action, extra_globs, no_ignore)
   if not SUPPORTED[action] then
     notify.warn("cwd scope only supports list/count/clear/replace")

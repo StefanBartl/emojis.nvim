@@ -121,7 +121,12 @@ function M.map(mode, lhs, rhs, opts)
   if ok and vim.is_callable(lib_map) then
     local desc = opts.desc
     opts.desc = nil
-    pcall(lib_map, mode, lhs, rhs, opts, desc)
+    -- A closure, not `pcall(lib_map, ...)`: lib.nvim's keymap module is a
+    -- callable table, which is not a `function` as far as the type is
+    -- concerned even though `vim.is_callable` says yes.
+    pcall(function()
+      lib_map(mode, lhs, rhs, opts, desc)
+    end)
     return
   end
   vim.keymap.set(mode, lhs, rhs, opts)

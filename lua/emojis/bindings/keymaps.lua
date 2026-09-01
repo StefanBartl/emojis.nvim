@@ -18,7 +18,9 @@ local keymap = require("lib.nvim.bindings.keymap")
 local M = {}
 
 --- Declare and bind the preset's actions.
----@param cfg Emojis.Config
+---@param cfg Emojis.Config?  nil binds the preset's own defaults with no user
+---       overrides -- which is what the last line does with it, and what a
+---       caller that has no resolved config yet (a test) relies on
 ---@return Lib.Keymap.Registered[]
 function M.bind_preset(cfg)
   local api = require("emojis")

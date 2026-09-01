@@ -254,6 +254,11 @@ end
 ---@return nil
 ---@internal
 local function bind(show_keys)
+  -- Only ever called from `open`, with the overlay already standing up; the
+  -- check is what says so to a reader who arrives here from a keymap.
+  if not state then
+    return
+  end
   local buf = state.surf.bufnr
   local function nmap(lhs, fn)
     lib.map("n", lhs, fn, { buffer = buf, nowait = true, silent = true })
@@ -329,7 +334,7 @@ local function bind(show_keys)
         -- rebuilding is the only way to keep all three in step.
         close_then(function()
           local cfg_now = config.get()
-          open_grid(load_kit(), cfg_now, kept, show_keys_now, base)
+          open_grid(kit_mod, cfg_now, kept, show_keys_now, base)
         end)
       end,
     })
