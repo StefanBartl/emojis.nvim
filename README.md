@@ -85,6 +85,9 @@ external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim
 
 ## Documentation
 
+Start at [docs/README.md](docs/README.md), which says what is where and which
+question each page answers.
+
 - [Installation](docs/installation.md) — prerequisites, lazy.nvim / packer.nvim / vim-plug setup, and verifying the install.
 - [Configuration](docs/configuration.md) — all available options and defaults.
 - [Commands](docs/commands.md) — actions, scopes, the double-space fix, project-wide `cwd` search, and usage examples.
@@ -92,6 +95,8 @@ external library). Requires [`lib.nvim`](https://github.com/StefanBartl/lib.nvim
 - [Lua API](docs/api.md) — public API and pure operations for scripts/tests.
 - [Architecture](docs/architecture.md) — module layout and design notes.
 - [Bindings cheatsheet](docs/BINDINGS.md) — machine-readable overview of every keymap, command, and autocommand.
+- [Features](docs/FEATURES.md) — one section per feature, and why each has the shape it has.
+- [Workflow](docs/WORKFLOW.md) — how the commands combine day to day, rather than what each one does.
 - [Test suite](TESTS/README.md) — headless, purely functional test suite.
 
 ## License
