@@ -18,14 +18,14 @@ Only active when `keymaps.preset = true` is set (default `false`).
 | `<C-e>` | n, i | `emojis.insert` | Insert picker at cursor (telescope/fzf-lua if available, else vim.ui.select) |
 | `<leader>ee` | n | `emojis.overlay` | Quick-insert overlay (frecency-ordered grid) |
 | `<leader>et` | n, x | `emojis.toggle` | Toggle emoji checkbox (cursor line, visual range, or the next `N` lines with a count) |
+| `<leader>ec` | n | `emojis.count` | Count emojis in buffer |
+| `<leader>el` | n | `emojis.list` (via `actions.list`) | List emojis in buffer -> quickfix |
 
 **`<leader>et` takes a count**, and it widens the *scope* rather than
 repeating the toggle: `3<leader>et` ticks the cursor line and the two below
 it, not the cursor line three times (which would be a no-op for every even
 count). This has always been the behaviour — it was documented only in a code
 comment, which is what the count audit flagged.
-| `<leader>ec` | n | `emojis.count` | Count emojis in buffer |
-| `<leader>el` | n | `emojis.list` (via `actions.list`) | List emojis in buffer -> quickfix |
 
 ## User Commands
 
