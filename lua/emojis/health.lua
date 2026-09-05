@@ -10,7 +10,7 @@ function M.check()
   if vim.fn.has("nvim-0.9") == 1 then
     vim.health.ok("Neovim >= 0.9")
   else
-    vim.health.warn("Neovim 0.9+ recommended")
+    vim.health.warn("Neovim 0.9+ recommended", { "Upgrade Neovim to 0.9+" })
   end
 
   -- lib.nvim.notify/map (emojis.util.lib) stay soft — native fallback if
@@ -20,7 +20,8 @@ function M.check()
     vim.health.ok("lib.nvim.bindings.usercmd.composer available (:Emojis command layer)")
   else
     vim.health.error(
-      ":Emojis will fail to register — lib.nvim.bindings.usercmd.composer not found; install StefanBartl/lib.nvim"
+      ":Emojis will fail to register — lib.nvim.bindings.usercmd.composer not found",
+      { 'Install "StefanBartl/lib.nvim"' }
     )
   end
 
@@ -30,7 +31,7 @@ function M.check()
   if pcall(require, "lib.nvim.ui.kit") then
     vim.health.ok("lib.nvim.ui.kit available (:Emojis overlay)")
   else
-    vim.health.warn(":Emojis overlay unavailable — lib.nvim.ui.kit not found; update StefanBartl/lib.nvim")
+    vim.health.warn(":Emojis overlay unavailable — lib.nvim.ui.kit not found", { "Update StefanBartl/lib.nvim" })
   end
 
   if type(vim.ui) == "table" and type(vim.ui.select) == "function" then
@@ -54,7 +55,7 @@ function M.check()
   if vim.fn.executable(cmd) == 1 then
     vim.health.ok(("'%s' found on PATH (cwd scope: list/count/clear/replace)"):format(cmd))
   else
-    vim.health.warn(("'%s' not found — :Emojis list/count/clear/replace cwd will not work"):format(cmd))
+    vim.health.warn(("'%s' not found — :Emojis list/count/clear/replace cwd will not work"):format(cmd), { "install " .. cmd })
   end
 
   if type(vim.system) == "function" then
@@ -66,7 +67,7 @@ function M.check()
   if vim.g.loaded_emojis then
     vim.health.ok("plugin loaded (vim.g.loaded_emojis = " .. tostring(vim.g.loaded_emojis) .. ")")
   else
-    vim.health.warn("plugin guard not set — call require('emojis').setup()")
+    vim.health.info("plugin guard not set (call require('emojis').setup())")
   end
 
   if pcall(require, "which-key") then
