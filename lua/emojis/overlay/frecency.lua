@@ -195,10 +195,4 @@ function M.reset()
   save()
 end
 
----Testing seam: force the next access to re-read from disk.
----@return nil
-function M._invalidate()
-  _store = nil
-end
-
 return M

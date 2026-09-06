@@ -483,7 +483,4 @@ function M.is_open()
   return state ~= nil and state.surf:is_valid()
 end
 
----@type string[]  Exposed for command completion.
-M.MODES = { "grid", "grid_keys", "list" }
-
 return M

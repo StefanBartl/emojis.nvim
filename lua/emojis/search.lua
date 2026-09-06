@@ -5,9 +5,9 @@
 --- `count` feed the quickfix list / a notify count. `clear`/`replace` first
 --- collect the same matches, then ask for confirmation (`:Emojis list cwd`
 --- is the dry-run preview for these) before mutating every matched file.
---- Buffers with unsaved changes are skipped rather than clobbered. The
---- ripgrep Unicode codepoint range mirrors the byte patterns used by
---- `core.patterns`.
+--- Buffers with unsaved changes are skipped rather than clobbered. The ripgrep
+--- Unicode range (`RG_PATTERN`) is meant to track the byte patterns in
+--- `core.patterns` — see the CDX note below, it currently lags by one range.
 
 local api = vim.api
 local fn = vim.fn
@@ -21,6 +21,10 @@ local list = require("lib.nvim.ui.list")
 local M = {}
 
 -- rg Unicode codepoint range — works without --pcre2.
+--- CDX: covers three of the four `core.patterns.RANGES` — the Misc Technical
+--- block (U+2300-23FF: ⌚ ⏳ ⏰ …) is missing, so a `cwd`-scoped
+--- list/count/clear/replace silently skips those glyphs even though every
+--- buffer-scoped action matches them. Adding the range is a behaviour change.
 local RG_PATTERN = [=[[\x{1F000}-\x{1FFFF}\x{2600}-\x{27FF}\x{2B00}-\x{2BFF}]]=]
 
 ---@type table<string, boolean>  Actions the cwd scope supports.

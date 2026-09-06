@@ -119,6 +119,9 @@ local REGIONAL_ANCHORED = "^" .. range_pattern(0x1F1E6, 0x1F1FF)
 local M = {}
 
 M.VS16 = VS16
+--- CDX: `M.BASE` has no readers anywhere (repo, TESTS, sibling plugins) and
+--- is not a documented API — it exposes the compiled per-range Lua patterns,
+--- an implementation detail. Vestigial export next to the used `M.VS16`.
 M.BASE = BASE
 
 ---Encode a single Unicode codepoint back to its UTF-8 string (inverse of

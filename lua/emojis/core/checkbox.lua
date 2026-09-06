@@ -2,7 +2,7 @@
 --- Pure line-scoped emoji checkbox toggling / cycling.
 ---
 --- Advances the emoji "checkbox" on a line one step through a configured cycle
---- set: `🔲 1. Hallo` -> `✅ 1. Hallo` -> back again.
+--- set: `🔲 1. Hello` -> `✅ 1. Hello` -> back again.
 ---
 --- The distinguishing property is that this is *line-scoped*, not
 --- cursor-scoped: the glyph is found wherever it sits on the line, so the

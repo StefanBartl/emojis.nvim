@@ -21,11 +21,9 @@ local PREVIEW_NS = api.nvim_create_namespace("emojis_preview")
 ---Briefly highlight the emoji spans about to be mutated, then invoke `done`.
 ---No-op (calls `done` straight away) unless `cfg.enable` is true.
 ---
----Previously this blocked the UI thread with `vim.wait(cfg.duration_ms)` so the
----highlight was visible before the caller mutated the buffer. It now schedules
----the clear-and-continue step via `vim.defer_fn`, so Neovim stays responsive
----during the preview. The mutation moved into `done` to keep the original
----ordering (highlight first, mutate afterwards).
+---The clear-and-continue step is scheduled via `vim.defer_fn` (not a blocking
+---`vim.wait`), so Neovim stays responsive during the preview; `done` carries
+---the buffer mutation so the ordering stays highlight-first, mutate-after.
 ---@param buf integer
 ---@param base_line integer  0-based first line of `work`
 ---@param work string[]
@@ -101,9 +99,9 @@ function M.edit(action, t)
 
   local work, col_offset = scoped(t, lines)
 
-  -- The mutation now lives in a callback: preview_spans() highlights first and
-  -- calls back once its (non-blocking) preview window has elapsed. Without a
-  -- preview configured the callback runs inline, so behaviour is unchanged.
+  -- The mutation lives in a callback: preview_spans() highlights first and
+  -- calls back once its (non-blocking) preview window has elapsed. With no
+  -- preview configured the callback runs inline.
   local function apply()
     if not buf_ok(t.buf) then
       return
