@@ -211,9 +211,11 @@ the buffer. Pure navigation — neither mutates the buffer.
 
 When `keymaps.preset = true`, the `<leader>e` group is automatically
 labeled in which-key.nvim if installed — an optional dependency, silently
-skipped if which-key isn't present.
+skipped if which-key isn't present. The group label is one field
+(`which_key = { group = "Emojis" }`) in the keymap spec; the individual
+keys need no registration, which-key reads them from each mapping's `desc`.
 
-- **Module:** `lua/emojis/bindings/which_key.lua`
+- **Module:** `lua/emojis/bindings/keymaps.lua`
 - **Config:** `opts.keymaps.preset` (default `false`)
 
 ## Lua API for scripts and tests

@@ -20,8 +20,7 @@ lua/emojis/
   bindings/
     init.lua                  Orchestrates usrcmds/keymaps/autocmds
     usrcmds.lua                Registers :Emojis (via commands.lua)
-    keymaps.lua                 Opt-in preset keymaps (keymaps.preset)
-    which_key.lua                Optional which-key group label
+    keymaps.lua                 Opt-in preset keymaps (keymaps.preset); also the which-key group label
     autocmds.lua                  Empty (deliberately no autocmds by design)
   overlay/
     init.lua                  Quick-insert overlay (grid/grid_keys/list modes)

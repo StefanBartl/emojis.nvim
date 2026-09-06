@@ -2,8 +2,9 @@
 
 Enable via `require("emojis").setup({ keymaps = { preset = true } })`
 (default: `false`). This automatically labels the `<leader>e` group in
-which-key, if installed (`lua/emojis/bindings/which_key.lua`, optional
-dependency). Full overview: [`docs/BINDINGS.md`](BINDINGS.md).
+which-key, if installed (an optional dependency; the group label is part of
+the keymap spec in `lua/emojis/bindings/keymaps.lua`). Full overview:
+[`docs/BINDINGS.md`](BINDINGS.md).
 
 | Key | Mode | Action |
 |---|---|---|
