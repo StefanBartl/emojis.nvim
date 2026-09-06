@@ -1,9 +1,7 @@
 # emojis.nvim — Binding Cheatsheet
 
-Machine-readable overview of every keymap, user command, and autocommand
-defined by `emojis.nvim`. This file is documentation only and mirrors the
-source of truth in `lua/emojis/bindings/`. Any change there must be reflected
-here.
+Every keymap, user command, and autocommand `emojis.nvim` defines. Kept in
+sync with `lua/emojis/bindings/`.
 
 Every mapping binds directly onto the public API (`require("emojis").<fn>`)
 — there is no `<Plug>` indirection. which-key (if installed) only labels the
