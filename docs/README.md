@@ -26,3 +26,9 @@ is the short version of all of it.
 | [FEATURES.md](FEATURES.md) | One section per feature: the single entry point, UTF-8 detection without a name table, the six scope actions and the preview before a destructive one, project-wide scope over ripgrep, the insert picker and the quick-insert overlay, frecency reordering, emoji checkboxes, and the cascade.nvim bridge |
 | [api.md](api.md) | Every Lua function a config or another plugin can call |
 | [architecture.md](architecture.md) | Which file does what, from the load guard down |
+
+## Working on it
+
+| Page | Answers |
+| --- | --- |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Ground rules, project layout, and how to add an action |
