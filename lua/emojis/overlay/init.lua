@@ -129,17 +129,18 @@ local function render(items, cols, show_keys)
   local lines, spans = {}, {}
 
   local row = 0
-  local line = ""
+  local line_parts, line_len = {}, 0
   for i = 1, #items do
     local cell = show_keys and (" " .. (HOTKEYS[i] or "·") .. " " .. items[i][1] .. " ") or ("  " .. items[i][1] .. "  ")
 
-    spans[i] = { row = row, col_start = #line, col_end = #line + #cell }
-    line = line .. cell
+    spans[i] = { row = row, col_start = line_len, col_end = line_len + #cell }
+    line_parts[#line_parts + 1] = cell
+    line_len = line_len + #cell
 
     if i % cols == 0 or i == #items then
-      lines[row + 1] = line
+      lines[row + 1] = table.concat(line_parts)
       row = row + 1
-      line = ""
+      line_parts, line_len = {}, 0
     end
   end
 
