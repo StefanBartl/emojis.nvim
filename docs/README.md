@@ -7,7 +7,9 @@ is the short version of all of it.
 
 | Page | Answers |
 | --- | --- |
-| [installation.md](installation.md) | What has to be there first, then a spec per plugin manager |
+| [requirements.md](requirements.md) | Neovim version, required and optional plugins, `ripgrep` |
+| [installation.md](installation.md) | Every plugin manager, and verifying the install |
+| [quickstart.md](quickstart.md) | The first thing to run once it's installed |
 | [configuration.md](configuration.md) | Every option `setup()` takes, with the full defaults printed out |
 
 ## Using it
