@@ -94,7 +94,8 @@ local function try_fzf_lua(picks)
   return true
 end
 
----Fallback: vim.ui.select over the configured picks.
+---Fallback: `ui.kit.select` when installed, else the always-available
+---`vim.ui.select`.
 ---@param picks Emojis.Config.PickEntry[]
 ---@return nil
 ---@internal
@@ -104,20 +105,33 @@ local function select_fallback(picks)
     items[i] = picks[i][1] .. "  " .. picks[i][2]
   end
 
-  require("ui.kit").select({
-    items = items,
-    title = "Insert emoji:",
-    respect_override = true,
-    on_select = function(_, idx)
-      if not idx then
-        return
-      end
-      local entry = picks[idx]
-      if entry then
-        insert_at_cursor(entry[1])
-      end
-    end,
-  })
+  local function on_choice(idx)
+    if not idx then
+      return
+    end
+    local entry = picks[idx]
+    if entry then
+      insert_at_cursor(entry[1])
+    end
+  end
+
+  local ok = pcall(function()
+    require("ui.kit").select({
+      items = items,
+      title = "Insert emoji:",
+      respect_override = true,
+      on_select = function(_, idx)
+        on_choice(idx)
+      end,
+    })
+  end)
+  if ok then
+    return
+  end
+
+  vim.ui.select(items, { prompt = "Insert emoji:" }, function(_, idx)
+    on_choice(idx)
+  end)
 end
 
 ---Open the insert picker at the cursor (telescope/fzf-lua per
