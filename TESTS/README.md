@@ -9,12 +9,18 @@ not an optional extra. Check out `lib.nvim` as a sibling of this repo (same
 convention as every other `StefanBartl/*.nvim` repo's test suite) and add it
 to the runtimepath.
 
+`picker_spec.lua` (via `ui.kit.select`'s `respect_override` passthrough to
+`vim.ui.select`) and `overlay_spec.lua` (`overlay.open("grid")` actually opens
+the float) both need a real `ui.kit`, which moved out of `lib.nvim` into the
+separate `ui.nvim` repo in the 2026-09 migration — check that out as a sibling
+too.
+
 ## Run
 
-From the repo root, with `../lib.nvim` checked out as a sibling:
+From the repo root, with `../lib.nvim` and `../ui.nvim` checked out as siblings:
 
 ```sh
-nvim --headless -u NONE -c "set rtp+=.,../lib.nvim" -c "luafile TESTS/run.lua" -c "qa!"
+nvim --headless -u NONE -c "set rtp+=.,../lib.nvim,../ui.nvim" -c "luafile TESTS/run.lua" -c "qa!"
 ```
 
 The runner prints one line per spec and exits non-zero on the first failure

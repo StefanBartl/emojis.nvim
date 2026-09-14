@@ -225,7 +225,7 @@ local DEFAULTS = {
     columns = 5,
     limit = 20,
     title = " Emojis ",
-    -- Any lib.nvim.ui.kit theme arg: preset name or override table.
+    -- Any ui.kit theme arg: preset name or override table.
     theme = "rounded",
   },
 }

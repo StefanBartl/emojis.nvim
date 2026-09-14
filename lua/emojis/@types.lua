@@ -101,7 +101,7 @@
 ---@field columns  integer                     Cells per row in the grid modes (default 5)
 ---@field limit    integer                     Maximum cells shown (default 20)
 ---@field title    string                      Float title
----@field theme    any                         lib.nvim.ui.kit theme arg (preset name or override table)
+---@field theme    any                         ui.kit theme arg (preset name or override table)
 
 ---@class Emojis.Config
 ---@field default_scope Emojis.Scope                      Scope used when none is given
@@ -165,5 +165,5 @@
 ---@field columns?  integer                     Cells per row in the grid modes (default 5)
 ---@field limit?    integer                     Maximum cells shown (default 20)
 ---@field title?    string                      Float title
----@field theme?    any                         lib.nvim.ui.kit theme arg (preset name or override table)
+---@field theme?    any                         ui.kit theme arg (preset name or override table)
 return {}

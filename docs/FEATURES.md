@@ -143,7 +143,7 @@ compounding onto the first.
 - **Keymaps:** `<leader>ee` (normal — `keymaps.preset = true`)
 - **Config:** `opts.overlay.mode` (default `"grid"`),
   `opts.overlay.columns` (default `5`), `opts.overlay.limit` (default
-  `20`), `opts.overlay.title`, `opts.overlay.theme` (any `lib.nvim.ui.kit`
+  `20`), `opts.overlay.title`, `opts.overlay.theme` (any `ui.kit`
   theme arg), `opts.overlay.picks` (replaces, does not merge with, the
   default list)
 

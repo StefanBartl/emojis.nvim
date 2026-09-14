@@ -54,10 +54,17 @@ jobs:
           repository: StefanBartl/lib.nvim
           path: lib.nvim
           ref: ci-verified
+      # ui.nvim: overlay_spec.lua's `overlay.open("grid")` case actually
+      # opens the float, which needs a real ui.kit.select -- ui.kit moved out
+      # of lib.nvim into this separate repo in the 2026-09 migration.
+      - uses: actions/checkout@v5
+        with:
+          repository: StefanBartl/ui.nvim
+          path: ui.nvim
       - uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
           version: stable
       - name: Run TESTS suite
         working-directory: emojis.nvim
-        run: nvim --headless -u NONE -c "set rtp+=.,../lib.nvim" -c "luafile TESTS/run.lua" -c "qa!"
+        run: nvim --headless -u NONE -c "set rtp+=.,../lib.nvim,../ui.nvim" -c "luafile TESTS/run.lua" -c "qa!"

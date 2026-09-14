@@ -78,11 +78,11 @@ local ns = api.nvim_create_namespace("emojis_overlay")
 ---@type fun(kit: table, cfg: table, items: table[], show_keys: boolean, all: table[]|nil)
 local open_grid
 
----Load `lib.nvim.ui.kit`, or nil when lib.nvim is too old to ship it.
+---Load `ui.kit`, or nil when ui.nvim is not installed.
 ---@return table|nil
 ---@internal
 local function load_kit()
-  local ok, kit = pcall(require, "lib.nvim.ui.kit")
+  local ok, kit = pcall(require, "ui.kit")
   if ok and type(kit) == "table" then
     return kit
   end
@@ -456,7 +456,7 @@ function M.open(mode)
 
   local kit = load_kit()
   if not kit then
-    notify.error("the overlay needs lib.nvim.ui.kit — please update lib.nvim")
+    notify.error("the overlay needs ui.kit — please install StefanBartl/ui.nvim")
     return
   end
 

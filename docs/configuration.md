@@ -58,7 +58,7 @@ require("emojis").setup({
     columns = 5,
     limit = 20,
     title = " Emojis ",
-    theme = "rounded", -- any lib.nvim.ui.kit theme arg
+    theme = "rounded", -- any ui.kit theme arg
     -- picks = { { "✅", "white_check_mark" }, … }  -- see below
   },
 

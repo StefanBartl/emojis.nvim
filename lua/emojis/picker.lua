@@ -104,7 +104,7 @@ local function select_fallback(picks)
     items[i] = picks[i][1] .. "  " .. picks[i][2]
   end
 
-  require("lib.nvim.ui.kit").select({
+  require("ui.kit").select({
     items = items,
     title = "Insert emoji:",
     respect_override = true,

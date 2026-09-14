@@ -25,13 +25,13 @@ function M.check()
     )
   end
 
-  -- The overlay draws on lib.nvim.ui.kit. Only the overlay needs it, so a
-  -- lib.nvim predating the kit degrades to "no overlay" rather than a broken
-  -- plugin — hence warn, not error.
-  if pcall(require, "lib.nvim.ui.kit") then
-    vim.health.ok("lib.nvim.ui.kit available (:Emojis overlay)")
+  -- The overlay draws on ui.kit. Only the overlay needs it, so a
+  -- missing ui.nvim degrades to "no overlay" rather than a broken plugin —
+  -- hence warn, not error.
+  if pcall(require, "ui.kit") then
+    vim.health.ok("ui.kit available (:Emojis overlay)")
   else
-    vim.health.warn(":Emojis overlay unavailable — lib.nvim.ui.kit not found", { "Update StefanBartl/lib.nvim" })
+    vim.health.warn(":Emojis overlay unavailable — ui.kit not found", { "Install StefanBartl/ui.nvim" })
   end
 
   if type(vim.ui) == "table" and type(vim.ui.select) == "function" then

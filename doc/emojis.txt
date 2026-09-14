@@ -122,7 +122,7 @@ vim-plug: >vim
       columns = 5,
       limit = 20,
       title = " Emojis ",
-      theme = "rounded",           -- any lib.nvim.ui.kit theme arg
+      theme = "rounded",           -- any ui.kit theme arg
       -- picks = { { "✅", "white_check_mark" }, … } -- replaces the default list
     },
 
@@ -212,7 +212,7 @@ overlay.title ~
   Float title. Default: `" Emojis "`.
 
 overlay.theme ~
-  Any `lib.nvim.ui.kit` theme argument: a preset name (`"minimal"`,
+  Any `ui.kit` theme argument: a preset name (`"minimal"`,
   `"rounded"`, `"solid"`, `"double"`, `"ascii"`) or an override table.
   Default: `"rounded"`.
 
