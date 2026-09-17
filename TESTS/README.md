@@ -104,24 +104,29 @@ left out, with the reason:
   lines are asserted; its theming/border is `ui.kit`'s surface, which has its
   own suite in ui.nvim.
 
-## Pinned bugs
+## Bugs found here
 
-Four defects are pinned with `BUG:`-marked assertions, so the suite fails the
-day the behaviour changes and the note explains what "fixed" would look like:
+Four defects came out of writing this suite. The first two are **fixed** and
+their assertions stayed on as regression guards; the other two are still pinned
+with `BUG:`-marked assertions, so the suite fails the day that behaviour changes
+and the note explains what "fixed" would look like:
 
-1. **`emojis/init.lua`, the visual branch** (`api_spec.lua`) —
-   `checkbox_target()` reads the `'<`/`'>` marks, which Neovim only sets when
+1. **`emojis/init.lua`, the visual branch** (`api_spec.lua`) — **fixed.**
+   `checkbox_target()` read the `'<`/`'>` marks, which Neovim only sets when
    the Visual area is *left*. The preset binds `toggle` in visual mode
-   (`mode = { "n", "x" }`), so the mapping runs before that: on a first
-   selection it refuses ("no previous visual selection"), and afterwards it
-   silently toggles the lines of the *previous* selection. `:'<,'>Emojis
-   toggle` is unaffected — it arrives as an explicit Vim range.
-2. **`overlay/frecency.lua`, `save()`** (`frecency_spec.lua`) —
-   `vim.fn.mkdir(parent, "p")` is called outside any pcall, so a parent that
-   cannot be created (classically: it already exists as a file) raises a raw
-   `E739` out of `record()` and therefore out of every emoji insertion. The
-   module's own doc rules that out: "losing a usage histogram must never break
-   emoji insertion".
+   (`mode = { "n", "x" }`), so the mapping ran before that: a first selection
+   refused ("no previous visual selection"), and every later one silently
+   toggled the lines of the *previous* selection. It now reads `getpos("v")`
+   (the live selection's anchor) plus the cursor and feeds both through the
+   explicit-range path, so buffer-bounds clamping stays in `scope.resolve`.
+   `:'<,'>Emojis toggle` was never affected — it arrives as an explicit range.
+2. **`overlay/frecency.lua`, `save()`** (`frecency_spec.lua`) — **fixed.**
+   `vim.fn.mkdir(parent, "p")` was called outside any pcall, so a parent that
+   cannot be created (classically: it already exists as a file) raised a raw
+   `E739` out of `record()` and therefore out of every emoji insertion — which
+   the module's own doc rules out: "losing a usage histogram must never break
+   emoji insertion". The mkdir is guarded now and a failure just skips the
+   save, like every other failure in that module.
 3. **`search.lua`, the `file:line:text` split** (`search_run_spec.lua`) — the
    greedy `^(.+):%d+:` lets a `:<digits>:` token inside the *matched text* win
    over the real separator. This plugin's own shortcode vocabulary contains one

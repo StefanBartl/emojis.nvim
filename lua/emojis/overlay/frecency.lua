@@ -98,7 +98,14 @@ local function save()
   end
 
   local path = M.path()
-  vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+  -- mkdir() raises (E739) when the directory cannot be made -- a component that
+  -- already exists as a file, a read-only parent. Unguarded, that error left
+  -- this best-effort save and took its caller with it: `record()` runs on every
+  -- insertion, so a broken data directory broke emoji insertion itself, which
+  -- is what this module's "failures are silent by design" exists to prevent.
+  if not pcall(vim.fn.mkdir, vim.fn.fnamemodify(path, ":h"), "p") then
+    return
+  end
 
   local ok, encoded = pcall(vim.json.encode, _store)
   if not ok then

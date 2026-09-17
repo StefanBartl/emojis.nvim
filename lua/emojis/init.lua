@@ -64,7 +64,21 @@ local function checkbox_target()
   local scope_m = require("emojis.core.scope")
   local mode = vim.fn.mode()
   if mode == "v" or mode == "V" or mode == "\22" then
-    return scope_m.resolve("visual", 0, 0, 0)
+    -- Still *inside* the selection here: the preset binds these keys in `x`
+    -- mode, so the callback runs before visual mode is left. `'<`/`'>` are only
+    -- written on leaving it, so the "visual" scope read the *previous*
+    -- selection -- it errored on the first selection in a buffer and silently
+    -- toggled stale lines after that. `getpos("v")` is the anchor of the live
+    -- selection and the cursor is its other end; feeding both through the
+    -- explicit-range path keeps buffer-bounds clamping in scope.resolve, in
+    -- the same one place the count > 1 branch below uses.
+    local vwin = vim.api.nvim_get_current_win()
+    if not vim.api.nvim_win_is_valid(vwin) then
+      return nil, "current window is not valid"
+    end
+    local anchor = vim.fn.getpos("v")[2] -- 1-based row of the selection anchor
+    local head = vim.api.nvim_win_get_cursor(vwin)[1]
+    return scope_m.resolve("line", 2, math.min(anchor, head), math.max(anchor, head))
   end
 
   local count = vim.v.count1

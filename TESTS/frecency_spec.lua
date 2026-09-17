@@ -176,30 +176,28 @@ return function(H)
     eq(order_of(PICKS), "✅🚀🔥", "reset: and stays cleared when read back")
   end
 
-  -- ------------------------------------------------------------ pinned bug
-  -- BUG: `save()` calls `vim.fn.mkdir(parent, "p")` outside any pcall. When
+  -- --------------------------------------------- regression: unwritable store
+  -- `save()` used to call `vim.fn.mkdir(parent, "p")` outside any pcall. When
   -- the parent cannot be created -- classically because the path already
-  -- exists as a FILE -- that raises a raw E739 straight out of
+  -- exists as a FILE -- that raised a raw E739 straight out of
   -- `frecency.record`, and therefore out of `core.insert.at_cursor`, i.e. out
-  -- of every emoji insertion. Which is exactly what the module's own doc rules
-  -- out: "losing a usage histogram must never break emoji insertion". Every
-  -- other read and write in this module is guarded; this one is not.
+  -- of every emoji insertion. Exactly what the module's own doc rules out:
+  -- "losing a usage histogram must never break emoji insertion".
   do
     local blocker = dir .. "/blocker"
     vim.fn.writefile({ "not a directory" }, blocker)
     frecency.set_path(blocker .. "/nested/frecency.json")
 
-    local recorded_ok, err = pcall(frecency.record, "🚀")
-    eq(recorded_ok, false, "BUG(mkdir): record raises instead of degrading")
-    ok(tostring(err):find("E739", 1, true) ~= nil, "BUG(mkdir): ... with a raw E739")
+    local recorded_ok = pcall(frecency.record, "🚀")
+    eq(recorded_ok, true, "an unwritable store degrades instead of raising")
 
-    -- And the same escape reaches the insertion path itself.
+    -- And insertion itself stays unaffected.
     local buf = H.scratch()
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
     local inserted_ok = pcall(require("emojis.core.insert").at_cursor, "🚀")
-    eq(inserted_ok, false, "BUG(mkdir): an unwritable store breaks emoji insertion")
-    eq(vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1], "🚀", "BUG(mkdir): ... after the glyph was already inserted")
+    eq(inserted_ok, true, "so an unwritable store no longer breaks emoji insertion")
+    eq(vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1], "🚀", "and the glyph is in the buffer")
   end
 
   frecency.set_path(suite_path)

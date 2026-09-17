@@ -143,20 +143,14 @@ return function(H)
     eq(lines_of(buf), "✅ a|✅ b|✅ c|✅ d", "toggle: a count past the last line is clamped")
   end
 
-  -- --------------------------------------------------------- pinned bug
-  -- BUG: the visual branch reads the `'<`/`'>` marks, which Neovim only sets
+  -- ------------------------------------------------- regression: live visual
+  -- The visual branch used to read the `'<`/`'>` marks, which Neovim only sets
   -- when the Visual area is LEFT. A mapping invoked from visual mode -- which
   -- is how the shipped preset binds this action (mode `{ "n", "x" }`) -- runs
-  -- before that happens, so the marks still describe the PREVIOUS selection:
-  --
-  --   * in a buffer with no earlier selection, the action refuses outright
-  --     ("no previous visual selection"), i.e. the documented "over a
-  --     selection ticks a whole block" never works on first use;
-  --   * once any selection has been made, a new one silently edits the lines
-  --     of the OLD one -- lines the user did not select.
-  --
-  -- `vim.fn.getpos("v")` + the cursor (or a `<C-u>`-style mapping that leaves
-  -- visual mode first) is what would read the live selection instead.
+  -- before that happens, so the marks still described the PREVIOUS selection:
+  -- a first selection refused outright, and every later one silently edited
+  -- the lines of the old one. It now reads `getpos("v")` plus the cursor, so
+  -- the live selection is what gets toggled.
   do
     -- The marks are buffer-local, so a fresh buffer is a user's first
     -- selection in that file.
@@ -165,20 +159,27 @@ return function(H)
       feed("Vj<F8>")
     end)
     feed("<Esc>")
-    eq(lines_of(first), "🔲 a|🔲 b|🔲 c|🔲 d", "BUG(visual): a first selection toggles nothing")
-    eq(said.error[1], "scope error: no previous visual selection", "BUG(visual): ... it refuses instead")
+    eq(lines_of(first), "✅ a|✅ b|🔲 c|🔲 d", "visual: a first selection toggles its own lines")
+    eq(said.error[1], nil, "and reports no scope error")
 
     -- Second buffer: leave a selection behind on lines 3-4 (that is what sets
     -- the marks), then select 1-2 and fire from inside the new selection.
     local stale = boxes()
     vim.api.nvim_win_set_cursor(0, { 3, 0 })
     feed("Vj<Esc>")
-    eq(vim.fn.getpos("'<")[2] .. "-" .. vim.fn.getpos("'>")[2], "3-4", "BUG(visual): the marks describe the finished selection")
+    eq(vim.fn.getpos("'<")[2] .. "-" .. vim.fn.getpos("'>")[2], "3-4", "the marks still describe the finished selection")
 
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
     feed("Vj<F8>")
     feed("<Esc>")
-    eq(lines_of(stale), "🔲 a|🔲 b|✅ c|✅ d", "BUG(visual): the previous selection is toggled, not the current one")
+    eq(lines_of(stale), "✅ a|✅ b|🔲 c|🔲 d", "visual: the current selection wins over the stale marks")
+
+    -- A backwards selection (cursor above its anchor) covers the same lines.
+    local backwards = boxes()
+    vim.api.nvim_win_set_cursor(0, { 3, 0 })
+    feed("Vk<F8>")
+    feed("<Esc>")
+    eq(lines_of(backwards), "🔲 a|✅ b|✅ c|🔲 d", "visual: a backwards selection spans anchor to cursor")
 
     vim.keymap.del({ "n", "x" }, "<F8>")
   end
@@ -186,12 +187,13 @@ return function(H)
   -- The other half of the same picture: called from normal mode -- after a
   -- selection has been left, marks and all -- the API takes the cursor-line
   -- branch and ignores those marks. So the visual branch is only ever entered
-  -- in the one state where the marks are stale, which is what makes the defect
-  -- above a dead end rather than an edge case.
+  -- from inside a live selection, which is exactly the state the old
+  -- mark-reading code could not see, and why the defect above was a dead end
+  -- rather than an edge case.
   --
-  -- The command form is unaffected: `:'<,'>Emojis toggle` arrives as an
+  -- The command form was never affected: `:'<,'>Emojis toggle` arrives as an
   -- explicit Vim range, which `scope.resolve` honours before any scope
-  -- keyword. That is the working way to tick a whole block today.
+  -- keyword.
   do
     local buf = boxes()
     vim.api.nvim_win_set_cursor(0, { 2, 0 })
