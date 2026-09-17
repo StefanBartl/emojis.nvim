@@ -183,12 +183,13 @@ return function(H)
     eq(#rec.error, 0, "check: ... and is a warning rather than an error")
   end
 
-  -- ---------------------------------------------------------- pinned quirk
-  -- The composer is the one hard dependency, and its absence is reported as an
-  -- error -- but the last line of the check calls `composer.checkhealth()`
+  -- ------------------------------------------------------------ regression
+  -- The composer is the one hard dependency, and its absence is reported as
+  -- an error. The last line of the check used to call `composer.checkhealth()`
   -- unconditionally, so on the machine that needs that message most, the
-  -- report raises right after emitting it. `:checkhealth` renders the error it
-  -- caught, so the earlier findings of this section are lost.
+  -- report raised right after emitting it -- `:checkhealth` renders the error
+  -- it caught, and the earlier findings of this section were lost. It is
+  -- guarded now, like every other optional dependency this same check probes.
   do
     local name = "lib.nvim.bindings.usercmd.composer"
     local loaded, preload = package.loaded[name], package.preload[name]
@@ -200,7 +201,7 @@ return function(H)
     package.loaded[name], package.preload[name] = loaded, preload
 
     ok(said(rec, "error", "will fail to register"), "check: a missing composer is reported as an error")
-    ok(rec.raised ~= nil, "BUG(health): ... and then the check itself raises on the same missing module")
+    eq(rec.raised, nil, "...and the report completes instead of raising on the same missing module")
   end
 
   config.setup({})
