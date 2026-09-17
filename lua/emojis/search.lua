@@ -145,14 +145,15 @@ local function keep_lines(sink, candidates)
 end
 
 ---@internal
----Emit output that never got its newline, at EOF.
+---Emit output that never got its newline, at EOF -- subject to the same
+---blank-line filter as everything else.
 ---@param collector Lib.System.Lines.Collector
 ---@param sink string[]
 ---@return nil
 local function flush_into(collector, sink)
   local last = collector.flush()
-  if last then
-    keep_lines(sink, { last })
+  if last and last ~= "" then
+    sink[#sink + 1] = last
   end
 end
 
