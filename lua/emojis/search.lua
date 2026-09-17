@@ -119,6 +119,60 @@ end
 ---@param cwd string
 ---@return nil
 ---@internal
+---@internal
+---Collect a subprocess's stdout into whole lines.
+---
+---Neither transport hands over lines. `vim.system`'s function handler passes
+---whatever libuv read, so a chunk can end mid-line and the rest arrives in the
+---next one; splitting each chunk on its own therefore cuts that line in two.
+---`jobstart` has the same property in list form (@see :h channel-lines): the
+---first element of a callback continues the last element of the previous one.
+---Measured on 4000 lines of output: per-chunk splitting produced 4026 entries,
+---26 of them malformed. Those entries reach `files_of`, which is what
+---`:Emojis clear cwd` derives the list of files to rewrite from -- so a cut
+---line does not just show up wrong, it can drop a file from a destructive
+---operation.
+---
+---The trailing CR goes too. `vim.system`'s `text = true` does not cover a
+---function handler (only the stdout it captures itself), and ripgrep reports a
+---match from a CRLF file with the CR still on it.
+---Exported for TESTS/search_spec.lua, the same way `build_cmd` is: the two
+---transports below are awkward to drive from a spec, the collector is not.
+---@internal
+---@param sink string[]  Non-empty lines are appended here
+---@return { feed: fun(data: string), flush: fun() }
+function M.line_collector(sink)
+  local buffered = ""
+
+  ---@param line string
+  local function emit(line)
+    if line:sub(-1) == "\r" then
+      line = line:sub(1, -2)
+    end
+    if line ~= "" then
+      sink[#sink + 1] = line
+    end
+  end
+
+  return {
+    feed = function(data)
+      buffered = buffered .. data
+      local parts = vim.split(buffered, "\n", { plain = true })
+      -- The last part is either a partial line or "" (the chunk ended on a
+      -- newline). Either way it is not complete yet, so it stays buffered.
+      buffered = table.remove(parts) or ""
+      for i = 1, #parts do
+        emit(parts[i])
+      end
+    end,
+    flush = function()
+      local last = buffered
+      buffered = ""
+      emit(last)
+    end,
+  }
+end
+
 local function finish(action, lines, cwd)
   if #lines == 0 then
     notify.info("no emojis found under cwd")
@@ -221,19 +275,19 @@ function M.run(action, extra_globs, no_ignore)
     finish(action, out, cwd)
   end
 
+  local collector = M.line_collector(out)
+
   if type(vim.system) == "function" then
     vim.system(
       cmd,
       {
-        text = true,
+        -- `text = true` is deliberately absent: it only normalizes the stdout
+        -- vim.system captures itself, never what a function handler is given,
+        -- so it would read as a guarantee this path does not get. The
+        -- collector does it instead.
         stdout = function(_, d)
-          if not d or d == "" then
-            return
-          end
-          for _, l in ipairs(vim.split(d, "\n", { plain = true })) do
-            if l ~= "" then
-              out[#out + 1] = l
-            end
+          if d and d ~= "" then
+            collector.feed(d)
           end
         end,
         stderr = function(_, d)
@@ -243,26 +297,27 @@ function M.run(action, extra_globs, no_ignore)
         end,
       },
       vim.schedule_wrap(function(o)
+        collector.flush()
         on_done(o.code)
       end)
     )
   else
     fn.jobstart(cmd, {
+      -- `table.concat(d, "\n")` rebuilds exactly the bytes this callback was
+      -- handed (@see :h channel-lines), so the collector sees one continuous
+      -- stream and joins the partial line across callbacks itself.
       on_stdout = function(_, d)
-        for _, l in ipairs(d or {}) do
-          if l ~= "" then
-            out[#out + 1] = l
-          end
+        if d then
+          collector.feed(table.concat(d, "\n"))
         end
       end,
       on_stderr = function(_, d)
-        for _, l in ipairs(d or {}) do
-          if l ~= "" then
-            err_buf[#err_buf + 1] = l
-          end
+        if d then
+          err_buf[#err_buf + 1] = table.concat(d, "\n")
         end
       end,
       on_exit = vim.schedule_wrap(function(_, c)
+        collector.flush()
         on_done(c)
       end),
     })

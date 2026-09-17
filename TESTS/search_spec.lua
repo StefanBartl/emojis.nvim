@@ -25,6 +25,72 @@ return function(H)
     )
   end
 
+  -- line_collector: the two things only real streaming exposes -------------
+  -- Neither transport hands over lines. A chunk can end mid-line, and
+  -- `jobstart`'s list form has the same property (@see :h channel-lines).
+  -- Splitting each chunk on its own cut those lines in two -- measured on
+  -- 4000 lines of rg output: 4026 entries, 26 of them malformed. Those
+  -- entries feed `files_of`, which is what `:Emojis clear cwd` derives the
+  -- files to rewrite from, so a cut line could drop a file from a
+  -- destructive operation.
+  do
+    local out = {}
+    local c = search.line_collector(out)
+
+    c.feed("a.txt:1:one\nb.txt:2:tw")
+    eq(#out, 1, "line_collector: only the complete line is emitted")
+    c.feed("o\n")
+    eq(out[2], "b.txt:2:two", "line_collector: the split line is rejoined, not cut")
+    c.flush()
+    eq(#out, 2, "line_collector: a flush with nothing buffered adds nothing")
+  end
+
+  do
+    -- Output that never ends in a newline still has a last line.
+    local out = {}
+    local c = search.line_collector(out)
+    c.feed("only.txt:9:no trailing newline")
+    eq(#out, 0, "line_collector: an unterminated line waits for more")
+    c.flush()
+    eq(out[1], "only.txt:9:no trailing newline", "line_collector: flush emits it")
+  end
+
+  do
+    -- ripgrep reports a match from a CRLF file with the CR still attached,
+    -- and `vim.system`'s text=true does not cover a function handler.
+    local out = {}
+    local c = search.line_collector(out)
+    c.feed("a.txt:1:one\r\nb.txt:2:two\r\n")
+    eq(table.concat(out, "|"), "a.txt:1:one|b.txt:2:two", "line_collector: trailing CR is stripped")
+  end
+
+  do
+    -- The case that defeats normalizing each chunk on its own: the CRLF pair
+    -- is torn in half, so neither chunk contains it.
+    local out = {}
+    local c = search.line_collector(out)
+    c.feed("a.txt:1:one\r")
+    c.feed("\n")
+    eq(out[1], "a.txt:1:one", "line_collector: a CRLF split across chunks still strips")
+  end
+
+  do
+    -- A CR inside the matched text is the file's own content, not a line
+    -- ending, and has to survive.
+    local out = {}
+    local c = search.line_collector(out)
+    c.feed("a.txt:1:mid\rdle\n")
+    eq(out[1], "a.txt:1:mid\rdle", "line_collector: an interior CR is left alone")
+  end
+
+  do
+    -- Blank lines carry no match and were always dropped; keep it that way.
+    local out = {}
+    local c = search.line_collector(out)
+    c.feed("\n\na.txt:1:x\n")
+    eq(table.concat(out, "|"), "a.txt:1:x", "line_collector: empty lines are skipped")
+  end
+
   local dir = vim.fn.tempname()
   vim.fn.mkdir(dir, "p")
   local f1 = dir .. "/a.txt"
