@@ -102,4 +102,39 @@ return function(H)
     local line = checkbox.toggle_line("⚠️ careful", vs_sets)
     eq(line, "✔️ careful", "toggle_line: variation-selector glyph matched whole, not by prefix")
   end
+
+  -- find: an emoji that belongs to no configured set is skipped, and the scan
+  -- continues past it rather than stopping there
+  do
+    local s, _, set_idx = checkbox.find("🚀 lead 🔲 box", SETS)
+    eq(s, #"🚀 lead " + 1, "find: skips an emoji that is not a checkbox glyph")
+    eq(set_idx, 1, "find: and reports the set of the one it did find")
+  end
+
+  -- toggle_line: wrapping backwards off the first state lands on the last one
+  do
+    eq(checkbox.toggle_line("🔲 item", SETS, -1), "❌ item", "toggle_line: dir = -1 wraps to the end of the set")
+  end
+
+  -- add_line: nothing to add from an empty configuration
+  do
+    eq(select(2, checkbox.add_line("plain", {})), false, "add_line: no sets, no checkbox")
+    eq(select(2, checkbox.add_line("plain", { {} })), false, "add_line: an empty first set is no checkbox either")
+    eq(select(2, checkbox.add_line("   ", SETS)), false, "add_line: a whitespace-only line is left alone")
+    eq(checkbox.add_line("\t- item", SETS), "\t🔲 - item", "add_line: a tab indent is preserved")
+  end
+
+  -- remove_line: exactly one separating space is dropped, never more
+  do
+    eq(checkbox.remove_line("🔲   spaced", SETS), "  spaced", "remove_line: only one of three spaces goes")
+    eq(checkbox.remove_line("🔲item", SETS), "item", "remove_line: no space to drop is fine")
+    eq(checkbox.remove_line("  🔲 indented", SETS), "  indented", "remove_line: the indent survives")
+  end
+
+  -- the batch forms over an empty line list
+  do
+    eq(select(2, checkbox.toggle({}, SETS)), 0, "toggle: no lines, no changes")
+    eq(select(2, checkbox.add({}, SETS)), 0, "add: no lines, no changes")
+    eq(select(2, checkbox.remove({}, SETS)), 0, "remove: no lines, no changes")
+  end
 end

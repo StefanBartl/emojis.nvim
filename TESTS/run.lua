@@ -19,23 +19,43 @@ require("emojis.overlay.frecency").set_path(vim.fn.tempname() .. "-emojis-frecen
 
 -- Ordered so failures point at the smallest layer first.
 local specs = {
+  -- pure layers
   "patterns_spec.lua",
   "ops_spec.lua",
   "checkbox_spec.lua",
   "scope_spec.lua",
   "config_spec.lua",
+  "config_merge_spec.lua",
+  -- buffer-facing layers
+  "insert_spec.lua",
+  "nav_spec.lua",
+  "util_lib_spec.lua",
+  "actions_spec.lua",
+  -- command / search layers
   "commands_spec.lua",
+  "commands_dispatch_spec.lua",
   "search_spec.lua",
+  "search_run_spec.lua",
+  -- UI layers
   "picker_spec.lua",
+  "picker_engine_spec.lua",
+  "frecency_spec.lua",
   "overlay_spec.lua",
+  "overlay_modes_spec.lua",
+  -- wiring
+  "api_spec.lua",
+  "bindings_spec.lua",
+  "health_spec.lua",
 }
 
-local failed = 0
+local failed, total = 0, 0
 for _, name in ipairs(specs) do
+  H.checks = 0
   local run = dofile(dir .. name)
   local ok, err = pcall(run, H)
+  total = total + H.checks
   if ok then
-    print(("ok    %s"):format(name))
+    print(("ok    %-28s %4d checks"):format(name, H.checks))
   else
     failed = failed + 1
     print(("FAIL  %s\n      %s"):format(name, tostring(err)))
@@ -43,8 +63,9 @@ for _, name in ipairs(specs) do
 end
 
 if failed > 0 then
-  print(("\n%d spec(s) failed"):format(failed))
+  print(("\n%d spec(s) failed (%d checks ran)"):format(failed, total))
   os.exit(1)
 end
 
-print("\nEMOJIS_TESTS_OK")
+print(("\n%d specs, %d checks"):format(#specs, total))
+print("EMOJIS_TESTS_OK")

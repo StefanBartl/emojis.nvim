@@ -6,8 +6,13 @@
 return function(H)
   local eq = H.eq
 
+  -- A fresh `emojis` module, so `setup()` runs here whatever an earlier spec
+  -- did (the first call wins, and it is the one that registers `:Emojis`).
+  -- `emojis.config` is deliberately NOT reset with it: it is a store, and the
+  -- modules the specs before this one already loaded hold a reference to the
+  -- instance -- a second one would let `config.setup()` here and
+  -- `config.get()` in e.g. `emojis.actions` disagree.
   package.loaded["emojis"] = nil
-  package.loaded["emojis.config"] = nil
   local emojis = require("emojis")
 
   emojis.setup({})

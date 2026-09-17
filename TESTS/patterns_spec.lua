@@ -52,4 +52,66 @@ return function(H)
     local lone = "🇩x"
     eq(patterns.count(lone), 1, "count: unpaired regional indicator is still one grapheme")
   end
+
+  -- a regional indicator followed by a non-flag emoji does not pair with it
+  do
+    local mixed = "🇩🚀"
+    eq(patterns.count(mixed), 2, "count: a regional indicator only pairs with another one")
+    local sp = patterns.spans(mixed)
+    eq(sp[1][2], 4, "spans: the lone indicator ends after its own 4 bytes")
+  end
+
+  -- skin tone never applies to a regional indicator, so the bytes after one
+  -- stay a grapheme of their own
+  do
+    eq(patterns.count("🇩🏽"), 2, "count: a skin-tone modifier after a flag letter is not absorbed")
+  end
+
+  -- skin tone + VS16 on the same base is still one grapheme
+  do
+    local combined = "👍🏽" .. patterns.VS16
+    eq(patterns.count(combined), 1, "count: skin tone followed by VS16 is one grapheme")
+    eq(patterns.spans(combined)[1][2], #combined, "spans: ... spanning every byte")
+  end
+
+  -- a dangling ZWJ (nothing joinable after it) ends the chain instead of
+  -- swallowing the rest of the line
+  do
+    local ZWJ = "\226\128\141"
+    local dangling = "👨" .. ZWJ .. "x"
+    eq(patterns.count(dangling), 1, "count: a dangling ZWJ does not extend the grapheme")
+    eq(patterns.spans(dangling)[1][2], #"👨", "spans: ... the span ends at the base emoji")
+  end
+
+  -- match_at is anchored: it answers for exactly the byte it is given
+  do
+    local s = "ab🚀"
+    eq(patterns.match_at(s, 1), nil, "match_at: nil where no emoji starts")
+    eq(patterns.match_at(s, 3), #s, "match_at: the end byte where one does")
+    eq(patterns.match_at(s, 4), nil, "match_at: nil in the middle of a grapheme")
+  end
+
+  -- encode is the inverse of codepoint, across all four UTF-8 lengths (the
+  -- 1/2-byte cases are what `unreplace` rebuilds from a `:U+XX:` token)
+  do
+    eq(patterns.encode(0x41), "A", "encode: 1-byte codepoint")
+    eq(patterns.encode(0xA9), "©", "encode: 2-byte codepoint")
+    eq(patterns.encode(0x26A0), "⚠", "encode: 3-byte codepoint")
+    eq(patterns.encode(0x1F680), "🚀", "encode: 4-byte codepoint")
+    eq(patterns.codepoint(patterns.encode(0x1F525)), 0x1F525, "encode/codepoint: round-trip")
+  end
+
+  -- codepoint decodes the FIRST component only, whatever follows it
+  do
+    eq(patterns.codepoint("🇩🇪"), 0x1F1E9, "codepoint: a flag decodes to its first letter")
+    eq(patterns.codepoint("👨‍👩‍👧"), 0x1F468, "codepoint: a ZWJ chain decodes to its base")
+    eq(patterns.codepoint("👍🏽"), 0x1F44D, "codepoint: a skin tone does not change the base")
+  end
+
+  -- an empty string and pure text are the degenerate cases
+  do
+    eq(patterns.count(""), 0, "count: empty string")
+    eq(#patterns.spans(""), 0, "spans: empty string")
+    eq(#patterns.spans("plain ascii"), 0, "spans: no emoji, no spans")
+  end
 end
