@@ -17,6 +17,7 @@ local config = require("emojis.config")
 local ops = require("emojis.core.ops")
 local lib = require("emojis.util.lib")
 local list = require("lib.nvim.ui.list")
+local line_stream = require("lib.nvim.system.lines")
 
 local M = {}
 
@@ -120,57 +121,39 @@ end
 ---@return nil
 ---@internal
 ---@internal
----Collect a subprocess's stdout into whole lines.
+---Append whole output lines to `sink`, dropping the blank ones.
 ---
----Neither transport hands over lines. `vim.system`'s function handler passes
----whatever libuv read, so a chunk can end mid-line and the rest arrives in the
----next one; splitting each chunk on its own therefore cuts that line in two.
----`jobstart` has the same property in list form (@see :h channel-lines): the
----first element of a callback continues the last element of the previous one.
----Measured on 4000 lines of output: per-chunk splitting produced 4026 entries,
----26 of them malformed. Those entries reach `files_of`, which is what
----`:Emojis clear cwd` derives the list of files to rewrite from -- so a cut
----line does not just show up wrong, it can drop a file from a destructive
----operation.
+---The splitting itself is `lib.nvim.system.lines`: neither transport hands
+---over lines (a chunk can end mid-line, and `jobstart`'s list form continues
+---the previous callback's last element -- `:h channel-lines`), and it strips
+---the trailing CR that `vim.system`'s `text = true` does not, since that
+---option never covered a function handler.
 ---
----The trailing CR goes too. `vim.system`'s `text = true` does not cover a
----function handler (only the stdout it captures itself), and ripgrep reports a
----match from a CRLF file with the CR still on it.
----Exported for TESTS/search_spec.lua, the same way `build_cmd` is: the two
----transports below are awkward to drive from a spec, the collector is not.
----@internal
----@param sink string[]  Non-empty lines are appended here
----@return { feed: fun(data: string), flush: fun() }
-function M.line_collector(sink)
-  local buffered = ""
-
-  ---@param line string
-  local function emit(line)
-    if line:sub(-1) == "\r" then
-      line = line:sub(1, -2)
-    end
-    if line ~= "" then
-      sink[#sink + 1] = line
+---Blank lines are dropped here rather than there. ripgrep does not emit any,
+---and an empty entry would reach `files_of` as a match that parses into
+---nothing -- but whether that is true is this caller's business, not the
+---shared collector's.
+---@param sink string[]
+---@param candidates string[]
+---@return nil
+local function keep_lines(sink, candidates)
+  for i = 1, #candidates do
+    if candidates[i] ~= "" then
+      sink[#sink + 1] = candidates[i]
     end
   end
+end
 
-  return {
-    feed = function(data)
-      buffered = buffered .. data
-      local parts = vim.split(buffered, "\n", { plain = true })
-      -- The last part is either a partial line or "" (the chunk ended on a
-      -- newline). Either way it is not complete yet, so it stays buffered.
-      buffered = table.remove(parts) or ""
-      for i = 1, #parts do
-        emit(parts[i])
-      end
-    end,
-    flush = function()
-      local last = buffered
-      buffered = ""
-      emit(last)
-    end,
-  }
+---@internal
+---Emit output that never got its newline, at EOF.
+---@param collector Lib.System.Lines.Collector
+---@param sink string[]
+---@return nil
+local function flush_into(collector, sink)
+  local last = collector.flush()
+  if last then
+    keep_lines(sink, { last })
+  end
 end
 
 local function finish(action, lines, cwd)
@@ -275,7 +258,7 @@ function M.run(action, extra_globs, no_ignore)
     finish(action, out, cwd)
   end
 
-  local collector = M.line_collector(out)
+  local collector = line_stream.collector()
 
   if type(vim.system) == "function" then
     vim.system(
@@ -287,7 +270,7 @@ function M.run(action, extra_globs, no_ignore)
         -- collector does it instead.
         stdout = function(_, d)
           if d and d ~= "" then
-            collector.feed(d)
+            keep_lines(out, collector.feed(d))
           end
         end,
         stderr = function(_, d)
@@ -297,7 +280,7 @@ function M.run(action, extra_globs, no_ignore)
         end,
       },
       vim.schedule_wrap(function(o)
-        collector.flush()
+        flush_into(collector, out)
         on_done(o.code)
       end)
     )
@@ -308,7 +291,7 @@ function M.run(action, extra_globs, no_ignore)
       -- stream and joins the partial line across callbacks itself.
       on_stdout = function(_, d)
         if d then
-          collector.feed(table.concat(d, "\n"))
+          keep_lines(out, collector.feed(table.concat(d, "\n")))
         end
       end,
       on_stderr = function(_, d)
@@ -317,7 +300,7 @@ function M.run(action, extra_globs, no_ignore)
         end
       end,
       on_exit = vim.schedule_wrap(function(_, c)
-        collector.flush()
+        flush_into(collector, out)
         on_done(c)
       end),
     })
