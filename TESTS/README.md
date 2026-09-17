@@ -139,10 +139,12 @@ and the note explains what "fixed" would look like:
    silently skip glyphs every buffer-scoped action finds. Already documented as
    a CDX note in `search.lua`.
 
-A fifth, smaller one is pinned in `health_spec.lua`: `health.check()` reports a
-missing `lib.nvim` composer as an error and then calls
-`composer.checkhealth()` unconditionally, so on the machine that needs that
-message most the report raises right after emitting it.
+A fifth, smaller one has since been **fixed**, its assertion in
+`health_spec.lua` turned into a regression guard: `health.check()` reported a
+missing `lib.nvim` composer as an error and then called
+`composer.checkhealth()` unconditionally, so on the machine that needed that
+message most the report raised right after emitting it. The call is guarded
+now, like every other optional dependency the same check probes.
 
 ## Adding a spec
 
