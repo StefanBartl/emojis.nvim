@@ -77,7 +77,7 @@ never mutates the developer's real usage history under `stdpath("data")`.
 | `overlay_modes_spec.lua` | The overlay driven by its own keymaps: grid motion, hotkeys, the `/` filter, list mode, `entries()` limits and the two "nothing to show" paths. |
 | `api_spec.lua` | The public Lua API: idempotent `setup()`, delegation, `cascade_groups()`, the three `checkbox_target()` branches — one of which is a pinned bug. |
 | `bindings_spec.lua` | usrcmds/keymaps/autocmds: declaring vs. binding, per-action overrides, each declared `rhs`, and `bindings.setup()` as a whole. |
-| `health_spec.lua` | `:checkhealth emojis` against a `vim.health` recorder, with every optional dependency driven from both sides. |
+| `health_spec.lua` | `:checkhealth emojis` against a `vim.health` recorder, with every optional dependency driven from both sides, plus the Neovim-version gate driven from a stubbed `vim.fn.has`. |
 
 ## Coverage
 
@@ -145,6 +145,27 @@ missing `lib.nvim` composer as an error and then called
 `composer.checkhealth()` unconditionally, so on the machine that needed that
 message most the report raised right after emitting it. The call is guarded
 now, like every other optional dependency the same check probes.
+
+### Re-audit
+
+A later pass re-checked every skip reason above against the current source
+(no module was added or grew real branches since the original suite; only
+`init.lua`, `overlay/frecency.lua` and `health.lua` changed, for the two fixes
+already covered above) and specifically re-checked the four bug shapes this
+campaign keeps finding elsewhere: a preflight check that calls back into its
+own "missing" dependency (only the already-guarded `composer.checkhealth()`
+call above — no other one exists here), a non-idempotent augroup (this plugin
+has no autocmds at all — `bindings/autocmds.lua` is a deliberate empty stub),
+byte-vs-display-column confusion in the buffer-mutating paths (every one of
+them already carries an exact-resulting-line assertion, per the house rule
+below), and Windows path/separator bugs (none of the path-handling code
+compares `/` against `\` or parses a drive letter's colon; `search.lua`'s
+`file:line:text` split has its own, unrelated, already-pinned bug above). None
+of the four turned up a new instance. The one real gap found: `health.lua`'s
+Neovim-version gate (`vim.fn.has("nvim-0.9")`) only ever hit its `ok` branch —
+the suite runs on a current Neovim, so the `warn` branch for an old one was
+never reached. Closed by driving `vim.fn.has` by hand, the same way the
+ripgrep-present/-absent pair just above it already does.
 
 ## Adding a spec
 

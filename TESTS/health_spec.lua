@@ -123,6 +123,25 @@ return function(H)
     ok(said(absent, "warn", "cwd will not work"), "check: ... naming the feature that stops working")
   end
 
+  -- --------------------------------------------------------- Neovim version
+  -- Only the "ok" branch is reachable on the Neovim this suite actually runs
+  -- on, so the "too old" branch needs `vim.fn.has` driven by hand to reach it
+  -- at all.
+  do
+    local real_has = vim.fn.has
+    vim.fn.has = function(feature)
+      if feature == "nvim-0.9" then
+        return 0
+      end
+      return real_has(feature)
+    end
+    local rec = report()
+    vim.fn.has = real_has
+
+    ok(said(rec, "warn", "Neovim 0.9+ recommended"), "check: an old Neovim is a warning, not an error")
+    eq(#rec.error, 0, "check: ... and does not stop the rest of the report")
+  end
+
   -- A configured `search.cmd` is what gets probed, not a hard-coded "rg".
   do
     config.setup({ search = { cmd = "emojis-nvim-no-such-tool" } })
