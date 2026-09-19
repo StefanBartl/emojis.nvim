@@ -151,6 +151,22 @@ return function(H)
     config.setup({})
   end
 
+  -- `keymaps` is deliberately unvalidated here: its accepted keys are the
+  -- per-action names bindings/keymaps.lua declares (insert/overlay/toggle/
+  -- count/list), not a static list this module could keep in sync without
+  -- drifting. A per-action override used to be misreported as an "unknown
+  -- config key" and stripped before ever reaching keymap.register -- which
+  -- validates against the live action registry itself, downstream.
+  do
+    local said = H.notices(function()
+      config.setup({ keymaps = { insert = "<C-y>", count = false } })
+    end)
+    eq(#said.warn, 0, "setup: a per-action keymaps override is not flagged as an unknown key")
+    eq(config.get().keymaps.insert, "<C-y>", "setup: ... and survives the merge unstripped")
+    eq(config.get().keymaps.count, false, "setup: ... including a `false` override")
+    config.setup({})
+  end
+
   -- ------------------------------------------- get() before any setup() call
   -- A fresh module instance (the state a user who never calls setup() is in)
   -- must answer from a copy of DEFAULTS rather than from nil. Swapped in and
