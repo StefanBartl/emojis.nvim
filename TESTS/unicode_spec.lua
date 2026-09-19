@@ -83,6 +83,16 @@ return function(H)
     end)
     eq(vim.fn.getreg("z"), "233", "name_at_cursor: register z holds the decimal value")
     ok(said.info[#said.info]:find("register", 1, true) ~= nil, "name_at_cursor: confirms the save")
+
+    -- The "=" register evaluates its contents as Vimscript on every read --
+    -- never let a UCD-sourced (network/cache) name string reach it. Not
+    -- reading @= back here at all (even via getreg) -- doing so would
+    -- evaluate whatever is in it, which is exactly the hazard under test.
+    said = H.notices(function()
+      unicode.name_at_cursor("=", "value")
+    end)
+    eq(#said.error, 1, 'name_at_cursor: refuses to save into the "=" register')
+    ok(said.error[1]:find('"="', 1, true) ~= nil, "name_at_cursor: names the offending register")
   end)
 
   do
@@ -169,4 +179,47 @@ return function(H)
     vim.ui.select = real_select
     eq(picked_count, 1, "search: name substring scan finds the matching entry")
   end)
+
+  -- table_open(): a second call while the first window is still open must
+  -- reuse the existing named buffer/window rather than colliding on the
+  -- name (nvim_buf_set_name raises E95 on a duplicate name) and leaving a
+  -- stray unnamed buffer behind.
+  with_stub_data(function()
+    return {
+      by_cp = {},
+      list = { { cp = 0x0041, name = "LATIN CAPITAL LETTER A" } },
+      ranges = {},
+    }
+  end, function()
+    ok(vim.fn.bufnr("Unicode Table") == -1, "table_open: no stray buffer before the test")
+
+    unicode.table_open()
+    local buf1 = vim.fn.bufnr("Unicode Table")
+    ok(buf1 ~= -1, "table_open: creates a named buffer")
+    local win1 = vim.fn.bufwinid(buf1)
+    ok(win1 ~= -1, "table_open: opens it in a window")
+
+    local buf_count_before = #vim.api.nvim_list_bufs()
+    unicode.table_open()
+    eq(#vim.api.nvim_list_bufs(), buf_count_before, "table_open: a second call creates no new buffer")
+    eq(vim.fn.bufnr("Unicode Table"), buf1, "table_open: reuses the same named buffer")
+    eq(vim.api.nvim_get_current_win(), win1, "table_open: jumps to the already-open window instead of splitting again")
+
+    pcall(vim.api.nvim_buf_delete, buf1, { force = true })
+  end)
+
+  -- digraphs_open(): the same open_named_scratch() helper, smoke-tested.
+  do
+    ok(vim.fn.bufnr("Digraphs") == -1, "digraphs_open: no stray buffer before the test")
+    unicode.digraphs_open()
+    local buf1 = vim.fn.bufnr("Digraphs")
+    ok(buf1 ~= -1, "digraphs_open: creates a named buffer")
+
+    local buf_count_before = #vim.api.nvim_list_bufs()
+    unicode.digraphs_open()
+    eq(#vim.api.nvim_list_bufs(), buf_count_before, "digraphs_open: a second call creates no new buffer")
+    eq(vim.fn.bufnr("Digraphs"), buf1, "digraphs_open: reuses the same named buffer")
+
+    pcall(vim.api.nvim_buf_delete, buf1, { force = true })
+  end
 end

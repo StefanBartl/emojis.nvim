@@ -231,6 +231,18 @@ the same convention real Unicode-aware tools use for these blocks, rather
 than storing tens of thousands of individual rows. `digraphs` needs no
 download at all: it reads Neovim's own `vim.fn.digraph_getlist()` directly.
 
+The download is atomic (written to a temp file, renamed into place only
+once it passes a minimum-size check) and bounded (`curl --max-filesize`),
+and a cached file that parses as corrupt or incomplete is deleted and
+reported rather than silently trusted for the rest of every session —
+retrying the command is enough to recover. `name`'s register-save refuses
+`reg = "="`: the expression register evaluates its contents as Vimscript on
+every read, and the name text can originate from that downloaded/cached
+data. `table`/`digraphs` render any control-character codepoint (several
+real UCD rows, and several of Neovim's own built-in digraphs, are C0/C1
+control characters) through `vim.fn.strtrans()` rather than embedding it
+raw, which `nvim_buf_set_lines` rejects for an embedded newline.
+
 - **Module:** `lua/emojis/unicode/init.lua` (dispatch, `info`,
   `name_at_cursor`, `search`, `table_open`, `digraphs_open`),
   `lua/emojis/unicode/data.lua` (UCD fetch/cache/parse),

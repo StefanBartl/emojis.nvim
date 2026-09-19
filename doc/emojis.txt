@@ -543,7 +543,10 @@ name ~
   Report the character under the cursor: codepoint (hex/dec), glyph, name,
   and any digraph that produces it. With `reg`, also save one
   representation into that register; `type` picks which — `value`|`hex`|
-  `name`|`html`|`digraph`|`regex` (default `name`).
+  `name`|`html`|`digraph`|`regex` (default `name`). `reg = "="` is refused:
+  the expression register evaluates its contents as Vimscript the next
+  time anything reads `@=`, and the name text can come from
+  downloaded/cached data.
 
 search[!] ~
   Find characters by name substring (case-insensitive), or by an exact
@@ -569,6 +572,11 @@ uncatalogued character), `search`, and `table` report why and do nothing
 else; `digraphs` is unaffected. A codepoint inside a large contiguous UCD
 block (CJK Unified Ideographs, Hangul Syllables, Tangut, ...) gets a
 synthesized "PREFIX-HEX" name, e.g. `CJK UNIFIED IDEOGRAPH-4E2D`.
+
+The download writes to a temp file and is renamed into place only once it
+passes a size check; a cached file that turns out corrupt or incomplete is
+deleted and reported rather than trusted, so retrying the command is
+enough to recover.
 
 ==============================================================================
 vim:tw=78:ts=8:noet:ft=help:norl:
