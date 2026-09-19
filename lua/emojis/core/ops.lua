@@ -204,7 +204,15 @@ function M.unreplace(lines, names)
       if not glyph then
         local hex = token:match("^U%+(%x+)$")
         if hex then
-          glyph = patterns.encode(tonumber(hex, 16))
+          -- PRIN-25: validate before it reaches encode()'s arithmetic. Above
+          -- U+10FFFF (the last valid Unicode codepoint) `encode()` either
+          -- raises (byte value out of range) or, worse, silently produces a
+          -- byte sequence that is not valid UTF-8 -- an unrecognised token is
+          -- supposed to be left untouched, not "restored" into either.
+          local cp = tonumber(hex, 16)
+          if cp and cp <= 0x10FFFF then
+            glyph = patterns.encode(cp)
+          end
         end
       end
       if glyph then
