@@ -208,9 +208,12 @@ function M.unreplace(lines, names)
           -- U+10FFFF (the last valid Unicode codepoint) `encode()` either
           -- raises (byte value out of range) or, worse, silently produces a
           -- byte sequence that is not valid UTF-8 -- an unrecognised token is
-          -- supposed to be left untouched, not "restored" into either.
+          -- supposed to be left untouched, not "restored" into either. The
+          -- UTF-16 surrogate block (U+D800-U+DFFF) is excluded too: those
+          -- codepoints are not valid Unicode scalar values, and encode()
+          -- would still produce a non-UTF-8 byte sequence (CESU-8) for them.
           local cp = tonumber(hex, 16)
-          if cp and cp <= 0x10FFFF then
+          if cp and cp <= 0x10FFFF and not (cp >= 0xD800 and cp <= 0xDFFF) then
             glyph = patterns.encode(cp)
           end
         end
