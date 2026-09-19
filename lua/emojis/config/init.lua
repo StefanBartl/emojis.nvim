@@ -204,6 +204,26 @@ function M.setup(user_opts)
     merged.search.extra_args = vim.deepcopy(DEFAULTS.search.extra_args)
   end
 
+  -- search.cmd reaches `vim.fn.executable()` and `vim.system()` in search.lua
+  -- unchecked otherwise -- a non-string (e.g. a stray number) raises
+  -- `E1174: String required for argument 1` from both, at search time rather
+  -- than at setup(), and an empty string passes the same way through to a
+  -- confusing "'' not found on PATH" instead of just using ripgrep.
+  if type(merged.search.cmd) ~= "string" or merged.search.cmd == "" then
+    notify.warn(("invalid search.cmd %s, using %q"):format(vim.inspect(merged.search.cmd), DEFAULTS.search.cmd))
+    merged.search.cmd = DEFAULTS.search.cmd
+  end
+
+  -- `command` names the `:Emojis` user command via
+  -- `lib.nvim.bindings.usercmd.composer.verb`, whose own `assert(type(name)
+  -- == "string" and name ~= "", ...)` raises a hard Lua error out of
+  -- `bindings/init.lua` -> `commands.register()` on setup itself for anything
+  -- else, taking the whole plugin down with it instead of degrading.
+  if type(merged.command) ~= "string" or merged.command == "" then
+    notify.warn(("invalid command %s, using %q"):format(vim.inspect(merged.command), DEFAULTS.command))
+    merged.command = DEFAULTS.command
+  end
+
   _active = merged
   return _active
 end
