@@ -219,7 +219,17 @@ function M.setup(user_opts)
   -- == "string" and name ~= "", ...)` raises a hard Lua error out of
   -- `bindings/init.lua` -> `commands.register()` on setup itself for anything
   -- else, taking the whole plugin down with it instead of degrading.
-  if type(merged.command) ~= "string" or merged.command == "" then
+  --
+  -- A non-empty string is not enough by itself, though: `composer.verb` only
+  -- asserts non-empty before handing `name` straight to
+  -- `vim.api.nvim_create_user_command()`, which enforces its own ex-command
+  -- grammar (first character an uppercase ASCII letter, the rest alphanumeric)
+  -- and raises just as hard -- uncaught -- for anything that violates it, e.g.
+  -- `command = "emojis2"` or `"Emo-jis"`. That is the exact same crash this
+  -- fix exists to prevent, reached through a sibling check instead of
+  -- composer's own, so the pattern below matches nvim's grammar rather than
+  -- merely "is a string".
+  if type(merged.command) ~= "string" or not merged.command:match("^%u%w*$") then
     notify.warn(("invalid command %s, using %q"):format(vim.inspect(merged.command), DEFAULTS.command))
     merged.command = DEFAULTS.command
   end
