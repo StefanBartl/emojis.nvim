@@ -241,14 +241,12 @@ return function(H)
     eq(said.info[#said.info], "Found 2 matches -> quickfix", "jobstart fallback: same reporting as vim.system")
   end
 
-  -- ------------------------------------------------------------ pinned bugs
-  -- BUG: `file:line:text` is split greedily (`^(.+):%d+:`), so a `:<digits>:`
-  -- token in the MATCHED TEXT wins over the real separator. This plugin's own
-  -- shortcode vocabulary contains one (`:100:` for 💯), so a line holding both
-  -- an emoji and that token is attributed to a file that does not exist and to
-  -- the wrong line number. For `list` that is a bogus quickfix entry; for
-  -- `clear`/`replace` the same parse feeds `fn.readfile`, which raises E484 on
-  -- the invented path.
+  -- ------------------------------------------------------------ pinned fix
+  -- `file:line:text` is split non-greedily (`^(.-):%d+:`), on the FIRST
+  -- `:<digits>:`, not the last. This plugin's own shortcode vocabulary
+  -- contains one (`:100:` for 💯), so a line holding both an emoji and that
+  -- token must still resolve to the real file/line rg reported, not to a
+  -- name that swallows the shortcode (PRIN-25).
   do
     local said = H.notices(function(record)
       with_rg({ "notes.md:3:scored 💯 out of :100:\n" }, 0, function()
@@ -260,14 +258,10 @@ return function(H)
     end)
     vim.cmd("cclose")
     local qf = vim.fn.getqflist()
-    eq(#qf, 1, "BUG(parse): the match is accepted ...")
-    eq(qf[1].lnum, 100, "BUG(parse): ... but the line number comes from the :100: shortcode, not from rg")
-    eq(
-      vim.fn.bufname(qf[1].bufnr),
-      "notes.md:3:scored 💯 out of ",
-      "BUG(parse): ... and the filename swallowed the real separator"
-    )
-    eq(said.info[#said.info], "Found 1 match -> quickfix", "BUG(parse): the mis-parse is never reported")
+    eq(#qf, 1, "fix(parse): the match is accepted ...")
+    eq(qf[1].lnum, 3, "fix(parse): ... with the real line number from rg, not the :100: shortcode")
+    eq(vim.fn.bufname(qf[1].bufnr), "notes.md", "fix(parse): ... and the filename stops at the real separator")
+    eq(said.info[#said.info], "Found 1 match -> quickfix", "fix(parse): reported normally")
   end
 
   -- BUG: the ripgrep pattern covers three of the four codepoint ranges the

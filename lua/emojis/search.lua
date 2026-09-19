@@ -38,7 +38,11 @@ local SUPPORTED = { list = true, count = true, clear = true, replace = true }
 local function files_of(lines)
   local files = {}
   for i = 1, #lines do
-    local file = lines[i]:match("^(.+):%d+:")
+    -- Non-greedy up to the FIRST `:<digits>:`: a greedy `.+` would instead
+    -- match up to the LAST one, folding any `:<digits>:`-shaped text in the
+    -- matched line (a timestamp, a ratio, this plugin's own `:100:`
+    -- shortcode) into the file name (PRIN-25).
+    local file = lines[i]:match("^(.-):%d+:")
     if file then
       files[#files + 1] = file
     end
@@ -66,7 +70,7 @@ function M.apply_across_files(action, match_lines, confirm_fn)
   end
 
   local names = config.get().names
-  local total_n, total_files, skipped = 0, 0, 0
+  local total_n, total_files, skipped, failed = 0, 0, 0, 0
 
   for i = 1, #files do
     local path = files[i]
@@ -76,26 +80,37 @@ function M.apply_across_files(action, match_lines, confirm_fn)
     if loaded and vim.bo[bufnr].modified then
       skipped = skipped + 1
     else
-      local lines = loaded and api.nvim_buf_get_lines(bufnr, 0, -1, false) or fn.readfile(path)
+      -- ERR-01/ERR-42: this is a best-effort batch over independent files, so
+      -- a file gone missing/unreadable between the scan and this write (or a
+      -- read-only target) must not abort the whole run -- the files already
+      -- rewritten and saved stay rewritten either way, and a raise here would
+      -- only stop the rest of the batch from ever being attempted.
+      local ok, err = pcall(function()
+        local lines = loaded and api.nvim_buf_get_lines(bufnr, 0, -1, false) or fn.readfile(path)
 
-      local new_lines, n
-      if action == "clear" then
-        new_lines, n = ops.clear(lines)
-      else
-        new_lines, n = ops.replace(lines, names)
-      end
-
-      if n > 0 then
-        if loaded then
-          api.nvim_buf_set_lines(bufnr, 0, -1, false, new_lines)
-          api.nvim_buf_call(bufnr, function()
-            vim.cmd("silent write")
-          end)
+        local new_lines, n
+        if action == "clear" then
+          new_lines, n = ops.clear(lines)
         else
-          fn.writefile(new_lines, path)
+          new_lines, n = ops.replace(lines, names)
         end
-        total_n = total_n + n
-        total_files = total_files + 1
+
+        if n > 0 then
+          if loaded then
+            api.nvim_buf_set_lines(bufnr, 0, -1, false, new_lines)
+            api.nvim_buf_call(bufnr, function()
+              vim.cmd("silent write")
+            end)
+          else
+            fn.writefile(new_lines, path)
+          end
+          total_n = total_n + n
+          total_files = total_files + 1
+        end
+      end)
+      if not ok then
+        failed = failed + 1
+        notify.warn(("%s: %s"):format(path, tostring(err)))
       end
     end
   end
@@ -110,6 +125,9 @@ function M.apply_across_files(action, match_lines, confirm_fn)
   )
   if skipped > 0 then
     msg = msg .. (" (%d skipped: unsaved buffer)"):format(skipped)
+  end
+  if failed > 0 then
+    msg = msg .. (" (%d failed, see above)"):format(failed)
   end
   notify.info(msg)
 end
@@ -177,13 +195,16 @@ local function finish(action, lines, cwd)
   local qf = {}
   for i = 1, #lines do
     local raw = lines[i]
-    local file, lnum = raw:match("^(.+):(%d+):")
+    -- Same non-greedy fix as files_of(), and captured in one pass so the
+    -- text is whatever follows the SAME `:<digits>:` that split file/lnum,
+    -- not independently re-matched against a different (greedy) split.
+    local file, lnum, text = raw:match("^(.-):(%d+):(.*)$")
     if file and lnum then
       qf[#qf + 1] = {
         filename = file,
         lnum = tonumber(lnum),
         col = 1,
-        text = raw:match("^.+:%d+:(.*)$") or "",
+        text = text or "",
       }
     end
   end
