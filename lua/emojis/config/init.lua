@@ -50,11 +50,18 @@ local TOP_LEVEL_OPTS = {
 -- absorb a typo'd nested key silently -- ERR-50 requires the check to run
 -- before that merge, not after. `overlay.picks`/`checkbox.sets`/`checkbox.order`
 -- hold user *data* (glyph entries, set names), not named options, so they are
--- deliberately absent here and pass through unvalidated.
+-- deliberately absent here and pass through unvalidated. `keymaps` is absent
+-- for a related reason: its accepted keys are not this module's own DEFAULTS
+-- shape (`preset` plus the per-action names `insert`/`overlay`/`toggle`/
+-- `count`/`list` declared in bindings/keymaps.lua's spec) -- a static list
+-- here would either reject the documented per-action overrides or drift the
+-- moment an action is renamed. `lib.nvim.bindings.keymap.registry.register`
+-- already validates against the live action registry (its own did-you-mean
+-- included) before binding, so `keymaps` passes through here unvalidated and
+-- is checked once, in the one place that actually knows the valid keys.
 ---@type table<string, string[]>
 local NESTED_OPTS = {
   search = { "cmd", "extra_args", "no_ignore" },
-  keymaps = { "preset" },
   wrap = { "prefix", "suffix" },
   preview = { "enable", "duration_ms", "hl_group" },
   picker = { "engine" },
