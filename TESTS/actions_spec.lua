@@ -86,6 +86,43 @@ return function(H)
     eq(lines_of(buf)[1], "🔥keep done ⭐tail", "edit: a word sub-range leaves its multibyte neighbours alone")
   end
 
+  -- A buffer edit that lands during the (non-blocking) preview window must
+  -- not be silently reverted by the deferred write (ERR-30).
+  do
+    config.setup({ preview = { enable = true, duration_ms = 200 } })
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "keep 🚀 this" })
+
+    local said = H.notices(function(record)
+      actions.edit("clear", whole(buf))
+      -- Concurrent edit, before the deferred write fires.
+      vim.api.nvim_buf_set_lines(buf, 0, 1, false, { "keep 🚀 this (edited)" })
+      vim.wait(1000, function()
+        return #record.warn > 0
+      end, 5)
+    end)
+    config.setup({})
+
+    eq(lines_of(buf)[1], "keep 🚀 this (edited)", "edit: a concurrent edit during the preview window survives")
+    eq(said.warn[1], "buffer changed since the scan, skipped", "edit: the stale write is reported, not silently dropped")
+  end
+
+  -- A non-modifiable buffer is refused, not raised (ERR-01); the neighbouring
+  -- `buf_ok()` refusal above only checks validity, not writability.
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "🚀" })
+    vim.bo[buf].modifiable = false
+
+    local said = H.notices(function()
+      actions.edit("clear", whole(buf))
+    end)
+    eq(said.error[1], "buffer is not modifiable", "edit: a non-modifiable buffer is refused, not raised")
+
+    vim.bo[buf].modifiable = true
+    eq(lines_of(buf)[1], "🚀", "edit: ... and left untouched")
+  end
+
   -- ---------------------------------------------------------- edit: refusals
   do
     local buf = H.scratch()
@@ -299,6 +336,16 @@ return function(H)
       actions.checkbox("toggle", { buf = buf, l1 = 7, l2 = 9 })
     end)
     eq(said.info[1], "range is empty", "checkbox: an empty range is reported")
+
+    -- A non-modifiable buffer is refused, not raised (ERR-01). `toggle` on
+    -- "🔲 a" always finds a glyph to cycle, so it reaches the write.
+    vim.bo[buf].modifiable = false
+    said = H.notices(function()
+      actions.checkbox("toggle", whole(buf))
+    end)
+    eq(said.error[1], "buffer is not modifiable", "checkbox: a non-modifiable buffer is refused, not raised")
+    vim.bo[buf].modifiable = true
+    eq(lines_of(buf)[1], "🔲 a", "checkbox: ... and left untouched")
   end
 
   -- With every set removed there is nothing to cycle through, which is a
