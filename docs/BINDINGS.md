@@ -34,7 +34,7 @@ helpers in `util/lib.lua`.
 
 | name | args | range | desc |
 | --- | --- | --- | --- |
-| `:Emojis[!]` | `[action] [scope\|count\|mode\|set]` | yes | clear / replace / unreplace / wrap / list / count / insert / first / next an emoji scope (see `doc/emojis.txt`) |
+| `:Emojis[!]` | `[action] [scope\|count\|mode\|set\|sub]` | yes | clear / replace / unreplace / wrap / list / count / insert / first / next an emoji scope, or a Unicode name/search/table/digraphs lookup (see `doc/emojis.txt`) |
 
 `:Emojis next [count]` jumps that many emoji forward, wrapping past the last
 one. It is a positional, not a command count: `:3Emojis next` would be an
@@ -52,12 +52,15 @@ applies to are disjoint, so one bang carries both without ambiguity:
 - `:Emojis! <action> cwd` forces `--no-ignore` for that call, without
   changing `search.no_ignore`. Reaching ignored files used to mean editing
   the config and reloading, for what is usually a one-off question.
+- `:Emojis! unicode search <query>` inserts the picked character at the
+  cursor instead of just reporting it.
 
 Tab completion: first argument completes `clear count first insert list next
-overlay replace toggle unreplace wrap` (alphabetical, one composer route per
-action), second argument completes `word line visual % cwd` (ignored for
-`insert`/`first`/`next`); for `overlay` it instead completes `grid grid_keys
-list`, and for `toggle` the configured `config.checkbox.sets` names.
+overlay replace toggle unicode unreplace wrap` (alphabetical, one composer
+route per action), second argument completes `word line visual % cwd`
+(ignored for `insert`/`first`/`next`); for `overlay` it instead completes
+`grid grid_keys list`, for `toggle` the configured `config.checkbox.sets`
+names, and for `unicode` it completes `name search table digraphs`.
 
 ## Autocommands
 

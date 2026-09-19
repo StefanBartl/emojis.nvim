@@ -64,6 +64,18 @@ function M.check()
     vim.health.info("vim.system missing — falling back to jobstart for cwd search")
   end
 
+  local unicode_data = require("emojis.unicode.data")
+  if unicode_data.cached() then
+    vim.health.ok("Unicode name data cached (:Emojis unicode name/search/table ready)")
+  elseif vim.fn.executable("curl") == 1 then
+    vim.health.info("Unicode name data not cached yet — downloaded on first :Emojis unicode name/search/table")
+  else
+    vim.health.warn(
+      "curl not found — :Emojis unicode name/search/table will not resolve a name outside your own catalog",
+      { "install curl, or pre-populate stdpath('cache') .. '/emojis/UnicodeData.txt' yourself" }
+    )
+  end
+
   if vim.g.loaded_emojis then
     vim.health.ok("plugin loaded (vim.g.loaded_emojis = " .. tostring(vim.g.loaded_emojis) .. ")")
   else

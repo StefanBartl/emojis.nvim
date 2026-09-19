@@ -21,7 +21,9 @@
 [![CI](https://github.com/StefanBartl/emojis.nvim/actions/workflows/ci.yml/badge.svg)](https://github.com/StefanBartl/emojis.nvim/actions/workflows/ci.yml)
 
 One `:Emojis` command that removes, counts, lists, replaces, wraps and inserts
-emojis — across a line, a selection, a buffer, or a whole project.
+emojis — across a line, a selection, a buffer, or a whole project. The same
+command also carries a small Unicode toolkit (`:Emojis unicode name|search
+|table|digraphs`) for any character, not just emoji.
 
 Emoji detection runs on a pure UTF-8 byte tokenizer. No external library, no
 grammar, and the same result on every platform.

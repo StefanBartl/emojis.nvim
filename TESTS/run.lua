@@ -33,6 +33,8 @@ local function main()
     "scope_spec.lua",
     "config_spec.lua",
     "config_merge_spec.lua",
+    "unicode_data_spec.lua",
+    "unicode_digraphs_spec.lua",
     -- buffer-facing layers
     "insert_spec.lua",
     "nav_spec.lua",
@@ -43,6 +45,7 @@ local function main()
     "commands_dispatch_spec.lua",
     "search_spec.lua",
     "search_run_spec.lua",
+    "unicode_spec.lua",
     -- UI layers
     "picker_spec.lua",
     "picker_engine_spec.lua",
