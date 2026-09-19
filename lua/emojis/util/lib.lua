@@ -1,13 +1,20 @@
 ---@module 'emojis.util.lib'
 --- Soft, guarded bridge to the optional `lib.nvim` helper library.
 ---
---- emojis.nvim prefers `lib.nvim.notify` / `lib.nvim.bindings.keymap` when present, but
---- every accessor here probes the corresponding module with `pcall` and falls
---- back to the native Neovim API — no hard dependency on THESE specific
---- helpers is ever introduced. `lib.nvim` as a whole, however, IS a hard
---- dependency since the composer migration: the `:Emojis` command itself is
---- registered via `lib.nvim.bindings.usercmd.composer` (`emojis.commands`), with no
---- raw-`nvim_create_user_command` fallback. See `docs/installation.md`.
+--- Every accessor here (notifier/dedup_list/utf8_decode/map) probes the
+--- corresponding `lib.nvim`/`lib.lua` module with `pcall` and falls back to
+--- the native Neovim API, so THIS bridge alone never hard-requires any of
+--- them. `M.map` specifically is a soft, primitive-only wrapper for this
+--- plugin's own internal keymaps (e.g. the overlay's grid navigation), where
+--- a trivial `vim.keymap.set` fallback is a complete equivalent.
+---
+--- `lib.nvim` as a whole, and `lib.nvim.bindings.keymap` in particular, are
+--- NOT soft dependencies of the plugin overall, though: the `:Emojis` command
+--- is registered via `lib.nvim.bindings.usercmd.composer` (`emojis.commands`)
+--- with no raw-`nvim_create_user_command` fallback, and the opt-in preset
+--- (`bindings/keymaps.lua`) bare-requires `lib.nvim.bindings.keymap` directly
+--- for its which-key-aware registry API, which has no native equivalent to
+--- fall back to. See `docs/installation.md`.
 
 local M = {}
 
