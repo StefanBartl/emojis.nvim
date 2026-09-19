@@ -57,7 +57,12 @@ list; `count` reports how many there are.
 `preview.enable = true` briefly highlights (default 150ms,
 `preview.hl_group`, default `"IncSearch"`) the emojis about to be
 affected before `clear`/`replace` actually mutates the buffer — a look-
-before-you-leap step, off by default.
+before-you-leap step, off by default. The mutation is deferred (non-
+blocking), so the buffer's current text is re-checked right before it
+writes: an edit landing in the same range during the preview window (you
+typing, an LSP formatter, another autocmd) makes the write skip itself and
+report "buffer changed since the scan, skipped" instead of silently
+overwriting it.
 
 - **Module:** `lua/emojis/core/ops.lua`
 - **Config:** `opts.preview.enable` (default `false`),
@@ -71,8 +76,11 @@ whole project asynchronously via ripgrep instead of just the open buffer.
 `clear cwd`/`replace cwd` ask for confirmation before every change
 (default: cancel) — `list cwd` first is the recommended dry run. Buffers
 already open with unsaved changes are skipped, not overwritten, and
-counted as "skipped" in the summary. Extra arguments after `cwd` pass
-through to ripgrep as `--glob` filters.
+counted as "skipped" in the summary. A file that fails mid-batch (deleted,
+made read-only, ... between the scan and the write) does not abort the
+rest of the batch — it is reported on its own and counted as "failed" in
+the summary, and every other file is still attempted. Extra arguments
+after `cwd` pass through to ripgrep as `--glob` filters.
 
 - **Tab:** true
 - **Module:** `lua/emojis/search.lua`

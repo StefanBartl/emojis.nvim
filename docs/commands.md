@@ -21,7 +21,7 @@ Without arguments: `:Emojis` -> `:Emojis clear %` (removes all emojis in the buf
 | `overlay` | Opens the quick-insert overlay (see below) |
 | `toggle` | Cycles the emoji checkbox on the cursor line / range (see below) |
 | `first` | Jumps to the first emoji in the buffer (cursor navigation) |
-| `next` | Jumps to the next emoji, wrapping to the top at the end of the buffer. `:Emojis next 3` jumps three forward. |
+| `next` | Jumps to the next emoji, wrapping to the top at the end of the buffer. `:Emojis next 3` jumps three forward. `count` must be a positive integer (a non-positive one is rejected) and is capped at 1000. |
 
 | Scope | Description |
 |---|---|
@@ -131,7 +131,9 @@ previously they were counted twice and turned into `:warning::U+FE0F:` by
 
 Optional (`preview.enable = true`): before `clear`/`replace`, the affected
 emojis are briefly highlighted (default 150 ms) with `preview.hl_group`
-before the buffer is changed.
+before the buffer is changed. The write is skipped (and reported) instead
+of applied if the buffer's text in that range changed during the highlight
+window.
 
 ## Project-wide clear/replace (`cwd` scope)
 
@@ -145,7 +147,9 @@ cancel). Recommended workflow:
 ```
 
 Buffers that are already open with unsaved changes are skipped (not
-overwritten) and counted as "skipped" in the summary.
+overwritten) and counted as "skipped" in the summary. A file that fails
+mid-batch (removed, made read-only, ... after the scan) is reported on its
+own, counted as "failed", and does not stop the rest of the batch.
 
 Additional arguments after the `cwd` keyword are passed through to ripgrep
 as extra `--glob` filters (e.g. `*.md` for Markdown files only).
