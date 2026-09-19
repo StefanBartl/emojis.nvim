@@ -130,6 +130,38 @@ return function(H)
     )
     config.setup({})
   end
+  do
+    -- A non-string search.cmd otherwise reaches vim.fn.executable()/
+    -- vim.system() unchecked and raises E1174 at search time instead.
+    local said = H.notices(function()
+      ---@diagnostic disable-next-line: assign-type-mismatch
+      config.setup({ search = { cmd = 42 } })
+    end)
+    eq(config.get().search.cmd, DEFAULTS.search.cmd, "setup: a non-string search.cmd falls back to the default")
+    ok(said.warn[1]:find("search.cmd", 1, true) ~= nil, "setup: the warning names the offending option")
+    config.setup({})
+  end
+  do
+    -- An empty search.cmd degrades the same way -- it would otherwise pass
+    -- vim.fn.executable() as a non-existent, empty-named command.
+    config.setup({ search = { cmd = "" } })
+    eq(config.get().search.cmd, DEFAULTS.search.cmd, "setup: an empty search.cmd falls back to the default")
+    config.setup({})
+  end
+  do
+    -- `command` names the :Emojis user command via composer.verb(), whose own
+    -- assert() raises a hard Lua error for a non-string/empty name -- taking
+    -- the whole plugin down from setup() itself instead of degrading.
+    local said = H.notices(function()
+      ---@diagnostic disable-next-line: assign-type-mismatch
+      config.setup({ command = 123 })
+    end)
+    eq(config.get().command, DEFAULTS.command, "setup: a non-string command falls back to the default")
+    ok(said.warn[1]:find("invalid command", 1, true) ~= nil, "setup: the warning names the offending option")
+    config.setup({ command = "" })
+    eq(config.get().command, DEFAULTS.command, "setup: an empty command falls back to the default")
+    config.setup({})
+  end
 
   -- ------------------------------------------------------ unknown-key checks
   -- ERR-50: an unknown key (typically a typo) is dropped BEFORE the merge,
