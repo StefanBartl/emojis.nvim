@@ -12,6 +12,11 @@ local patterns = require("emojis.core.patterns")
 
 local M = {}
 
+---@type integer  Hard ceiling on `count`: `scan()` walks the whole buffer per
+--- step, so an unbounded `:Emojis next <n>` would spin the main loop for
+--- minutes with no progress indication and no way to interrupt it (PRIN-25).
+local MAX_COUNT = 1000
+
 ---Scan lines `[from_line, to_line]` (0-based, inclusive) for the first emoji
 ---at/after `from_col` (1-based byte column) on `from_line`.
 ---@param buf integer
@@ -89,7 +94,17 @@ function M.next(count)
     return
   end
 
-  for i = 1, math.max(count or 1, 1) do
+  count = count or 1
+  if type(count) ~= "number" or count ~= math.floor(count) or count < 1 then
+    notify.warn(("invalid count %s; expected a positive integer"):format(tostring(count)))
+    return
+  end
+  if count > MAX_COUNT then
+    notify.warn(("count %d exceeds the max of %d; capping"):format(count, MAX_COUNT))
+    count = MAX_COUNT
+  end
+
+  for i = 1, count do
     local before = api.nvim_win_get_cursor(win)
     local pos = before -- { 1-based row, 0-based col }
     goto_emoji(pos[1] - 1, pos[2] + 2, true, i > 1)

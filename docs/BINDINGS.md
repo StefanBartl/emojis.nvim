@@ -38,7 +38,11 @@ helpers in `util/lib.lua`.
 
 `:Emojis next [count]` jumps that many emoji forward, wrapping past the last
 one. It is a positional, not a command count: `:3Emojis next` would be an
-address (line 3), which is not what "three emoji onward" means.
+address (line 3), which is not what "three emoji onward" means. `count` must
+be a positive integer — a non-positive one is rejected (reported, cursor
+unmoved) rather than silently treated as one step — and is capped at 1000,
+reported when the cap applies, so a mistyped huge count cannot spin the
+editor unresponsive.
 
 **The `!` variant** means "the alternate form of this action". The two it
 applies to are disjoint, so one bang carries both without ambiguity:
