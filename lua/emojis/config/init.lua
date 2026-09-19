@@ -31,6 +31,84 @@ local function is_one_of(value, allowed)
   return false
 end
 
+---@type string[]  Top-level `Emojis.Opts` keys `setup()` accepts.
+local TOP_LEVEL_OPTS = {
+  "default_scope",
+  "command",
+  "picks",
+  "names",
+  "search",
+  "keymaps",
+  "wrap",
+  "preview",
+  "picker",
+  "overlay",
+  "checkbox",
+}
+
+-- Sub-tables merged wholesale via `vim.tbl_deep_extend` below would otherwise
+-- absorb a typo'd nested key silently -- ERR-50 requires the check to run
+-- before that merge, not after. `overlay.picks`/`checkbox.sets`/`checkbox.order`
+-- hold user *data* (glyph entries, set names), not named options, so they are
+-- deliberately absent here and pass through unvalidated.
+---@type table<string, string[]>
+local NESTED_OPTS = {
+  search = { "cmd", "extra_args", "no_ignore" },
+  keymaps = { "preset" },
+  wrap = { "prefix", "suffix" },
+  preview = { "enable", "duration_ms", "hl_group" },
+  picker = { "engine" },
+  overlay = { "mode", "picks", "frecency", "columns", "limit", "title", "theme" },
+  checkbox = { "default_set", "sets", "order" },
+}
+
+---Nearest allowed key within edit distance 3, as a " (did you mean %q?)" hint.
+---@param name string
+---@param allowed string[]
+---@return string
+---@internal
+local function did_you_mean(name, allowed)
+  local levenshtein = require("lib.lua.strings.distance").levenshtein
+  local best, best_distance = nil, nil
+  for _, known in ipairs(allowed) do
+    local d = levenshtein(name, known)
+    if d <= 3 and (best_distance == nil or d < best_distance) then
+      best, best_distance = known, d
+    end
+  end
+  return best and (" (did you mean %q?)"):format(best) or ""
+end
+
+---Drop (and warn about) every key not in `allowed`, recursing into the
+---sub-tables named in NESTED_OPTS so a typo cannot hide behind
+---`vim.tbl_deep_extend` either. Returns a shallow copy; kept leaf values are
+---the original references, not deep-copied.
+---@param raw table
+---@param allowed string[]
+---@param path string  dotted prefix for a nested warning, e.g. "overlay."
+---@return table
+---@internal
+local function sanitize_level(raw, allowed, path)
+  local known = {}
+  for _, k in ipairs(allowed) do
+    known[k] = true
+  end
+
+  local out = {}
+  for key, value in pairs(raw) do
+    if type(key) ~= "string" then
+      out[key] = value -- not a named option (e.g. a list entry); nothing to validate
+    elseif not known[key] then
+      notify.warn(("unknown config key %q%s -- ignored"):format(path .. key, did_you_mean(key, allowed)))
+    elseif type(value) == "table" and NESTED_OPTS[path .. key] then
+      out[key] = sanitize_level(value, NESTED_OPTS[path .. key], path .. key .. ".")
+    else
+      out[key] = value
+    end
+  end
+  return out
+end
+
 ---Merge user options over the defaults and store the result.
 ---@param user_opts? Emojis.Opts
 ---@return Emojis.Config
@@ -39,12 +117,17 @@ function M.setup(user_opts)
     user_opts = {}
   end
 
-  local merged = vim.tbl_deep_extend("force", vim.deepcopy(DEFAULTS), user_opts)
+  -- ERR-50: unknown-key validation runs before the merge below, so a typo in
+  -- a nested option is dropped with a warning instead of vanishing silently
+  -- into `tbl_deep_extend`'s result, sitting next to the real key it shadows.
+  local sanitized = sanitize_level(user_opts, TOP_LEVEL_OPTS, "")
+
+  local merged = vim.tbl_deep_extend("force", vim.deepcopy(DEFAULTS), sanitized)
 
   -- tbl_deep_extend merges lists index-wise, so a user list shorter than the
   -- default would keep the default's tail. For a curated set that is wrong:
   -- "these five glyphs" must mean exactly five. Replace it wholesale instead.
-  local user_picks = user_opts.overlay and user_opts.overlay.picks
+  local user_picks = sanitized.overlay and sanitized.overlay.picks
   if type(user_picks) == "table" then
     merged.overlay.picks = vim.deepcopy(user_picks)
   end
@@ -52,14 +135,14 @@ function M.setup(user_opts)
   -- Same index-wise merge problem, for each individual checkbox cycle: a user
   -- redefining `checkbox = { "🔲", "✅", "❌" }` must get exactly those three
   -- states, not their three merged over the default's two.
-  if type(user_opts.checkbox) == "table" and type(user_opts.checkbox.sets) == "table" then
-    for name, set in pairs(user_opts.checkbox.sets) do
+  if type(sanitized.checkbox) == "table" and type(sanitized.checkbox.sets) == "table" then
+    for name, set in pairs(sanitized.checkbox.sets) do
       if type(set) == "table" then
         merged.checkbox.sets[name] = vim.deepcopy(set)
       end
     end
   end
-  local user_order = user_opts.checkbox and user_opts.checkbox.order
+  local user_order = sanitized.checkbox and sanitized.checkbox.order
   if type(user_order) == "table" then
     merged.checkbox.order = vim.deepcopy(user_order)
   end
@@ -77,6 +160,41 @@ function M.setup(user_opts)
   if not is_one_of(merged.default_scope, VALID_SCOPES) then
     notify.warn(("invalid default_scope %q, using '%%'"):format(tostring(merged.default_scope)))
     merged.default_scope = "%"
+  end
+
+  -- ERR-22: the remaining scalars degrade to their default on an invalid
+  -- type/value too, instead of reaching overlay/init.lua's `math.min()` or
+  -- actions.lua's `vim.defer_fn()` with something that raises there instead,
+  -- at use time, on every call, with `setup()` itself reporting nothing.
+  if type(merged.overlay.limit) ~= "number" or merged.overlay.limit < 1 then
+    notify.warn(("invalid overlay.limit %s, using %d"):format(vim.inspect(merged.overlay.limit), DEFAULTS.overlay.limit))
+    merged.overlay.limit = DEFAULTS.overlay.limit
+  end
+
+  if type(merged.preview.duration_ms) ~= "number" or merged.preview.duration_ms < 0 then
+    notify.warn(
+      ("invalid preview.duration_ms %s, using %d"):format(vim.inspect(merged.preview.duration_ms), DEFAULTS.preview.duration_ms)
+    )
+    merged.preview.duration_ms = DEFAULTS.preview.duration_ms
+  end
+
+  if type(merged.preview.hl_group) ~= "string" or merged.preview.hl_group == "" then
+    notify.warn(("invalid preview.hl_group %s, using %q"):format(vim.inspect(merged.preview.hl_group), DEFAULTS.preview.hl_group))
+    merged.preview.hl_group = DEFAULTS.preview.hl_group
+  end
+
+  if type(merged.wrap.prefix) ~= "string" then
+    notify.warn(("invalid wrap.prefix %s, using %q"):format(vim.inspect(merged.wrap.prefix), DEFAULTS.wrap.prefix))
+    merged.wrap.prefix = DEFAULTS.wrap.prefix
+  end
+  if type(merged.wrap.suffix) ~= "string" then
+    notify.warn(("invalid wrap.suffix %s, using %q"):format(vim.inspect(merged.wrap.suffix), DEFAULTS.wrap.suffix))
+    merged.wrap.suffix = DEFAULTS.wrap.suffix
+  end
+
+  if type(merged.search.extra_args) ~= "table" then
+    notify.warn(("invalid search.extra_args %s, using the defaults"):format(vim.inspect(merged.search.extra_args)))
+    merged.search.extra_args = vim.deepcopy(DEFAULTS.search.extra_args)
   end
 
   _active = merged

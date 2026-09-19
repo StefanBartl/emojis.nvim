@@ -77,6 +77,15 @@ require("emojis").setup({
 
 All fields are optional and are merged with the defaults.
 
+**Validation.** An unknown key (typically a typo, e.g. `overlay = { colums = 5 }`)
+is dropped before the merge and reported via `notify.warn`, with a "did you
+mean" hint when a known key is close enough — it never silently sits next to
+the real option it was meant to override. A recognised key with an
+invalid-typed or out-of-range value (`default_scope`, `overlay.mode`,
+`overlay.columns`, `overlay.limit`, `preview.duration_ms`, `preview.hl_group`,
+`wrap.prefix`/`suffix`, `search.extra_args`) degrades to its default the same
+way, also reported.
+
 ## Overlay
 
 The overlay shows a small, curated set — the point is that everything is
