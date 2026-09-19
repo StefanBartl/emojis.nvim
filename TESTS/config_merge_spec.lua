@@ -89,6 +89,68 @@ return function(H)
     config.setup({})
   end
 
+  -- Invalid scalars beyond the original three also degrade to their default
+  -- (ERR-22), instead of reaching overlay/init.lua's math.min() or
+  -- actions.lua's vim.defer_fn() with something that raises there instead.
+  do
+    local said = H.notices(function()
+      ---@diagnostic disable-next-line: assign-type-mismatch
+      config.setup({ overlay = { limit = "all" } })
+    end)
+    eq(config.get().overlay.limit, DEFAULTS.overlay.limit, "setup: a non-numeric overlay.limit falls back to the default")
+    ok(said.warn[1]:find("overlay.limit", 1, true) ~= nil, "setup: the warning names the offending option")
+    config.setup({})
+  end
+  do
+    local said = H.notices(function()
+      ---@diagnostic disable-next-line: assign-type-mismatch
+      config.setup({ preview = { duration_ms = "150ms" } })
+    end)
+    eq(
+      config.get().preview.duration_ms,
+      DEFAULTS.preview.duration_ms,
+      "setup: a non-numeric preview.duration_ms falls back to the default"
+    )
+    ok(said.warn[1]:find("preview.duration_ms", 1, true) ~= nil, "setup: the warning names the offending option")
+    config.setup({})
+  end
+  do
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    config.setup({ wrap = { prefix = 7 } })
+    eq(config.get().wrap.prefix, DEFAULTS.wrap.prefix, "setup: a non-string wrap.prefix falls back to the default")
+    config.setup({})
+  end
+  do
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    config.setup({ search = { extra_args = "nope" } })
+    eq(
+      table.concat(config.get().search.extra_args, ","),
+      table.concat(DEFAULTS.search.extra_args, ","),
+      "setup: a non-table search.extra_args falls back to the default"
+    )
+    config.setup({})
+  end
+
+  -- ------------------------------------------------------ unknown-key checks
+  -- ERR-50: an unknown key (typically a typo) is dropped BEFORE the merge,
+  -- with a warning -- never silently absorbed next to the real option.
+  do
+    local said = H.notices(function()
+      config.setup({ overlay = { colums = 3 } })
+    end)
+    eq(config.get().overlay.columns, 5, "setup: the real option keeps its default, untouched by the typo")
+    ok(said.warn[1]:find("overlay.colums", 1, true) ~= nil, "setup: the warning names the unknown key")
+    ok(said.warn[1]:find('"columns"', 1, true) ~= nil, "setup: ... and suggests the nearest known one")
+    config.setup({})
+  end
+  do
+    local said = H.notices(function()
+      config.setup({ frobnicate = true })
+    end)
+    ok(said.warn[1]:find("frobnicate", 1, true) ~= nil, "setup: an unknown top-level key is reported")
+    config.setup({})
+  end
+
   -- ------------------------------------------- get() before any setup() call
   -- A fresh module instance (the state a user who never calls setup() is in)
   -- must answer from a copy of DEFAULTS rather than from nil. Swapped in and
