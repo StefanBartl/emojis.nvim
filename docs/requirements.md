@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Neovim | **0.9+** |
-| [lib.nvim](https://github.com/StefanBartl/lib.nvim) | required — `:Emojis` is registered through `lib.nvim.bindings.usercmd.composer`, with no fallback. (`notify`/`map` specifically stay soft internally — native fallback if `lib.nvim` were somehow missing at that call site — but the command layer itself hard-requires the composer module, so treat the dependency as required overall.) |
+| [lib.nvim](https://github.com/StefanBartl/lib.nvim) | required — `:Emojis` is registered through `lib.nvim.bindings.usercmd.composer`, with no fallback, and the opt-in preset's keymap registry (`bindings/keymaps.lua`) bare-requires `lib.nvim.bindings.keymap` directly for its which-key-aware API, also with no fallback. (`notify`/`map` in `util/lib.lua` specifically stay soft — native fallback if `lib.nvim` were somehow missing — but only for the plugin's own internal, primitive call sites such as the overlay's grid keys; treat the dependency as required overall.) |
 
 Optional, detected at runtime and degrading to nothing when absent:
 
