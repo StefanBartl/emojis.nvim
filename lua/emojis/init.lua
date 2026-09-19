@@ -115,20 +115,24 @@ end
 ---@param set? string
 ---@return nil
 function M.checkbox_add(set)
-  local target = checkbox_target()
-  if target then
-    require("emojis.actions").checkbox("add", target, set)
+  local target, err = checkbox_target()
+  if not target then
+    require("emojis.util.notify").error("scope error: " .. tostring(err))
+    return
   end
+  require("emojis.actions").checkbox("add", target, set)
 end
 
 ---Remove the checkbox from the cursor line (or the visual selection).
 ---@param set? string
 ---@return nil
 function M.checkbox_remove(set)
-  local target = checkbox_target()
-  if target then
-    require("emojis.actions").checkbox("remove", target, set)
+  local target, err = checkbox_target()
+  if not target then
+    require("emojis.util.notify").error("scope error: " .. tostring(err))
+    return
   end
+  require("emojis.actions").checkbox("remove", target, set)
 end
 
 ---The configured checkbox cycles in cascade.nvim's `cycle.groups` format.
