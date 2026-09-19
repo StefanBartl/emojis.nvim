@@ -13,6 +13,16 @@
 --- `curl` or an already-cached copy, every `unicode.*` command reports why
 --- and does nothing else, same as `M.ensure()`'s second return value says.
 ---
+--- The download writes to a temp file and renames it into place only once
+--- the response passes a size sanity check -- so a transfer cut short by
+--- anything outside curl's own error handling (Neovim killed, the machine
+--- sleeping/crashing mid-download) can never leave a half-written file for
+--- `M.cached()` to trust on a later session. `M.ensure()` additionally
+--- re-checks the parsed result's shape (`M.parse`'s `truncated` flag, or a
+--- fully empty parse) and deletes the cache rather than memoizing a broken
+--- result, so a corrupt cache is wrong for one command, not silently wrong
+--- for the rest of every session until a human finds and deletes the file.
+---
 --- Large contiguous blocks (CJK Unified Ideographs, Tangut, ...) are not
 --- stored one row per codepoint -- the UCD itself represents them as a
 --- `<Label, First>`/`<Label, Last>` pair rather than one row per character,
@@ -33,6 +43,8 @@ local URL = "https://www.unicode.org/Public/UNIDATA/UnicodeData.txt"
 ---@field by_cp table<integer, string>
 ---@field list {cp: integer, name: string}[]
 ---@field ranges {lo: integer, hi: integer, label: string}[]
+---@field truncated boolean  true if a First/Last range was left unpaired -- the UCD's own
+---       file is always properly paired, so this only fires on a corrupt/truncated cache
 
 ---@type Emojis.Unicode.Data|nil
 local loaded
@@ -80,10 +92,19 @@ end
 ---from a `;`-split line) match the UCD's documented layout: 1 = codepoint
 ---(hex), 2 = Name, 11 = Unicode_1_Name (the pre-2.0 alias, still the only
 ---name some control codes have).
+---
+---A genuine UCD file pairs every "<Label, First>" with a "<Label, Last>" a few
+---lines later -- never two First rows in a row, never a mismatched Last. A
+---truncated download or a corrupted cache file can break that pairing (an
+---unmatched First left dangling at EOF, or a later First silently discarding
+---an still-open one), so `truncated` is set whenever that happens -- the
+---caller's signal that this result should not be trusted or kept, however
+---plausible the rest of it looks.
 ---@param raw string  file contents
 ---@return Emojis.Unicode.Data
 function M.parse(raw)
   local by_cp, list, ranges = {}, {}, {}
+  local truncated = false
   ---@type {cp: integer, label: string}|nil
   local pending
   for line in raw:gmatch("[^\r\n]+") do
@@ -97,6 +118,11 @@ function M.parse(raw)
       local first_label = name:match("^<(.+), First>$")
       local last_label = name:match("^<(.+), Last>$")
       if first_label then
+        if pending then
+          -- A First row arrived while an earlier one is still open -- that
+          -- earlier one's Last never showed up. Not a range we can trust.
+          truncated = true
+        end
         pending = { cp = cp, label = first_label }
       elseif last_label and pending and pending.label == last_label then
         ranges[#ranges + 1] = { lo = pending.cp, hi = cp, label = last_label }
@@ -113,7 +139,11 @@ function M.parse(raw)
       end
     end
   end
-  return { by_cp = by_cp, list = list, ranges = ranges }
+  if pending then
+    -- Reached EOF with a First row never closed by its Last.
+    truncated = true
+  end
+  return { by_cp = by_cp, list = list, ranges = ranges, truncated = truncated }
 end
 
 ---The name for a codepoint: an exact UCD row, else a synthesized
@@ -140,9 +170,28 @@ function M.cached()
   return vim.fn.filereadable(CACHE_FILE) == 1
 end
 
+-- A well-formed UnicodeData.txt is ~1.9MB; a five-times margin catches a
+-- future UCD release growing the file without opening the door to an
+-- unbounded response filling the disk. curl's own --max-filesize aborts the
+-- transfer server-side rather than trusting this module to notice after the
+-- fact.
+local MAX_DOWNLOAD_BYTES = 10 * 1024 * 1024
+-- A genuine file is comfortably above this; anything smaller means the
+-- download was cut short (network drop, curl killed, disk full) -- caught
+-- here so a half-written response never becomes "the cache".
+local MIN_VALID_BYTES = 500 * 1024
+
 ---Download `UnicodeData.txt` via `curl` into the cache file. Blocking (the
 ---same synchronous download unicode.vim's own `s:CheckDir` does) -- notifies
----first so a multi-second stall on first use is not mistaken for a hang.
+---and forces a redraw first, so the message actually reaches the screen
+---before the blocking wait starts (a notify issued immediately before a
+---synchronous `SystemObj:wait()` is never flushed until that call returns --
+---`vim.wait`'s own `fast_only` mode skips UI redraw/message processing while
+---it blocks). Downloads to a temp file and renames it into place only once
+---the response looks like a real UnicodeData.txt (curl succeeded, non-empty,
+---above `MIN_VALID_BYTES`) -- so a download cut short by anything outside
+---curl's own error handling (nvim killed, the machine sleeping/crashing) can
+---never leave a partial file at `CACHE_FILE` for `M.cached()` to trust later.
 ---@return boolean ok, string|nil err
 function M.download()
   if vim.fn.executable("curl") ~= 1 then
@@ -150,16 +199,46 @@ function M.download()
   end
   vim.fn.mkdir(CACHE_DIR, "p")
   require("emojis.util.lib").notifier().info("downloading Unicode name data (once, cached)...")
-  local result = vim.system({ "curl", "-sSL", "--max-time", "20", "-o", CACHE_FILE, URL }):wait()
-  if result.code ~= 0 or vim.fn.filereadable(CACHE_FILE) ~= 1 then
-    pcall(vim.fn.delete, CACHE_FILE)
-    return false, ("download failed (curl exit %s)"):format(tostring(result.code))
+  vim.cmd("redraw")
+
+  local tmp_file = CACHE_FILE .. ".tmp"
+  pcall(vim.fn.delete, tmp_file)
+  local result = vim
+    .system({
+      "curl",
+      "-sSL",
+      "--max-time",
+      "20",
+      "--max-filesize",
+      tostring(MAX_DOWNLOAD_BYTES),
+      "-o",
+      tmp_file,
+      URL,
+    })
+    :wait()
+
+  local size = vim.fn.filereadable(tmp_file) == 1 and vim.fn.getfsize(tmp_file) or -1
+  if result.code ~= 0 or size < MIN_VALID_BYTES then
+    pcall(vim.fn.delete, tmp_file)
+    return false, ("download failed or incomplete (curl exit %s, %s bytes)"):format(tostring(result.code), tostring(size))
+  end
+
+  -- Atomic on the same filesystem (both paths are under CACHE_DIR) -- a
+  -- reader never observes a half-written CACHE_FILE.
+  local ok = os.rename(tmp_file, CACHE_FILE)
+  if not ok then
+    pcall(vim.fn.delete, tmp_file)
+    return false, "could not move the downloaded file into the cache"
   end
   return true
 end
 
 ---Ensure the parsed table is loaded, downloading first if there is no cache
----yet. Memoized -- later calls in the same session are free.
+---yet. Memoized -- later calls in the same session are free. A cache file
+---that turns out to be corrupt or incomplete (see `M.parse`'s `truncated`)
+---is deleted rather than trusted -- so a bad cache is wrong for one call,
+---not silently wrong for the rest of every session until a human notices
+---and finds the file themselves.
 ---@return Emojis.Unicode.Data|nil data, string|nil err
 function M.ensure()
   if loaded then
@@ -177,7 +256,14 @@ function M.ensure()
   if not ok then
     return nil, "cache file unreadable: " .. tostring(raw)
   end
-  loaded = M.parse(raw)
+
+  local parsed = M.parse(raw)
+  if parsed.truncated or (#parsed.list == 0 and #parsed.ranges == 0) then
+    pcall(vim.fn.delete, CACHE_FILE)
+    return nil, "cached Unicode data was corrupt or incomplete and has been removed -- retry to re-download"
+  end
+
+  loaded = parsed
   return loaded
 end
 

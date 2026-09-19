@@ -141,6 +141,16 @@ function M.name_at_cursor(reg, reg_type)
   notify.info(msg)
 
   if reg and reg ~= "" then
+    -- The "=" register evaluates whatever was last written to it as live
+    -- Vimscript the next time anything reads @= (<C-r>=, "=p, :put =, or any
+    -- unrelated plugin calling getreg("=")) -- no keystroke or paste needed.
+    -- `info.name` can come from the downloaded/cached UCD data (data.lua),
+    -- which this plugin does not otherwise trust as anything other than
+    -- display text, so it must never reach the expression register.
+    if reg == "=" then
+      notify.error('refusing to save into the "=" register (it evaluates its contents as Vimscript on read)')
+      return
+    end
     local getter = REGISTER_TYPES[(reg_type or "name"):lower()]
     if not getter then
       notify.error(("unknown register type %q. Valid: %s"):format(reg_type, table.concat(vim.tbl_keys(REGISTER_TYPES), ", ")))
@@ -172,19 +182,23 @@ local function find(query)
 
   local needle = query:lower()
   local results = {}
+  local MAX_RESULTS = 200
   local cfg_names = require("emojis.config").get().names
   for cp, label in pairs(cfg_names) do
+    if #results >= MAX_RESULTS then
+      break
+    end
     if label:lower():find(needle, 1, true) then
       results[#results + 1] = M.info(cp)
     end
   end
   for i = 1, #data.list do
+    if #results >= MAX_RESULTS then
+      break
+    end
     local entry = data.list[i]
     if entry.name:lower():find(needle, 1, true) then
       results[#results + 1] = M.info(entry.cp)
-      if #results >= 200 then
-        break
-      end
     end
   end
   table.sort(results, function(a, b)
@@ -230,6 +244,56 @@ function M.search(query, insert)
   end)
 end
 
+---Show `lines` in a named scratch buffer, split-opened. If a buffer with
+---that name already exists (from an earlier call in this session), reuses
+---it -- jumping straight to its window if it still has one, else opening it
+---in a new split -- instead of creating a second buffer under the same
+---name. `nvim_buf_set_name` raises E95 ("buffer already exists") on a name
+---collision, so without this a second call would silently end up with an
+---unnamed buffer (the failure is easy to swallow in a pcall and easy to
+---miss), which then desyncs any caller that looks this buffer up by name
+---(e.g. the nvim-config custom menu's window-styling step).
+---@param name string
+---@param lines string[]
+---@return nil
+---@internal
+local function open_named_scratch(name, lines)
+  local existing = vim.fn.bufnr(name)
+  if existing ~= -1 and vim.api.nvim_buf_is_valid(existing) then
+    local win = vim.fn.bufwinid(existing)
+    if win ~= -1 then
+      vim.api.nvim_set_current_win(win)
+      return
+    end
+    local ok = pcall(vim.cmd.split)
+    if not ok then
+      notify.error(("could not open a window for %q (not enough room?)"):format(name))
+      return
+    end
+    vim.api.nvim_win_set_buf(0, existing)
+    return
+  end
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].swapfile = false
+  pcall(vim.api.nvim_buf_set_name, buf, name)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.bo[buf].modifiable = false
+
+  local ok = pcall(vim.cmd.split)
+  if not ok then
+    -- Never shown in a window, so bufhidden="wipe" never fires for it --
+    -- delete it explicitly rather than leaking a named buffer that the
+    -- next call would then collide with.
+    notify.error(("could not open a window for %q (not enough room?)"):format(name))
+    pcall(vim.api.nvim_buf_delete, buf, { force = true })
+    return
+  end
+  vim.api.nvim_win_set_buf(0, buf)
+end
+
 ---Open a scratch buffer listing the full loaded name table, one line per
 ---character: "U+XXXX <glyph> NAME". Downloads the UCD data first if it is
 ---not cached yet -- see `emojis.unicode.data`.
@@ -249,22 +313,21 @@ function M.table_open()
     return a.cp < b.cp
   end)
 
+  -- strtrans(): a raw control-character codepoint (e.g. U+000A LINE FEED,
+  -- a genuinely named UnicodeData.txt row, not an edge case) re-encodes to
+  -- a literal "\n"/other control byte via patterns.encode -- embedding that
+  -- unsanitized in a "line" string makes nvim_buf_set_lines reject the
+  -- whole call ("replacement string item contains newlines"). strtrans
+  -- renders it as a printable "^@"/"<0a>"-style placeholder instead, the
+  -- same function vim-matchup's own status-line renderer uses for exactly
+  -- this reason.
   local lines = {}
   for i = 1, #sorted do
     local e = sorted[i]
-    lines[i] = ("U+%04X  %s  %s"):format(e.cp, patterns.encode(e.cp), e.name)
+    lines[i] = ("U+%04X  %s  %s"):format(e.cp, vim.fn.strtrans(patterns.encode(e.cp)), e.name)
   end
 
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.bo[buf].buftype = "nofile"
-  vim.bo[buf].bufhidden = "wipe"
-  vim.bo[buf].swapfile = false
-  pcall(vim.api.nvim_buf_set_name, buf, "Unicode Table")
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  vim.bo[buf].modifiable = false
-
-  vim.cmd.split()
-  vim.api.nvim_win_set_buf(0, buf)
+  open_named_scratch("Unicode Table", lines)
 end
 
 ---Open a scratch buffer listing every digraph Neovim knows, one line per
@@ -280,21 +343,16 @@ function M.digraphs_open()
     return a.code < b.code
   end)
 
+  -- strtrans(): several of Neovim's built-in digraphs (RFC 1345) produce
+  -- C0/C1 control characters (e.g. "NU" -> NUL, one maps to LINE FEED) --
+  -- see table_open()'s identical comment for why this must not reach
+  -- nvim_buf_set_lines raw.
   local lines = {}
   for i = 1, #sorted do
-    lines[i] = ("%-3s -> %s"):format(sorted[i].code, sorted[i].char)
+    lines[i] = ("%-3s -> %s"):format(sorted[i].code, vim.fn.strtrans(sorted[i].char))
   end
 
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.bo[buf].buftype = "nofile"
-  vim.bo[buf].bufhidden = "wipe"
-  vim.bo[buf].swapfile = false
-  pcall(vim.api.nvim_buf_set_name, buf, "Digraphs")
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  vim.bo[buf].modifiable = false
-
-  vim.cmd.split()
-  vim.api.nvim_win_set_buf(0, buf)
+  open_named_scratch("Digraphs", lines)
 end
 
 ---Dispatch target for `emojis.commands`' `unicode` action.
