@@ -24,7 +24,8 @@ local actions = require("emojis.actions")
 local M = {}
 
 ---@type string[]
-local ACTIONS = { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next", "wrap", "overlay", "toggle" }
+local ACTIONS =
+  { "clear", "insert", "list", "count", "replace", "unreplace", "first", "next", "wrap", "overlay", "toggle", "unicode" }
 
 ---@type string[]
 local SCOPES = { "word", "line", "visual", "%", "cwd" }
@@ -35,10 +36,13 @@ local SCOPES = { "word", "line", "visual", "%", "cwd" }
 --- from an explicit Vim range, defaulting to the cursor line — a checkbox
 --- belongs to one line, and defaulting to the whole buffer would silently flip
 --- every box in the file.
-local NO_SCOPE = { insert = true, first = true, next = true, overlay = true, toggle = true }
+local NO_SCOPE = { insert = true, first = true, next = true, overlay = true, toggle = true, unicode = true }
 
 ---@type string[]  Second positional of `overlay` — a UI mode, not a scope.
 local OVERLAY_MODES = { "grid", "grid_keys", "list" }
+
+---@type string[]  Second positional of `unicode` — a sub-action, not a scope.
+local UNICODE_SUBS = { "name", "search", "table", "digraphs" }
 
 ---@param list string[]
 ---@param v string
@@ -92,6 +96,10 @@ local function execute(cmd_args)
     -- configured default". The NO_SCOPE bypass above already skipped scope
     -- validation, so `cmd_args.fargs[2]` is still raw.
     require("emojis.overlay").open(cmd_args.fargs[2] and cmd_args.fargs[2]:lower() or nil)
+    return
+  end
+  if action == "unicode" then
+    require("emojis.unicode").dispatch(cmd_args.fargs, cmd_args.bang)
     return
   end
   if action == "first" then
@@ -151,6 +159,7 @@ local ACTION_DESC = {
   wrap = "Surround emojis with the configured marker in the given scope",
   overlay = "Open the quick-insert overlay (grid|grid_keys|list)",
   toggle = "Cycle the emoji checkbox on the cursor line (or the given range)",
+  unicode = "Unicode toolkit: name (char under cursor) | search[!] <query> | table | digraphs",
 }
 
 ---Reconstruct the {fargs, range, line1, line2} shape execute() expects from a
@@ -189,6 +198,8 @@ local function action_route(action)
   local arg
   if action == "overlay" then
     arg = { name = "mode", type = "STRING", values = OVERLAY_MODES, optional = true }
+  elseif action == "unicode" then
+    arg = { name = "sub", type = "STRING", values = UNICODE_SUBS, optional = true }
   elseif action == "next" then
     -- A jump count, not a scope.
     arg = { name = "count", type = "INT", optional = true }
@@ -228,7 +239,7 @@ function M.register(cfg)
   composer.verb(cfg.command, {
     desc = "[emojis] :"
       .. cfg.command
-      .. " [clear|insert|list|count|replace|unreplace|first|next|wrap|overlay|toggle]"
+      .. " [clear|insert|list|count|replace|unreplace|first|next|wrap|overlay|toggle|unicode]"
       .. " [word|line|visual|%|cwd]",
     range = true,
     default = function(ctx)

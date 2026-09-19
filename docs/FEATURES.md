@@ -11,7 +11,7 @@ theme split would only add navigation for its own sake. See
 One command, `[action] [scope]`, dispatching to a shared `execute()`
 function. Bare `:Emojis` is `:Emojis clear %` (remove every emoji in the
 buffer). Actions: `clear`, `replace`, `unreplace`, `wrap`, `list`,
-`count`, `insert`, `overlay`, `toggle`, `first`, `next`. Scopes: `%`
+`count`, `insert`, `overlay`, `toggle`, `first`, `next`, `unicode`. Scopes: `%`
 (buffer, default), `line`, `word`, `visual`, `cwd` (project-wide via
 ripgrep). An explicit Vim range (`:'<,'>Emojis`, `:10,20Emojis`) overrides
 the scope keyword. Built via `lib.nvim.bindings.usercmd.composer` — one route per
@@ -206,6 +206,41 @@ whether or not cascade.nvim is installed.
 - **Module:** `lua/emojis/init.lua` (`M.cascade_groups`)
 - **Config:** none — reads `opts.checkbox.sets`
 
+## Unicode toolkit (`unicode`)
+
+`:Emojis unicode name|search|table|digraphs` — a `chrisbra/unicode.vim`
+replacement, for any Unicode character, not just emoji. `name` reports the
+character under the cursor (codepoint, glyph, name, any digraph that
+produces it), optionally saving one representation into a register.
+`search[!]` finds characters by name substring or an exact `U+xxxx`/
+`0xNNNN`/decimal value, via `vim.ui.select`; with `!`, picking a result
+inserts its glyph instead of just reporting it. `table` and `digraphs` open
+a scratch buffer listing the full name table / every digraph Neovim knows.
+
+The name lookup has two tiers: a glyph in the plugin's own `opts.picks`/
+`opts.names` catalog resolves instantly (no network), reusing the same
+`emojis.util.lib.utf8_decode`/`emojis.core.patterns.encode` UTF-8 machinery
+the emoji tokenizer already had — the "hard half" of `:UnicodeName` this
+feature reused rather than rebuilt. Anything else is looked up in the
+Unicode Character Database's own `UnicodeData.txt`, downloaded once per
+machine (`curl`) and cached under `stdpath("cache")/emojis/`. A codepoint
+inside a large contiguous block the UCD represents as a `<Label, First>`/
+`<Label, Last>` pair (CJK Unified Ideographs, Hangul Syllables, Tangut, ...)
+gets a synthesized "PREFIX-HEX" name (e.g. `CJK UNIFIED IDEOGRAPH-4E2D`) —
+the same convention real Unicode-aware tools use for these blocks, rather
+than storing tens of thousands of individual rows. `digraphs` needs no
+download at all: it reads Neovim's own `vim.fn.digraph_getlist()` directly.
+
+- **Module:** `lua/emojis/unicode/init.lua` (dispatch, `info`,
+  `name_at_cursor`, `search`, `table_open`, `digraphs_open`),
+  `lua/emojis/unicode/data.lua` (UCD fetch/cache/parse),
+  `lua/emojis/unicode/digraphs.lua` (`vim.fn.digraph_*` wrapper)
+- **Usercmds:** `:Emojis unicode name [reg [type]]`,
+  `:Emojis unicode search[!] <query>`, `:Emojis unicode table`,
+  `:Emojis unicode digraphs` ([commands.md](commands.md#unicode-toolkit))
+- **Config:** none — reads `opts.names` for the curated fast path; the UCD
+  cache path is fixed (`stdpath("cache")/emojis/UnicodeData.txt`)
+
 ## Cursor navigation (`first` / `next`)
 
 `:Emojis first` jumps the cursor to the first emoji in the buffer;
@@ -238,6 +273,8 @@ use in headless scripts and tests without a real buffer.
 ## `:checkhealth emojis`
 
 Checks `lib.nvim` (required — the `:Emojis` command layer depends on it),
-ripgrep availability (for `cwd` scope), and picker engine detection.
+ripgrep availability (for `cwd` scope), picker engine detection, and
+whether the Unicode name data is already cached or `curl` is available to
+fetch it.
 
 - **Module:** `lua/emojis/health.lua`

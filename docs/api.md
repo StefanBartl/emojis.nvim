@@ -30,3 +30,14 @@ The overlay's usage history is also reachable, e.g. to clear it:
 ```lua
 require("emojis.overlay.frecency").reset()
 ```
+
+The Unicode toolkit behind `:Emojis unicode ...` (see
+[`docs/commands.md`](commands.md#unicode-toolkit)) is reachable the same way,
+for scripting or a custom keymap:
+
+```lua
+local unicode = require("emojis.unicode")
+local info = unicode.info(0x1F680)  -- { cp, glyph, hex, dec, name, digraphs, html, regex }
+unicode.name_at_cursor()            -- what :Emojis unicode name reports
+unicode.search("rocket", false)     -- what :Emojis unicode search does
+```

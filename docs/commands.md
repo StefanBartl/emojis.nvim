@@ -22,6 +22,7 @@ Without arguments: `:Emojis` -> `:Emojis clear %` (removes all emojis in the buf
 | `toggle` | Cycles the emoji checkbox on the cursor line / range (see below) |
 | `first` | Jumps to the first emoji in the buffer (cursor navigation) |
 | `next` | Jumps to the next emoji, wrapping to the top at the end of the buffer. `:Emojis next 3` jumps three forward. `count` must be a positive integer (a non-positive one is rejected) and is capped at 1000. |
+| `unicode` | Unicode toolkit: `name`\|`search`\|`table`\|`digraphs` (see below) |
 
 | Scope | Description |
 |---|---|
@@ -112,6 +113,45 @@ change the search order. The same sets can drive
 [cascade.nvim](https://github.com/StefanBartl/cascade.nvim)'s cursor-precise
 `<C-y>` cycling via `require("emojis").cascade_groups()` — see
 [`docs/configuration.md#cascadenvim-bridge`](configuration.md#cascadenvim-bridge).
+
+## Unicode toolkit
+
+```
+:Emojis unicode name [reg [type]]
+:Emojis unicode search[!] <name substring | U+xxxx | 0xNNNN | decimal>
+:Emojis unicode table
+:Emojis unicode digraphs
+```
+
+A `chrisbra/unicode.vim` replacement: `:UnicodeName`, `:UnicodeSearch`,
+`:UnicodeTable`, `:Digraphs`. The second positional here is a **sub-action**,
+not a scope.
+
+| Sub-action | Behaviour |
+|---|---|
+| `name` | Reports the character under the cursor: codepoint (hex/dec), glyph, name, and any digraph that produces it. With `reg`, also saves one representation into that register — `type` picks which (`value`\|`hex`\|`name`\|`html`\|`digraph`\|`regex`, default `name`). |
+| `search` | Looks up characters by name substring (case-insensitive), or by an exact `U+xxxx`/`0xNNNN`/decimal value. Results open in `vim.ui.select`; picking one reports it. With `!`, picking one **inserts** the glyph at the cursor instead. |
+| `table` | Opens a scratch buffer listing the whole loaded name table, one line per character. |
+| `digraphs` | Opens a scratch buffer listing every digraph Neovim itself knows (`vim.fn.digraph_getlist`) — needs no download. |
+
+The name lookup has two tiers. Any glyph in your own `config.picks`/`names`
+catalog (see [`docs/configuration.md`](configuration.md#glyphs--names))
+resolves instantly, no network involved. Anything else is looked up in the
+Unicode Character Database's own `UnicodeData.txt`, downloaded once per
+machine via `curl` into `stdpath("cache")/emojis/UnicodeData.txt` and cached
+there — `search`/`table` need this the first time they run; `name` only
+needs it for a character outside your own catalog. Without `curl` on
+`$PATH`, or before the first successful download, these three report why
+and do nothing else; `digraphs` is unaffected (it never needs the UCD).
+
+```vim
+:Emojis unicode name              " report the character under the cursor
+:Emojis unicode name z value      " ...and save its decimal codepoint to @z
+:Emojis unicode search rocket     " find every "rocket"-named character
+:Emojis unicode search! U+1F680   " insert 🚀 at the cursor
+:Emojis unicode table             " browse the full name table
+:Emojis unicode digraphs          " browse every <C-k> digraph
+```
 
 ## Fixed bug: double space
 

@@ -21,6 +21,7 @@ CONTENTS                                                     *emojis-contents*
  11. Architecture .............. |emojis-architecture|
  12. Quick-insert overlay ...... |emojis-overlay|
  13. Emoji checkboxes .......... |emojis-checkboxes|
+ 14. Unicode toolkit ........... |emojis-unicode|
 
 ==============================================================================
 1. INTRODUCTION                                                 *emojis-intro*
@@ -302,6 +303,11 @@ toggle ~
   `config.checkbox.sets` cycle. The `scope` argument is instead a set name.
   See |emojis-checkboxes|.
 
+unicode ~
+  Unicode toolkit for any character, not just emoji: `name`|`search`|
+  `table`|`digraphs`. The `scope` argument is instead a sub-action. See
+  |emojis-unicode|.
+
 ------------------------------------------------------------------------------
 5.2 Scopes                                                     *emojis-scopes*
 
@@ -343,10 +349,11 @@ emoji grapheme — counted once and replaced as one placeholder.
 second: >
 
   :Emojis <Tab>          clear  count  first  insert  list  next  overlay
-                         replace  toggle  unreplace  wrap
+                         replace  toggle  unicode  unreplace  wrap
   :Emojis clear <Tab>    word  line  visual  %  cwd
   :Emojis overlay <Tab>  grid  grid_keys  list
   :Emojis toggle <Tab>   <configured config.checkbox.sets names>
+  :Emojis unicode <Tab>  name  search  table  digraphs
 <
 
 ==============================================================================
@@ -394,6 +401,9 @@ ops()                                                          *emojis.ops()*
     local ops = require("emojis").ops()
     local cleaned, removed = ops.clear({ " 🚀 done" })  -- { " done" }, 1
 <
+
+The |emojis-unicode| toolkit is reachable the same way, via
+`require("emojis.unicode")` — see |emojis-unicode| and `docs/api.md`.
 
 ==============================================================================
 9. HEALTH CHECK                                                *emojis-health*
@@ -516,6 +526,49 @@ both cascade's cursor-precise `<C-y>` cycling and emojis.nvim's line-scoped
 
 The pure logic in core/* is isolated from every API/UI layer and is therefore
 unit-testable on plain string arrays (see `TESTS/`).
+
+==============================================================================
+14. UNICODE TOOLKIT                                            *emojis-unicode*
+
+>
+  :Emojis unicode name [reg [type]]
+  :Emojis unicode search[!] <query>
+  :Emojis unicode table
+  :Emojis unicode digraphs
+<
+
+A `chrisbra/unicode.vim` replacement, for any Unicode character.
+
+name ~
+  Report the character under the cursor: codepoint (hex/dec), glyph, name,
+  and any digraph that produces it. With `reg`, also save one
+  representation into that register; `type` picks which — `value`|`hex`|
+  `name`|`html`|`digraph`|`regex` (default `name`).
+
+search[!] ~
+  Find characters by name substring (case-insensitive), or by an exact
+  `U+xxxx`/`0xNNNN`/decimal value. Results open in |vim.ui.select()|;
+  picking one reports it. With `!`, picking one inserts the glyph at the
+  cursor instead.
+
+table ~
+  Open a scratch buffer listing the whole loaded name table, one line per
+  character.
+
+digraphs ~
+  Open a scratch buffer listing every digraph Neovim itself knows
+  (|digraph_getlist()|) — needs no download.
+
+The name lookup has two tiers. A glyph already in `config.picks`/
+`config.names` resolves instantly, no network involved. Anything else is
+looked up in the Unicode Character Database's own `UnicodeData.txt`,
+downloaded once per machine via `curl` into
+`stdpath("cache")/emojis/UnicodeData.txt` and cached there. Without `curl`
+on `$PATH`, or before the first successful download, `name` (for an
+uncatalogued character), `search`, and `table` report why and do nothing
+else; `digraphs` is unaffected. A codepoint inside a large contiguous UCD
+block (CJK Unified Ideographs, Hangul Syllables, Tangut, ...) gets a
+synthesized "PREFIX-HEX" name, e.g. `CJK UNIFIED IDEOGRAPH-4E2D`.
 
 ==============================================================================
 vim:tw=78:ts=8:noet:ft=help:norl:
