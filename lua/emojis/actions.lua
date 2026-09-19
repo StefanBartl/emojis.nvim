@@ -107,6 +107,16 @@ function M.edit(action, t)
       return
     end
 
+    -- ERR-30: the mutation below was computed from `lines`, possibly a
+    -- preview_duration_ms ago -- re-verify against the buffer's current text
+    -- right before writing, and skip rather than blindly overwrite whatever
+    -- the user (or an LSP formatter, another autocmd, ...) put there since.
+    local current = api.nvim_buf_get_lines(t.buf, t.l1, t.l2 + 1, false)
+    if not vim.deep_equal(current, lines) then
+      notify.warn("buffer changed since the scan, skipped")
+      return
+    end
+
     local new_lines, n
     if action == "clear" then
       new_lines, n = ops.clear(work)
@@ -124,12 +134,19 @@ function M.edit(action, t)
       return
     end
 
+    -- ERR-01: a `nomodifiable`/`readonly` buffer throws out of
+    -- nvim_buf_set_lines; this module's contract is to notify, not raise.
+    local ok
     if t.c1 and t.c2 and #lines == 1 then
       local full = lines[1]
       local rebuilt = full:sub(1, t.c1 - 1) .. new_lines[1] .. full:sub(t.c2 + 1)
-      api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, { rebuilt })
+      ok = pcall(api.nvim_buf_set_lines, t.buf, t.l1, t.l2 + 1, false, { rebuilt })
     else
-      api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
+      ok = pcall(api.nvim_buf_set_lines, t.buf, t.l1, t.l2 + 1, false, new_lines)
+    end
+    if not ok then
+      notify.error("buffer is not modifiable")
+      return
     end
     notify.info(("%s %d emoji%s"):format(VERB[action], n, n == 1 and "" or "s"))
   end
@@ -194,7 +211,12 @@ function M.checkbox(op, t, set_name, dir)
     return
   end
 
-  api.nvim_buf_set_lines(t.buf, t.l1, t.l2 + 1, false, new_lines)
+  -- ERR-01: same modifiable-buffer contract as M.edit's apply() above.
+  local ok = pcall(api.nvim_buf_set_lines, t.buf, t.l1, t.l2 + 1, false, new_lines)
+  if not ok then
+    notify.error("buffer is not modifiable")
+    return
+  end
   notify.info(("%s %d checkbox%s"):format(spec.verb, n, n == 1 and "" or "es"))
 end
 

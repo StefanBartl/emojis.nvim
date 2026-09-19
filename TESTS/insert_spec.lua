@@ -107,6 +107,19 @@ return function(H)
     eq(line_of(buf), "keep", "at_cursor: a rejected insert leaves the line alone")
   end
 
+  -- A non-modifiable current buffer is refused, not raised (ERR-01).
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "keep" })
+    vim.api.nvim_win_set_cursor(0, { 1, 2 })
+    vim.bo[buf].modifiable = false
+
+    eq(insert.at_cursor("🚀"), false, "at_cursor: a non-modifiable buffer returns false, not a raise")
+
+    vim.bo[buf].modifiable = true
+    eq(line_of(buf), "keep", "at_cursor: ... and the line is untouched")
+  end
+
   -- -------------------------------------------------------- frecency wiring
   -- Recording is tied to insertion rather than to a UI layer, so every entry
   -- point feeds the same histogram. That is the whole contract of this module

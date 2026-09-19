@@ -38,7 +38,13 @@ function M.at_cursor(glyph)
   local line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1] or ""
   col = math.min(col, #line)
 
-  api.nvim_buf_set_lines(buf, row - 1, row, false, { line:sub(1, col) .. glyph .. line:sub(col + 1) })
+  -- ERR-01: a `nomodifiable`/`readonly` current buffer throws here; this
+  -- function's contract is to return `false`, not raise (the cursor move two
+  -- lines below is already pcall-wrapped for the same reason).
+  local ok = pcall(api.nvim_buf_set_lines, buf, row - 1, row, false, { line:sub(1, col) .. glyph .. line:sub(col + 1) })
+  if not ok then
+    return false
+  end
   pcall(api.nvim_win_set_cursor, win, { row, col + #glyph })
 
   require("emojis.overlay.frecency").record(glyph)
