@@ -139,6 +139,17 @@ return function(H)
     eq(ops.unreplace({ ":U+2705:" })[1], "✅", "unreplace: the fallback form works without a name map")
     eq(ops.unreplace({ ":U+ZZZZ:" })[1], ":U+ZZZZ:", "unreplace: a non-hex codepoint token is left alone")
     eq(ops.unreplace({ ":U+41:" })[1], "A", "unreplace: a short codepoint is rebuilt too")
+
+    -- PRIN-25: codepoints above U+10FFFF and the UTF-16 surrogate block
+    -- (U+D800-U+DFFF) are not valid Unicode scalar values; the fallback must
+    -- leave both kinds of token untouched instead of emitting invalid UTF-8.
+    local out_hi, n_hi = ops.unreplace({ "a :U+110000: b" })
+    eq(out_hi[1], "a :U+110000: b", "unreplace: an out-of-range codepoint token is left alone")
+    eq(n_hi, 0, "unreplace: an out-of-range codepoint token is not counted as restored")
+
+    local out_sur, n_sur = ops.unreplace({ "token :U+D800: here" })
+    eq(out_sur[1], "token :U+D800: here", "unreplace: a UTF-16 surrogate codepoint token is left alone")
+    eq(n_sur, 0, "unreplace: a surrogate codepoint token is not counted as restored")
   end
 
   -- count: sums across lines, including multi-codepoint graphemes
