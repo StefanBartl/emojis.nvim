@@ -141,6 +141,18 @@ function M.name_at_cursor(reg, reg_type)
   notify.info(msg)
 
   if reg and reg ~= "" then
+    -- `vim.fn.setreg` only ever looks at `reg`'s first byte and raises E354
+    -- ("Invalid register name"), uncaught, for anything outside its own
+    -- accepted set -- so a plausible typo like `:Emojis unicode name %` or
+    -- `... name .` (both read naturally as "this buffer"/"repeat", not as a
+    -- register) crashes the whole command instead of reporting a clean
+    -- error. Checked here, before the call, the same "degrade instead of
+    -- crash" shape as ERR-22's config-scalar guards.
+    if not reg:sub(1, 1):match('^[%w"%-_*+/=@]$') then
+      notify.error(("invalid register name %q"):format(reg))
+      return
+    end
+
     -- The "=" register evaluates whatever was last written to it as live
     -- Vimscript the next time anything reads @= (<C-r>=, "=p, :put =, or any
     -- unrelated plugin calling getreg("=")) -- no keystroke or paste needed.

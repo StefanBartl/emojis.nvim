@@ -93,6 +93,26 @@ return function(H)
     end)
     eq(#said.error, 1, 'name_at_cursor: refuses to save into the "=" register')
     ok(said.error[1]:find('"="', 1, true) ~= nil, "name_at_cursor: names the offending register")
+
+    -- vim.fn.setreg raises E354 ("Invalid register name"), uncaught, for a
+    -- register outside its own accepted set -- a plausible typo (`%`, `.`,
+    -- a bare space) must be reported cleanly instead of crashing the whole
+    -- command.
+    for _, bad in ipairs({ "%", ".", ":", " ", "!" }) do
+      said = H.notices(function()
+        unicode.name_at_cursor(bad, "value")
+      end)
+      eq(#said.error, 1, ("name_at_cursor: register %q is refused, not crashed"):format(bad))
+      ok(said.error[1]:find("invalid register", 1, true) ~= nil, ("name_at_cursor: register %q names the problem"):format(bad))
+    end
+
+    -- A register from setreg's own accepted set (letters, digits, and its
+    -- fixed punctuation registers) still works.
+    said = H.notices(function()
+      unicode.name_at_cursor("*", "value")
+    end)
+    eq(#said.error, 0, 'name_at_cursor: register "*" is not flagged as invalid')
+    eq(vim.fn.getreg("*"), "233", 'name_at_cursor: register "*" still saves normally')
   end)
 
   do

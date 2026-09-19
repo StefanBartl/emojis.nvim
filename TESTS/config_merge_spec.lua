@@ -162,6 +162,27 @@ return function(H)
     eq(config.get().command, DEFAULTS.command, "setup: an empty command falls back to the default")
     config.setup({})
   end
+  do
+    -- A non-empty string is necessary but not sufficient: composer.verb()
+    -- only asserts non-empty before handing `name` to
+    -- vim.api.nvim_create_user_command(), which enforces its own ex-command
+    -- grammar (uppercase-first, alphanumeric) and raises just as hard,
+    -- uncaught, for anything that violates it -- the same crash this option
+    -- exists to prevent, reached through a value that passed the type/empty
+    -- check.
+    for _, bad in ipairs({ "emojis2", "1Emojis", "Emo-jis", "Emoji_s", "Emoji!s", "My Command" }) do
+      local said = H.notices(function()
+        config.setup({ command = bad })
+      end)
+      eq(config.get().command, DEFAULTS.command, ("setup: command %q falls back to the default"):format(bad))
+      ok(said.warn[1] and said.warn[1]:find("invalid command", 1, true) ~= nil, ("setup: command %q is flagged"):format(bad))
+    end
+    -- A conforming name (uppercase-first, alphanumeric, digits allowed after
+    -- the first character) is left alone.
+    config.setup({ command = "MyEmojis2" })
+    eq(config.get().command, "MyEmojis2", "setup: a conforming command name survives the merge unstripped")
+    config.setup({})
+  end
 
   -- ------------------------------------------------------ unknown-key checks
   -- ERR-50: an unknown key (typically a typo) is dropped BEFORE the merge,
