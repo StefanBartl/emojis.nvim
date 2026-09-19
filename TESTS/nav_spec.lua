@@ -6,7 +6,7 @@
 -- cursor sitting on the glyph itself, and the byte columns it reports.
 
 return function(H)
-  local eq = H.eq
+  local eq, ok = H.eq, H.ok
   local nav = require("emojis.nav")
 
   -- ------------------------------------------------------------------ first
@@ -72,10 +72,37 @@ return function(H)
     nav.next(4) -- 3 emoji in the buffer: 1 -> 2 -> 3 -> wrap to 1 -> 2
     eq(vim.api.nvim_win_get_cursor(0)[1], 2, "next(4): keeps stepping past the wrap")
 
-    -- A count below 1 still moves one step (max(count, 1)).
+    -- A non-positive count is rejected rather than silently clamped to one
+    -- step (PRIN-25): the cursor stays put, and the rejection is reported.
     vim.api.nvim_win_set_cursor(0, { 1, 0 })
-    nav.next(0)
-    eq(vim.api.nvim_win_get_cursor(0)[1], 2, "next(0): behaves like a single step")
+    local said = H.notices(function()
+      nav.next(0)
+    end)
+    eq(vim.api.nvim_win_get_cursor(0)[1], 1, "next(0): rejected, the cursor does not move")
+    ok(said.warn[1]:find("invalid count", 1, true) ~= nil, "next(0): the rejection is reported")
+
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+    said = H.notices(function()
+      nav.next(-3)
+    end)
+    eq(vim.api.nvim_win_get_cursor(0)[1], 1, "next(-3): rejected too")
+    ok(said.warn[1]:find("invalid count", 1, true) ~= nil, "next(-3): the rejection is reported")
+  end
+
+  -- An absurd count is capped rather than spinning the main loop unbounded.
+  -- Same 3-emoji buffer and stepping cycle as the block above (count=4 lands
+  -- on row 2 there); MAX_COUNT (1000) is 1 mod 3, the same residue as
+  -- count=4 (1 mod 3), so capping must land on the same row.
+  do
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "🚀 one", "🔥 two", "⭐ three" })
+    vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+    local said = H.notices(function()
+      nav.next(1e9)
+    end)
+    ok(said.warn[1]:find("exceeds the max", 1, true) ~= nil, "next(huge): the cap is reported")
+    eq(vim.api.nvim_win_get_cursor(0)[1], 2, "next(huge): capped at MAX_COUNT, still lands deterministically")
   end
 
   -- A walk that runs out mid-way stays quiet: it has already moved, so "no
