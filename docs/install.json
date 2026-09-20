@@ -1,0 +1,36 @@
+{
+  "tools": [
+    {
+      "bin": "rg",
+      "required": false,
+      "why": "Powers the project-wide `cwd` scope: `:Emojis list`, `count`, `clear` and `replace` over the working directory. This is the default `search.cmd`; every other scope works without it.",
+      "pkg": {
+        "apt": "ripgrep",
+        "dnf": "ripgrep",
+        "pacman": "ripgrep",
+        "zypper": "ripgrep",
+        "apk": "ripgrep",
+        "brew": "ripgrep",
+        "winget": "BurntSushi.ripgrep.MSVC",
+        "scoop": "ripgrep",
+        "choco": "ripgrep"
+      }
+    },
+    {
+      "bin": "curl",
+      "required": false,
+      "why": "Downloads the Unicode Character Database's UnicodeData.txt once per machine (cached under stdpath(\"cache\")/emojis/) so `:Emojis unicode name`, `search` and `table` can resolve a character outside your own catalog. Without it those three report why and do nothing else. Usually already present.",
+      "pkg": {
+        "apt": "curl",
+        "dnf": "curl",
+        "pacman": "curl",
+        "zypper": "curl",
+        "apk": "curl",
+        "brew": "curl",
+        "winget": "cURL.cURL",
+        "scoop": "curl",
+        "choco": "curl"
+      }
+    }
+  ]
+}

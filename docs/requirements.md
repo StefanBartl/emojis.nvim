@@ -15,5 +15,10 @@ Optional, detected at runtime and degrading to nothing when absent:
 | [ui.nvim](https://github.com/StefanBartl/ui.nvim) | `ui.kit.select` backs the `:Emojis overlay` grid and, when available, gives the picker's `select` mode (and the `telescope`/`fzf-lua`/`auto` fallback chain) its themed UI — lazily required, so nothing loads it until one of those runs; without it the overlay warns instead of opening, and the picker falls back further to plain `vim.ui.select` |
 | `curl` | `:Emojis unicode name`/`search`/`table` for a character outside your own `config.names` catalog — downloads the UCD's `UnicodeData.txt` once per machine, cached under `stdpath("cache")/emojis/`. Without it, those three report why and do nothing else; `:Emojis unicode digraphs` and a curated-catalog glyph's `name` need no download at all |
 
+`rg` and `curl` are declared in [install.json](install.json) and read by
+lib.nvim's [deps module](https://github.com/StefanBartl/lib.nvim/blob/main/lua/lib/nvim/deps/README.md):
+`:Lib deps show emojis.nvim` says what is missing and why it matters, and
+`:Lib deps install emojis.nvim` offers to install it, asking first.
+
 Verify all of the above any time with `:checkhealth emojis` — see
 [installation.md](installation.md) for plugin-manager setup.
