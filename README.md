@@ -52,20 +52,20 @@ grammar, and the same result on every platform.
 Start at [docs/README.md](docs/README.md) — what's where, and which question
 each page answers.
 
-**The Basics**
+### The Basics
 
 - [Requirements](docs/requirements.md) — Neovim version, required and optional plugins, `ripgrep`.
 - [Installation](docs/installation.md) — every plugin manager, and verifying the install.
 - [Quickstart](docs/quickstart.md) — the first thing to run after installing.
 
-**Configuration**
+### Configuration
 
 - [All options](docs/configuration.md) — every `setup()` option and its default.
 - [Commands](docs/commands.md) — every action/scope combination, the double-space fix, and usage examples.
 - [Keymaps](docs/keymaps.md) — the optional preset, off by default.
 - [Bindings cheatsheet](docs/BINDINGS.md) — every keymap, command and autocommand at a glance.
 
-**The Rest**
+### The Rest
 
 - [What it does](docs/FEATURES.md) — one section per feature, why it has the shape it has, and what `:checkhealth emojis` reports.
 - [How it's used day to day](docs/WORKFLOW.md) — how the commands combine in practice, not just what each one does.
