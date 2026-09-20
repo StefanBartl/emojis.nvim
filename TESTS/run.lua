@@ -56,6 +56,7 @@ local function main()
     "api_spec.lua",
     "bindings_spec.lua",
     "health_spec.lua",
+    "install_spec_spec.lua",
   }
 
   -- Fail loudly if a spec file exists on disk but is not in the list above

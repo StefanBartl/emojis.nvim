@@ -105,6 +105,15 @@ function M.check()
     )
   end
 
+  -- The declared external tools (docs/install.json): a pointer to
+  -- `:Lib deps show`, not a second report -- the checks above already say
+  -- more per tool. Silent when lib.nvim.deps is absent (an older lib.nvim).
+  local ok_deps, deps_health = pcall(require, "lib.nvim.deps.health")
+  if ok_deps and type(deps_health.pointer_for) == "function" then
+    vim.health.start("emojis: declared tools (lib.nvim.deps)")
+    deps_health.pointer_for("emojis.nvim")
+  end
+
   -- Guarded for the same reason the lib.nvim check above exists: without
   -- lib.nvim this require throws, and `:checkhealth` would abort right here --
   -- on exactly the machine whose report says the dependency is missing, so the
