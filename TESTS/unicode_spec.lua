@@ -107,12 +107,21 @@ return function(H)
     end
 
     -- A register from setreg's own accepted set (letters, digits, and its
-    -- fixed punctuation registers) still works.
+    -- fixed punctuation registers) still works. `-` always round-trips;
+    -- `*` only does with a clipboard provider (a bare Linux runner has none
+    -- and setreg silently stores nothing), so it is read back only then.
+    said = H.notices(function()
+      unicode.name_at_cursor("-", "value")
+    end)
+    eq(#said.error, 0, 'name_at_cursor: register "-" is not flagged as invalid')
+    eq(vim.fn.getreg("-"), "233", 'name_at_cursor: register "-" still saves normally')
     said = H.notices(function()
       unicode.name_at_cursor("*", "value")
     end)
     eq(#said.error, 0, 'name_at_cursor: register "*" is not flagged as invalid')
-    eq(vim.fn.getreg("*"), "233", 'name_at_cursor: register "*" still saves normally')
+    if vim.fn.has("clipboard") == 1 then
+      eq(vim.fn.getreg("*"), "233", 'name_at_cursor: register "*" still saves normally')
+    end
   end)
 
   do
