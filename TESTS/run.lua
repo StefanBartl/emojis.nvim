@@ -24,6 +24,29 @@ local function main()
   -- mutates the developer's real usage history under stdpath("data").
   require("emojis.overlay.frecency").set_path(vim.fn.tempname() .. "-emojis-frecency.json")
 
+  -- unicode_spec saves into the "*" register. On a developer machine that is
+  -- the real system clipboard (and restoring it afterwards is not reliable,
+  -- since providers such as win32yank write asynchronously), while a bare
+  -- Linux runner has no provider at all and setreg silently stores nothing.
+  -- An in-memory provider (the pattern from `:h g:clipboard`) makes "*" and
+  -- "+" behave like plain registers everywhere, and keeps the suite off the
+  -- user's clipboard. Installed before any spec can touch a register, since
+  -- the provider is resolved on first use.
+  do
+    local store = { {}, "v" }
+    local function copy(lines, regtype)
+      store = { lines, regtype }
+    end
+    local function paste()
+      return store
+    end
+    vim.g.clipboard = {
+      name = "InMemoryForTests",
+      copy = { ["+"] = copy, ["*"] = copy },
+      paste = { ["+"] = paste, ["*"] = paste },
+    }
+  end
+
   -- Ordered so failures point at the smallest layer first.
   local specs = {
     -- pure layers
