@@ -318,12 +318,42 @@ return function(H)
     end)
     eq(lines_of(buf)[1], "✅ a", "checkbox default_set: an explicit set still wins")
 
-    config.setup({ checkbox = { default_set = "nope" } })
+    -- An explicit "" is the same as no argument: default_set still applies.
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "✅ a", "🟡 c" })
+    H.notices(function()
+      actions.checkbox("toggle", whole(buf), "")
+    end)
+    eq(lines_of(buf)[1], "✅ a", "checkbox default_set: an explicit empty set leaves the other set alone")
+    eq(lines_of(buf)[2], "🟢 c", "checkbox default_set: an explicit empty set falls back to the default")
+
+    -- add / remove ignore default_set: every configured set is searched.
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "plain" })
+    H.notices(function()
+      actions.checkbox("add", whole(buf))
+    end)
+    eq(lines_of(buf)[1], "🔲 plain", "checkbox default_set: add still uses the first set in order")
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "🔲 a", "🔴 c" })
+    H.notices(function()
+      actions.checkbox("remove", whole(buf))
+    end)
+    eq(lines_of(buf)[1], "a", "checkbox default_set: remove strips a glyph of a non-default set")
+    eq(lines_of(buf)[2], "c", "checkbox default_set: remove strips a glyph of the default set")
+
+    -- setup() already degrades an unusable default_set (see config_merge_spec);
+    -- the runtime guard is for a config mutated after setup. Reset BEFORE
+    -- asserting, so a failing check cannot leak the bad value into later blocks.
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "🔲 a" })
+    config.get().checkbox.default_set = "nope"
     local said = H.notices(function()
       actions.checkbox("toggle", whole(buf))
     end)
-    eq(said.error[1] ~= nil, true, "checkbox default_set: an unknown default set is reported, not ignored")
-    config.setup({}) -- do not leak the bad default_set into the blocks below
+    config.setup({})
+    eq(lines_of(buf)[1], "🔲 a", "checkbox default_set: an unknown default set toggles nothing")
+    eq(
+      said.error[1] ~= nil and said.error[1]:find('unknown checkbox set "nope"', 1, true) ~= nil,
+      true,
+      "checkbox default_set: an unknown default set is reported by name"
+    )
   end
 
   -- The `word` sub-range is deliberately ignored: a checkbox belongs to its

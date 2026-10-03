@@ -69,12 +69,13 @@ once. What actually works for "toggle several lines" is a Vim range:
 
 ```vim
 :5,12Emojis toggle status   " cycle the "status" set on lines 5-12
-:'<,'>Emojis toggle         " cycle every configured set on the visual block
+:'<,'>Emojis toggle         " cycle default_set (every configured set when it is "") on the visual block
 ```
 
 Naming the set (`status`, `checkbox`, `review`) instead of leaving it
 blank matters more here than on a single line — with no `set` argument,
-`toggle` searches through `checkbox.order` and advances the *first*
+`toggle` uses `checkbox.default_set`; only when that is `""` does it search
+through `checkbox.order` and advance the *first*
 matching set's glyph on each line, which across a multi-line range can
 mean different lines get cycled through different sets if their glyphs
 overlap (they shouldn't, if you kept the defaults disjoint, but a custom
@@ -83,8 +84,8 @@ overlapping set changes that).
 ## Checkbox sets: keep them disjoint, or `default_set = ""` gets ambiguous
 
 The shipped defaults (`checkbox`, `status`, `review`) share no glyph
-across sets on purpose — `toggle` with no `set` argument can search all
-of them unambiguously. The moment a custom set reuses a glyph from
+across sets on purpose — `toggle` with no `set` argument and
+`default_set = ""` can search all of them unambiguously. The moment a custom set reuses a glyph from
 another set (the docs' own 3-state `checkbox` example,
 `{ "🔲", "✅", "❌" }`, overlaps with the default two-state `checkbox`), it's
 meant to *replace* that entry, not sit next to it — defining both without

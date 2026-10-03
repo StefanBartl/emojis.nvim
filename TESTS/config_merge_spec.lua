@@ -83,6 +83,35 @@ return function(H)
     eq(#said.warn, 1, "setup: the columns fallback is announced")
   end
   do
+    -- checkbox.default_set: anything that names no usable set degrades to ""
+    -- ("search every set") with one warning that names the option; a valid
+    -- name is kept silently.
+    for _, bad in ipairs({ "nope", 123, true }) do
+      local said = H.notices(function()
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        config.setup({ checkbox = { default_set = bad } })
+      end)
+      eq(config.get().checkbox.default_set, "", "setup: an unusable default_set " .. tostring(bad) .. ' falls back to ""')
+      eq(#said.warn, 1, "setup: the default_set fallback is announced (" .. tostring(bad) .. ")")
+      ok(said.warn[1]:find("checkbox.default_set", 1, true) ~= nil, "setup: the warning names default_set")
+    end
+    do
+      local said = H.notices(function()
+        config.setup({ checkbox = { default_set = "empty", sets = { empty = {} } } })
+      end)
+      eq(config.get().checkbox.default_set, "", 'setup: an empty default_set set falls back to ""')
+      eq(#said.warn, 1, "setup: an empty set counts as unusable")
+    end
+    do
+      local said = H.notices(function()
+        config.setup({ checkbox = { default_set = "status" } })
+      end)
+      eq(config.get().checkbox.default_set, "status", "setup: a valid default_set is kept")
+      eq(#said.warn, 0, "setup: a valid default_set is not warned about")
+    end
+    config.setup({})
+  end
+  do
     -- "%" is a valid scope and must NOT be rewritten by the fallback.
     config.setup({ default_scope = "cwd" })
     eq(config.get().default_scope, "cwd", "setup: cwd is a valid default_scope")

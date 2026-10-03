@@ -154,6 +154,20 @@ function M.setup(user_opts)
     merged.checkbox.order = vim.deepcopy(user_order)
   end
 
+  -- ERR-22: a `default_set` that names no usable set would make every
+  -- argument-less `:Emojis toggle` fail at use time, with setup() silent;
+  -- degrade to "search every set" instead and say why.
+  do
+    local default_set = merged.checkbox.default_set
+    if default_set ~= "" then
+      local set = type(default_set) == "string" and merged.checkbox.sets[default_set] or nil
+      if type(set) ~= "table" or #set == 0 then
+        notify.warn(("invalid checkbox.default_set %s, searching every set"):format(vim.inspect(default_set)))
+        merged.checkbox.default_set = ""
+      end
+    end
+  end
+
   if not is_one_of(merged.overlay.mode, VALID_OVERLAY_MODES) then
     notify.warn(("invalid overlay.mode %q, using 'grid'"):format(tostring(merged.overlay.mode)))
     merged.overlay.mode = "grid"

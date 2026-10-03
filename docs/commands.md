@@ -97,7 +97,7 @@ The glyph is found anywhere on the line, not just under the cursor — the
 cursor can sit at the end of the text you're writing:
 
 ```vim
-:Emojis toggle            " cycle using every configured set, cursor line
+:Emojis toggle            " cycle default_set (every configured set when it is ""), cursor line
 :Emojis toggle status     " cycle only the "status" set (🔴 -> 🟡 -> 🟢)
 :'<,'>Emojis toggle       " cycle every line in the visual selection
 :Emojis! toggle           " cycle backward (🟢 -> 🟡 -> 🔴)
