@@ -295,6 +295,37 @@ return function(H)
     eq(said.info[1], "no checkbox found in scope", "checkbox toggle: nothing to toggle is reported")
   end
 
+  -- `checkbox.default_set` decides what a set-less `toggle` cycles; add/remove
+  -- keep searching every set.
+  do
+    config.setup({
+      checkbox = {
+        default_set = "status",
+        sets = { checkbox = { "🔲", "✅" }, status = { "🔴", "🟡", "🟢" } },
+        order = { "checkbox", "status" },
+      },
+    })
+    local buf = H.scratch()
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "🔲 a", "🔴 c" })
+    H.notices(function()
+      actions.checkbox("toggle", whole(buf))
+    end)
+    eq(lines_of(buf)[1], "🔲 a", "checkbox default_set: a set-less toggle leaves the other set alone")
+    eq(lines_of(buf)[2], "🟡 c", "checkbox default_set: a set-less toggle cycles the default set")
+
+    H.notices(function()
+      actions.checkbox("toggle", whole(buf), "checkbox")
+    end)
+    eq(lines_of(buf)[1], "✅ a", "checkbox default_set: an explicit set still wins")
+
+    config.setup({ checkbox = { default_set = "nope" } })
+    local said = H.notices(function()
+      actions.checkbox("toggle", whole(buf))
+    end)
+    eq(said.error[1] ~= nil, true, "checkbox default_set: an unknown default set is reported, not ignored")
+    config.setup({}) -- do not leak the bad default_set into the blocks below
+  end
+
   -- The `word` sub-range is deliberately ignored: a checkbox belongs to its
   -- line, so the scope only ever selects WHICH lines are affected.
   do

@@ -172,7 +172,7 @@ local CHECKBOX_OPS = {
 ---would be surprising. The scope only ever selects *which lines* are affected.
 ---@param op "toggle"|"add"|"remove"
 ---@param t Emojis.Target
----@param set_name? string  nil/"" searches every configured set
+---@param set_name? string  nil/"" uses `checkbox.default_set` for `toggle` (else every configured set)
 ---@param dir? integer      1 forward (default), -1 backward; `toggle` only
 ---@return nil
 function M.checkbox(op, t, set_name, dir)
@@ -185,6 +185,14 @@ function M.checkbox(op, t, set_name, dir)
   if not spec then
     notify.error(("unknown checkbox op %q"):format(tostring(op)))
     return
+  end
+
+  -- `toggle` with no set falls back to `checkbox.default_set` ("" = every set).
+  if op == "toggle" and (set_name == nil or set_name == "") then
+    local default_set = config.get().checkbox.default_set
+    if type(default_set) == "string" and default_set ~= "" then
+      set_name = default_set
+    end
   end
 
   local sets, err = config.checkbox_sets(set_name)
