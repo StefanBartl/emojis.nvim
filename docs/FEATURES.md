@@ -178,7 +178,8 @@ a **set name**, not a scope, and the scope is always a line range — an
 explicit Vim range, or else the cursor line/visual selection — never
 `word`, `%`, or `cwd`, since a checkbox belongs to a whole line and
 defaulting wider would silently flip every box in the file. With no `set`
-given, searches through `checkbox.order` (defaults: `checkbox`, `status`,
+given, uses `checkbox.default_set`; when that is `""` (the default),
+searches through `checkbox.order` (defaults: `checkbox`, `status`,
 `review` — deliberately disjoint, so an unqualified toggle stays
 unambiguous). `checkbox_add`/`checkbox_remove` (Lua API only) add or strip
 a checkbox from a line that doesn't have one yet, rather than cycling an

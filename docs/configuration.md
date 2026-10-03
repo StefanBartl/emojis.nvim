@@ -64,7 +64,7 @@ require("emojis").setup({
 
   -- Emoji checkbox cycles (`:Emojis toggle [set]`)
   checkbox = {
-    default_set = "",   -- "" = search every set below; or e.g. "status"
+    default_set = "",   -- "" = search every set below; or e.g. "status" (an unusable name degrades to "" with a warning)
     sets = {
       checkbox = { "🔲", "✅" },
       status   = { "🔴", "🟡", "🟢" },

@@ -381,7 +381,8 @@ overlay({mode})                                            *emojis.overlay()*
 
 toggle({set}, {dir})                                        *emojis.toggle()*
   Cycle the checkbox glyph on the cursor line, or every line in the current
-  visual range. `set` is optional (defaults to `config.checkbox.default_set`).
+  visual range. `set` is optional (defaults to `config.checkbox.default_set`;
+  an explicit empty string does not override a non-empty default_set).
 
 checkbox_add({set})                                    *emojis.checkbox_add()*
   Add a checkbox glyph to the cursor line / visual range if it lacks one.

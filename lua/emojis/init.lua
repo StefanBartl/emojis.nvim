@@ -99,7 +99,7 @@ local function checkbox_target()
 end
 
 ---Cycle the emoji checkbox on the cursor line (or the visual selection).
----@param set? string    Checkbox set name; nil/"" searches every set
+---@param set? string    Checkbox set name; nil/"" uses `checkbox.default_set` ("" there = every set)
 ---@param dir? integer   1 forward (default), -1 backward
 ---@return nil
 function M.toggle(set, dir)
