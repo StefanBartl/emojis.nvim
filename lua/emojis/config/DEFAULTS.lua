@@ -190,12 +190,8 @@ local DEFAULTS = {
   -- Order matters twice over: within a set it is the cycle order, and across
   -- sets it breaks ambiguity — a glyph appearing in two sets belongs to the
   -- one listed first.
-  --- CDX: `default_set` is documented here, in @types, and in
-  --- docs/configuration.md as "the cycle `:Emojis toggle` uses with no
-  --- argument", but no code path reads it — `config.checkbox_sets(nil)` always
-  --- searches every set. Either wire it into checkbox_sets or drop the field
-  --- (and the doc lines). "" (the empty string) currently means the same as any
-  --- other value: search every set.
+  -- `default_set` is the cycle `:Emojis toggle` uses with no argument ("" =
+  -- search every set); add/remove and `cascade_groups()` ignore it.
   -- The default sets are deliberately *disjoint*: no glyph appears in two of
   -- them, so "search every set" is unambiguous and every set stays reachable.
   -- Overlapping alternatives (e.g. a 3-state `{ "🔲", "✅", "❌" }`) are meant
