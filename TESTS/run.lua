@@ -1,4 +1,6 @@
 -- TESTS/run.lua — headless test runner for emojis.nvim.
+-- NOTE: the suite is run by testing.nvim (scripts/test.sh); this file stays because testing.nvim takes the
+-- run order from the `specs` list below (alphabetical order turns commands_spec.lua red). It still works standalone.
 --
 -- Run from the repo root:
 --   nvim -n -i NONE --headless -u NONE -c "set rtp+=." -c "luafile TESTS/run.lua" -c "qa!"

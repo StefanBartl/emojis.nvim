@@ -20,15 +20,20 @@ migration — check that out as a sibling too.
 
 ## Run
 
-From the repo root, with `../lib.nvim` and `../ui.nvim` checked out as siblings:
+The suite runs on [testing.nvim](https://github.com/StefanBartl/testing.nvim) (dialect `h`: the
+specs run on `harness.lua`). From the repo root, with `testing.nvim`, `lib.nvim` and `ui.nvim`
+checked out as siblings (or found via `$TESTING_NVIM_DIR`, `$LIB_NVIM_DIR`, `$UI_NVIM_DIR`,
+`.deps/<name>` or `stdpath("data")/lazy/<name>`):
 
 ```sh
-nvim --headless -u NONE -c "set rtp+=.,../lib.nvim,../ui.nvim" -c "luafile TESTS/run.lua" -c "qa!"
+bash scripts/test.sh                       # every spec
+bash scripts/test.sh --file config         # only spec files whose name contains "config"
+bash scripts/test.sh --json ir.json        # also write the machine-readable result
 ```
 
-The runner prints one line per spec with the number of assertions it executed,
-a total, and exits non-zero on the first failure (`EMOJIS_TESTS_OK` on
-success).
+It prints one line per spec file and exits non-zero on any failure or when a dependency is missing
+(`EMOJIS_TESTS_OK` on a full green run). `TESTS/minimal_init.lua` puts the plugin and its
+dependencies on the runtimepath and redirects the frecency store and the clipboard before any spec runs.
 
 ## No subprocesses, no network
 
@@ -47,7 +52,7 @@ The same technique covers the "dependency is not installed" branches: a
 missing-composer health branch are reached on a machine that *has* all three.
 
 Writes to disk stay inside `vim.fn.tempname()` directories. The frecency store
-is redirected to a temp file by `run.lua` before any spec runs, so a suite run
+is redirected to a temp file by `minimal_init.lua` before any spec runs, so a suite run
 never mutates the developer's real usage history under `stdpath("data")`.
 
 ## Layout
@@ -55,7 +60,8 @@ never mutates the developer's real usage history under `stdpath("data")`.
 | File | Covers |
 | --- | --- |
 | `harness.lua` | Shared assertions (`eq`, `ok`), the assertion counter, `scratch(ft)` buffers, and `notices(fn)` — which captures what `emojis.util.notify` said. |
-| `run.lua` | Runner: loads every spec in order, reports per-spec and total assertion counts, sets the exit code. |
+| `minimal_init.lua` | Runtimepath and dependency lookup (fatal when one is missing), frecency store and clipboard redirection. |
+| `run.lua` | Former runner; testing.nvim still reads its `specs` list for the run order (the suite is order-dependent). |
 | `patterns_spec.lua` | Tokenizer: base matching, VS16, skin tone, ZWJ chains, flag pairing, `match_at` anchoring, `encode`/`codepoint` round-trips. |
 | `ops_spec.lua` | `clear`/`replace`/`unreplace`/`wrap`/`count`/`list` on string arrays: space-collapse rules, stray VS16, default arguments, unknown `:token:` handling. |
 | `checkbox_spec.lua` | Checkbox cycle/add/remove: line-scoped find, wrap in both directions, ambiguous-set resolution, indentation, VS16 glyphs. |
@@ -171,7 +177,7 @@ ripgrep-present/-absent pair just above it already does.
 
 Create `<name>_spec.lua` returning `function(H) … end` (use `H.eq` / `H.ok` /
 `H.scratch` / `H.notices`) and add its filename to the `specs` list in
-`run.lua`.
+`run.lua` (it fixes the run order).
 
 Two house rules the existing specs follow:
 
