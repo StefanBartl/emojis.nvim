@@ -34,8 +34,10 @@ return function(H)
   -- Every other module of this plugin captured these two tables at load time,
   -- so the copies below are additional instances -- the cache must be put back
   -- exactly as it was, or `H.notices` would patch a table nobody calls.
-  local real_lib = package.loaded["emojis.util.lib"]
-  local real_notify = package.loaded["emojis.util.notify"]
+  -- Required, not just read from package.loaded: in a fresh editor no earlier spec has loaded
+  -- them, and "restoring" nil would make the identity check below compare against a new table.
+  local real_lib = require("emojis.util.lib")
+  local real_notify = require("emojis.util.notify")
 
   --- A fresh copy of util/lib.lua, so its memoized notifier does not leak
   --- between the cases below.
