@@ -44,6 +44,33 @@ local OVERLAY_MODES = { "grid", "grid_keys", "list" }
 ---@type string[]  Second positional of `unicode` — a sub-action, not a scope.
 local UNICODE_SUBS = { "name", "search", "table", "digraphs" }
 
+-- One line per value for lib.nvim's help float (`composer.help`), shown next to the completion
+-- values of the second positional. Keys are exactly the values of the list they describe.
+
+---@type table<string, string>  Per scope keyword.
+local SCOPE_DESC = {
+  word = "Word under the cursor",
+  line = "Cursor line",
+  visual = "Lines of the last visual selection",
+  ["%"] = "Whole buffer",
+  cwd = "Files below the cwd, via ripgrep (list, count, clear, replace)",
+}
+
+---@type table<string, string>  Per overlay mode.
+local OVERLAY_DESC = {
+  grid = "Move with the cursor keys, <CR> inserts",
+  grid_keys = "The grid plus one hotkey per cell",
+  list = "One emoji per row with its shortcode",
+}
+
+---@type table<string, string>  Per `unicode` sub-action.
+local UNICODE_DESC = {
+  name = "Describe the character under the cursor",
+  search = "Find characters by name or code (! inserts the pick)",
+  table = "List every character of the Unicode name table",
+  digraphs = "List every digraph Neovim knows",
+}
+
 ---@param list string[]
 ---@param v string
 ---@return boolean
@@ -197,18 +224,55 @@ local function action_route(action)
   -- than a scope, so it advertises its own completion values.
   local arg
   if action == "overlay" then
-    arg = { name = "mode", type = "STRING", values = OVERLAY_MODES, optional = true }
+    arg = {
+      name = "mode",
+      type = "STRING",
+      values = OVERLAY_MODES,
+      optional = true,
+      desc = "Overlay layout (default: overlay.mode of the config)",
+      enum_desc = OVERLAY_DESC,
+    }
   elseif action == "unicode" then
-    arg = { name = "sub", type = "STRING", values = UNICODE_SUBS, optional = true }
+    arg = {
+      name = "sub",
+      type = "STRING",
+      values = UNICODE_SUBS,
+      optional = true,
+      desc = "Which lookup to run (default: name)",
+      enum_desc = UNICODE_DESC,
+    }
   elseif action == "next" then
     -- A jump count, not a scope.
     arg = { name = "count", type = "INT", optional = true }
   elseif action == "toggle" then
     -- Completion values are read at registration time from the *configured*
     -- sets, so a user-defined set completes just like a built-in one.
-    arg = { name = "set", type = "STRING", values = config.checkbox_set_names(), optional = true }
+    arg = {
+      name = "set",
+      type = "STRING",
+      values = config.checkbox_set_names(),
+      optional = true,
+      desc = "Checkbox set to cycle (default: checkbox.default_set)",
+    }
+  elseif NO_SCOPE[action] then
+    -- `insert` and `first` (the others of NO_SCOPE took the branches above) ignore the second token
+    -- altogether; the scopes stay offered as before, but the float says they do nothing.
+    arg = {
+      name = "scope",
+      type = "STRING",
+      values = SCOPES,
+      optional = true,
+      desc = ("Ignored: %s takes no scope"):format(action),
+    }
   else
-    arg = { name = "scope", type = "STRING", values = SCOPES, optional = true }
+    arg = {
+      name = "scope",
+      type = "STRING",
+      values = SCOPES,
+      optional = true,
+      desc = "Where to act (default: default_scope; a range wins)",
+      enum_desc = SCOPE_DESC,
+    }
   end
 
   return {
