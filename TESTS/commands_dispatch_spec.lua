@@ -201,4 +201,59 @@ return function(H)
     vim.cmd("silent! delcommand EmojisSetsProbe")
     config.setup({})
   end
+
+  -- --------------------------------------------------------- option float
+  -- lib.nvim's help float (the option cheatsheet on the command line) shows one line for the next
+  -- positional argument, taken from the argument's own `desc` or -- for a set of values -- from
+  -- `enum_desc`. No route ships an argument without one, the lines keep the float's house style
+  -- (one short line, no trailing full stop), and a value text always belongs to a value the
+  -- argument offers. Skipped on a lib.nvim without argument texts.
+  do
+    local composer = require("lib.nvim.bindings.usercmd.composer")
+    local ok_entries, entries = pcall(require, "lib.nvim.bindings.usercmd.composer.help.entries")
+    if
+      not (
+        type(composer.help) == "table"
+        and type(composer.help.undocumented) == "function"
+        and ok_entries
+        and type(entries.arg_desc) == "function"
+      )
+    then
+      print("  skip :Emojis option float tests (lib.nvim has no argument texts)")
+    else
+      local missing = {}
+      for _, m in ipairs(composer.help.undocumented("Emojis", { args = true })) do
+        missing[#missing + 1] = ("%s %s %s"):format(m.route, m.kind, m.name)
+      end
+      eq(table.concat(missing, ", "), "", "option float: every :Emojis flag and argument has a text")
+
+      local handle = composer.registry().Emojis
+      ok(handle ~= nil, "option float: :Emojis is registered")
+      local walked, bad = 0, {}
+      ---@param text any
+      ---@return boolean
+      local function house_style(text)
+        return type(text) == "string" and text ~= "" and not text:find("\n", 1, true) and #text <= 80 and not text:find("%.$")
+      end
+      for _, route in ipairs(handle and handle:spec().routes or {}) do
+        for _, arg in ipairs(route.args or {}) do
+          walked = walked + 1
+          local label = ":Emojis " .. table.concat(route.path, " ") .. " {" .. arg.name .. "}"
+          if not house_style(entries.arg_desc(arg)) then
+            bad[#bad + 1] = label
+          end
+          for value, text in pairs(arg.enum_desc or {}) do
+            if not house_style(text) then
+              bad[#bad + 1] = label .. " = " .. value
+            end
+            if not vim.tbl_contains(arg.enum or arg.values or {}, value) then
+              bad[#bad + 1] = label .. " = " .. value .. " (not one of its values)"
+            end
+          end
+        end
+      end
+      ok(walked > 0, "option float: the routes' arguments were walked")
+      eq(table.concat(bad, ", "), "", "option float: every :Emojis argument text is one short line, no full stop")
+    end
+  end
 end
