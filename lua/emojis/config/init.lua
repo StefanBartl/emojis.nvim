@@ -9,9 +9,6 @@ local notify = require("emojis.util.notify")
 
 local M = {}
 
----@type Emojis.Config|nil
-local _active = nil
-
 ---@type string[]  Scopes accepted as `default_scope`
 local VALID_SCOPES = { "word", "line", "visual", "%", "cwd" }
 
@@ -116,148 +113,148 @@ local function sanitize_level(raw, allowed, path)
   return out
 end
 
----Merge user options over the defaults and store the result.
+--- To the schema that `lib.lua.config` infers from `DEFAULTS`, the options are open: the checks are
+--- `sanitize_level` before the merge and the ERR-22 block in the resolve hook after it. An unknown
+--- top-level key is caught there as well.
+local ANY = "boolean|number|string|table|function"
+---@type table<string, string>
+local SCHEMA = {}
+for _, key in ipairs(TOP_LEVEL_OPTS) do
+  SCHEMA[key] = ANY
+end
+
+local cfg = require("lib.lua.config").new(DEFAULTS, {
+  name = "emojis",
+  schema = SCHEMA,
+  -- ERR-50: unknown-key validation runs before the merge, so a typo in a nested option is dropped
+  -- with a warning instead of vanishing into the result next to the real key it shadows. `opts` is
+  -- a private copy, so it is rewritten in place.
+  normalize = function(opts)
+    local sanitized = sanitize_level(opts, TOP_LEVEL_OPTS, "")
+    for key in pairs(opts) do
+      opts[key] = nil
+    end
+    for key, value in pairs(sanitized) do
+      opts[key] = value
+    end
+  end,
+  -- After the merge. (A user list shorter than the default replaces it wholesale, a curated set
+  -- like "these five glyphs" or one checkbox cycle must mean exactly what was given: the merge
+  -- of lib.lua.config does that for every list.)
+  resolve = function(current)
+    -- ERR-22: a `default_set` that names no usable set would make every
+    -- argument-less `:Emojis toggle` fail at use time, with setup() silent;
+    -- degrade to "search every set" instead and say why.
+    do
+      local default_set = current.checkbox.default_set
+      if default_set ~= "" then
+        local set = type(default_set) == "string" and current.checkbox.sets[default_set] or nil
+        if type(set) ~= "table" or #set == 0 then
+          notify.warn(("invalid checkbox.default_set %s, searching every set"):format(vim.inspect(default_set)))
+          current.checkbox.default_set = ""
+        end
+      end
+    end
+
+    if not is_one_of(current.overlay.mode, VALID_OVERLAY_MODES) then
+      notify.warn(("invalid overlay.mode %q, using 'grid'"):format(tostring(current.overlay.mode)))
+      current.overlay.mode = "grid"
+    end
+
+    if type(current.overlay.columns) ~= "number" or current.overlay.columns < 1 then
+      notify.warn("invalid overlay.columns, using 5")
+      current.overlay.columns = 5
+    end
+
+    if not is_one_of(current.default_scope, VALID_SCOPES) then
+      notify.warn(("invalid default_scope %q, using '%%'"):format(tostring(current.default_scope)))
+      current.default_scope = "%"
+    end
+
+    -- ERR-22: the remaining scalars degrade to their default on an invalid
+    -- type/value too, instead of reaching overlay/init.lua's `math.min()` or
+    -- actions.lua's `vim.defer_fn()` with something that raises there instead,
+    -- at use time, on every call, with `setup()` itself reporting nothing.
+    if type(current.overlay.limit) ~= "number" or current.overlay.limit < 1 then
+      notify.warn(("invalid overlay.limit %s, using %d"):format(vim.inspect(current.overlay.limit), DEFAULTS.overlay.limit))
+      current.overlay.limit = DEFAULTS.overlay.limit
+    end
+
+    if type(current.preview.duration_ms) ~= "number" or current.preview.duration_ms < 0 then
+      notify.warn(
+        ("invalid preview.duration_ms %s, using %d"):format(
+          vim.inspect(current.preview.duration_ms),
+          DEFAULTS.preview.duration_ms
+        )
+      )
+      current.preview.duration_ms = DEFAULTS.preview.duration_ms
+    end
+
+    if type(current.preview.hl_group) ~= "string" or current.preview.hl_group == "" then
+      notify.warn(
+        ("invalid preview.hl_group %s, using %q"):format(vim.inspect(current.preview.hl_group), DEFAULTS.preview.hl_group)
+      )
+      current.preview.hl_group = DEFAULTS.preview.hl_group
+    end
+
+    if type(current.wrap.prefix) ~= "string" then
+      notify.warn(("invalid wrap.prefix %s, using %q"):format(vim.inspect(current.wrap.prefix), DEFAULTS.wrap.prefix))
+      current.wrap.prefix = DEFAULTS.wrap.prefix
+    end
+    if type(current.wrap.suffix) ~= "string" then
+      notify.warn(("invalid wrap.suffix %s, using %q"):format(vim.inspect(current.wrap.suffix), DEFAULTS.wrap.suffix))
+      current.wrap.suffix = DEFAULTS.wrap.suffix
+    end
+
+    if type(current.search.extra_args) ~= "table" then
+      notify.warn(("invalid search.extra_args %s, using the defaults"):format(vim.inspect(current.search.extra_args)))
+      current.search.extra_args = vim.deepcopy(DEFAULTS.search.extra_args)
+    end
+
+    -- search.cmd reaches `vim.fn.executable()` and `vim.system()` in search.lua
+    -- unchecked otherwise -- a non-string (e.g. a stray number) raises
+    -- `E1174: String required for argument 1` from both, at search time rather
+    -- than at setup(), and an empty string passes the same way through to a
+    -- confusing "'' not found on PATH" instead of just using ripgrep.
+    if type(current.search.cmd) ~= "string" or current.search.cmd == "" then
+      notify.warn(("invalid search.cmd %s, using %q"):format(vim.inspect(current.search.cmd), DEFAULTS.search.cmd))
+      current.search.cmd = DEFAULTS.search.cmd
+    end
+
+    -- `command` names the `:Emojis` user command via
+    -- `lib.nvim.bindings.usercmd.composer.verb`, whose own `assert(type(name)
+    -- == "string" and name ~= "", ...)` raises a hard Lua error out of
+    -- `bindings/init.lua` -> `commands.register()` on setup itself for anything
+    -- else, taking the whole plugin down with it instead of degrading.
+    --
+    -- A non-empty string is not enough by itself, though: `composer.verb` only
+    -- asserts non-empty before handing `name` straight to
+    -- `vim.api.nvim_create_user_command()`, which enforces its own ex-command
+    -- grammar (first character an uppercase ASCII letter, the rest alphanumeric)
+    -- and raises just as hard -- uncaught -- for anything that violates it, e.g.
+    -- `command = "emojis2"` or `"Emo-jis"`. That is the exact same crash this
+    -- fix exists to prevent, reached through a sibling check instead of
+    -- composer's own, so the pattern below matches nvim's grammar rather than
+    -- merely "is a string".
+    if type(current.command) ~= "string" or not current.command:match("^%u%w*$") then
+      notify.warn(("invalid command %s, using %q"):format(vim.inspect(current.command), DEFAULTS.command))
+      current.command = DEFAULTS.command
+    end
+  end,
+})
+
+---Merge user options over the defaults and store the result. Every call
+---starts from `DEFAULTS`.
 ---@param user_opts? Emojis.Opts
 ---@return Emojis.Config
 function M.setup(user_opts)
-  if type(user_opts) ~= "table" then
-    user_opts = {}
-  end
-
-  -- ERR-50: unknown-key validation runs before the merge below, so a typo in
-  -- a nested option is dropped with a warning instead of vanishing silently
-  -- into `tbl_deep_extend`'s result, sitting next to the real key it shadows.
-  local sanitized = sanitize_level(user_opts, TOP_LEVEL_OPTS, "")
-
-  local merged = vim.tbl_deep_extend("force", vim.deepcopy(DEFAULTS), sanitized)
-
-  -- tbl_deep_extend merges lists index-wise, so a user list shorter than the
-  -- default would keep the default's tail. For a curated set that is wrong:
-  -- "these five glyphs" must mean exactly five. Replace it wholesale instead.
-  local user_picks = sanitized.overlay and sanitized.overlay.picks
-  if type(user_picks) == "table" then
-    merged.overlay.picks = vim.deepcopy(user_picks)
-  end
-
-  -- Same index-wise merge problem, for each individual checkbox cycle: a user
-  -- redefining `checkbox = { "🔲", "✅", "❌" }` must get exactly those three
-  -- states, not their three merged over the default's two.
-  if type(sanitized.checkbox) == "table" and type(sanitized.checkbox.sets) == "table" then
-    for name, set in pairs(sanitized.checkbox.sets) do
-      if type(set) == "table" then
-        merged.checkbox.sets[name] = vim.deepcopy(set)
-      end
-    end
-  end
-  local user_order = sanitized.checkbox and sanitized.checkbox.order
-  if type(user_order) == "table" then
-    merged.checkbox.order = vim.deepcopy(user_order)
-  end
-
-  -- ERR-22: a `default_set` that names no usable set would make every
-  -- argument-less `:Emojis toggle` fail at use time, with setup() silent;
-  -- degrade to "search every set" instead and say why.
-  do
-    local default_set = merged.checkbox.default_set
-    if default_set ~= "" then
-      local set = type(default_set) == "string" and merged.checkbox.sets[default_set] or nil
-      if type(set) ~= "table" or #set == 0 then
-        notify.warn(("invalid checkbox.default_set %s, searching every set"):format(vim.inspect(default_set)))
-        merged.checkbox.default_set = ""
-      end
-    end
-  end
-
-  if not is_one_of(merged.overlay.mode, VALID_OVERLAY_MODES) then
-    notify.warn(("invalid overlay.mode %q, using 'grid'"):format(tostring(merged.overlay.mode)))
-    merged.overlay.mode = "grid"
-  end
-
-  if type(merged.overlay.columns) ~= "number" or merged.overlay.columns < 1 then
-    notify.warn("invalid overlay.columns, using 5")
-    merged.overlay.columns = 5
-  end
-
-  if not is_one_of(merged.default_scope, VALID_SCOPES) then
-    notify.warn(("invalid default_scope %q, using '%%'"):format(tostring(merged.default_scope)))
-    merged.default_scope = "%"
-  end
-
-  -- ERR-22: the remaining scalars degrade to their default on an invalid
-  -- type/value too, instead of reaching overlay/init.lua's `math.min()` or
-  -- actions.lua's `vim.defer_fn()` with something that raises there instead,
-  -- at use time, on every call, with `setup()` itself reporting nothing.
-  if type(merged.overlay.limit) ~= "number" or merged.overlay.limit < 1 then
-    notify.warn(("invalid overlay.limit %s, using %d"):format(vim.inspect(merged.overlay.limit), DEFAULTS.overlay.limit))
-    merged.overlay.limit = DEFAULTS.overlay.limit
-  end
-
-  if type(merged.preview.duration_ms) ~= "number" or merged.preview.duration_ms < 0 then
-    notify.warn(
-      ("invalid preview.duration_ms %s, using %d"):format(vim.inspect(merged.preview.duration_ms), DEFAULTS.preview.duration_ms)
-    )
-    merged.preview.duration_ms = DEFAULTS.preview.duration_ms
-  end
-
-  if type(merged.preview.hl_group) ~= "string" or merged.preview.hl_group == "" then
-    notify.warn(("invalid preview.hl_group %s, using %q"):format(vim.inspect(merged.preview.hl_group), DEFAULTS.preview.hl_group))
-    merged.preview.hl_group = DEFAULTS.preview.hl_group
-  end
-
-  if type(merged.wrap.prefix) ~= "string" then
-    notify.warn(("invalid wrap.prefix %s, using %q"):format(vim.inspect(merged.wrap.prefix), DEFAULTS.wrap.prefix))
-    merged.wrap.prefix = DEFAULTS.wrap.prefix
-  end
-  if type(merged.wrap.suffix) ~= "string" then
-    notify.warn(("invalid wrap.suffix %s, using %q"):format(vim.inspect(merged.wrap.suffix), DEFAULTS.wrap.suffix))
-    merged.wrap.suffix = DEFAULTS.wrap.suffix
-  end
-
-  if type(merged.search.extra_args) ~= "table" then
-    notify.warn(("invalid search.extra_args %s, using the defaults"):format(vim.inspect(merged.search.extra_args)))
-    merged.search.extra_args = vim.deepcopy(DEFAULTS.search.extra_args)
-  end
-
-  -- search.cmd reaches `vim.fn.executable()` and `vim.system()` in search.lua
-  -- unchecked otherwise -- a non-string (e.g. a stray number) raises
-  -- `E1174: String required for argument 1` from both, at search time rather
-  -- than at setup(), and an empty string passes the same way through to a
-  -- confusing "'' not found on PATH" instead of just using ripgrep.
-  if type(merged.search.cmd) ~= "string" or merged.search.cmd == "" then
-    notify.warn(("invalid search.cmd %s, using %q"):format(vim.inspect(merged.search.cmd), DEFAULTS.search.cmd))
-    merged.search.cmd = DEFAULTS.search.cmd
-  end
-
-  -- `command` names the `:Emojis` user command via
-  -- `lib.nvim.bindings.usercmd.composer.verb`, whose own `assert(type(name)
-  -- == "string" and name ~= "", ...)` raises a hard Lua error out of
-  -- `bindings/init.lua` -> `commands.register()` on setup itself for anything
-  -- else, taking the whole plugin down with it instead of degrading.
-  --
-  -- A non-empty string is not enough by itself, though: `composer.verb` only
-  -- asserts non-empty before handing `name` straight to
-  -- `vim.api.nvim_create_user_command()`, which enforces its own ex-command
-  -- grammar (first character an uppercase ASCII letter, the rest alphanumeric)
-  -- and raises just as hard -- uncaught -- for anything that violates it, e.g.
-  -- `command = "emojis2"` or `"Emo-jis"`. That is the exact same crash this
-  -- fix exists to prevent, reached through a sibling check instead of
-  -- composer's own, so the pattern below matches nvim's grammar rather than
-  -- merely "is a string".
-  if type(merged.command) ~= "string" or not merged.command:match("^%u%w*$") then
-    notify.warn(("invalid command %s, using %q"):format(vim.inspect(merged.command), DEFAULTS.command))
-    merged.command = DEFAULTS.command
-  end
-
-  _active = merged
-  return _active
+  cfg.setup(type(user_opts) == "table" and user_opts or nil)
+  return cfg.get()
 end
 
 ---@return Emojis.Config
 function M.get()
-  if _active == nil then
-    _active = vim.deepcopy(DEFAULTS)
-  end
-  return _active
+  return cfg.get()
 end
 
 ---Resolve a checkbox set name into the ordered list of cycles to search.
