@@ -3,8 +3,8 @@
 Everything `emojis.nvim` does, in one file — a single `:Emojis` command
 plus a handful of internal areas (scopes, overlay, checkboxes), so a
 theme split would only add navigation for its own sake. See
-[`docs/FEATURES_FORMAT.md`](https://github.com/StefanBartl/documentation.nvim/blob/main/docs/FEATURES_FORMAT.md)
-(in `documentation.nvim`) for the format this file follows.
+[`docs/FEATURES_FORMAT.md`](https://github.com/StefanBartl/docmap.nvim/blob/main/docs/FEATURES_FORMAT.md)
+(in `docmap.nvim`) for the format this file follows.
 
 ## `:Emojis` — the single entry point
 
