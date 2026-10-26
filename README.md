@@ -18,10 +18,10 @@
 [![Neovim](https://img.shields.io/badge/Neovim-0.9%2B-57A143?logo=neovim&logoColor=white)](https://neovim.io)
 [![Lua](https://img.shields.io/badge/Lua-5.1%2FLuaJIT-2C2D72?logo=lua&logoColor=white)](https://www.lua.org)
 ![Status](https://img.shields.io/badge/status-beta-orange)
-[![CI](https://github.com/StefanBartl/emojis.nvim/actions/workflows/ci.yml/badge.svg)](https://github.com/StefanBartl/emojis.nvim/actions/workflows/ci.yml)
-[![wkd](https://img.shields.io/badge/wkd-family-c6ff3d)](https://stefanbartl.github.io/wkd/p/emojis/)
+[![CI](https://github.com/WKDSteve/emojis.nvim/actions/workflows/ci.yml/badge.svg)](https://github.com/WKDSteve/emojis.nvim/actions/workflows/ci.yml)
+[![wkd](https://img.shields.io/badge/wkd-family-c6ff3d)](https://wkdsteve.github.io/wkd/p/emojis/)
 
-> Part of the [wkd](https://stefanbartl.github.io/wkd/) family — see this plugin's [page](https://stefanbartl.github.io/wkd/p/emojis/) on the site.
+> Part of the [wkd](https://wkdsteve.github.io/wkd/) family — see this plugin's [page](https://wkdsteve.github.io/wkd/p/emojis/) on the site.
 
 One `:Emojis` command that removes, counts, lists, replaces, wraps and inserts
 emojis — across a line, a selection, a buffer, or a whole project. The same
@@ -35,17 +35,17 @@ grammar, and the same result on every platform.
 
 ## Around it
 
-> **[cascade.nvim](https://github.com/StefanBartl/cascade.nvim)** — a direct
+> **[cascade.nvim](https://github.com/WKDSteve/cascade.nvim)** — a direct
 > bridge rather than a coincidence: `require("emojis").cascade_groups()` feeds
 > the configured checkbox glyphs into cascade's cursor-precise `<C-y>` cycling,
 > so `:Emojis toggle` (line-scoped) and cascade's cycle (cursor-scoped) drive one
 > shared vocabulary.
 >
-> **[markdown.nvim](https://github.com/StefanBartl/markdown.nvim)** — the
+> **[markdown.nvim](https://github.com/WKDSteve/markdown.nvim)** — the
 > documents where emoji checkboxes and `:name:` round-tripping actually matter.
 >
 > Both are soft: without them everything else works unchanged.
-> [lib.nvim](https://github.com/StefanBartl/lib.nvim) is the one real
+> [lib.nvim](https://github.com/WKDSteve/lib.nvim) is the one real
 > dependency — see [Requirements](docs/requirements.md).
 
 ---
@@ -76,7 +76,7 @@ each page answers.
 - [Architecture](docs/architecture.md) — module layout and design notes.
 - [Test suite](TESTS/README.md) — the headless, purely functional suite.
 - [Contributing](docs/CONTRIBUTING.md) — ground rules, project layout, and how to add an action.
-- [Feedback](https://github.com/StefanBartl/emojis.nvim/issues)
+- [Feedback](https://github.com/WKDSteve/emojis.nvim/issues)
 
 `:help emojis` is the same reference inside the editor.
 

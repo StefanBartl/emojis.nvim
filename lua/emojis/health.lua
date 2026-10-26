@@ -21,7 +21,7 @@ function M.check()
   else
     vim.health.error(
       ":Emojis will fail to register — lib.nvim.bindings.usercmd.composer not found",
-      { 'Install "StefanBartl/lib.nvim"' }
+      { 'Install "WKDSteve/lib.nvim"' }
     )
   end
 
@@ -31,7 +31,7 @@ function M.check()
   if pcall(require, "ui.kit") then
     vim.health.ok("ui.kit available (:Emojis overlay)")
   else
-    vim.health.warn(":Emojis overlay unavailable — ui.kit not found", { "Install StefanBartl/ui.nvim" })
+    vim.health.warn(":Emojis overlay unavailable — ui.kit not found", { "Install WKDSteve/ui.nvim" })
   end
 
   if type(vim.ui) == "table" and type(vim.ui.select) == "function" then

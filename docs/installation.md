@@ -7,8 +7,8 @@ See [requirements.md](requirements.md) for the full prerequisites table
 
 ```lua
 {
-  "StefanBartl/emojis.nvim",
-  dependencies = { "StefanBartl/lib.nvim" }, -- required
+  "WKDSteve/emojis.nvim",
+  dependencies = { "WKDSteve/lib.nvim" }, -- required
   cmd = "Emojis",
   opts = {},
 }
@@ -18,8 +18,8 @@ See [requirements.md](requirements.md) for the full prerequisites table
 
 ```lua
 use {
-  "StefanBartl/emojis.nvim",
-  requires = { "StefanBartl/lib.nvim" }, -- required
+  "WKDSteve/emojis.nvim",
+  requires = { "WKDSteve/lib.nvim" }, -- required
   config = function()
     require("emojis").setup()
   end,
@@ -29,8 +29,8 @@ use {
 ## vim-plug
 
 ```vim
-Plug 'StefanBartl/lib.nvim' " required
-Plug 'StefanBartl/emojis.nvim'
+Plug 'WKDSteve/lib.nvim' " required
+Plug 'WKDSteve/emojis.nvim'
 
 lua require("emojis").setup()
 ```

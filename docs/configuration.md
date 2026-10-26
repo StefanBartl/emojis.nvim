@@ -124,7 +124,7 @@ the history at any time with:
 require("emojis.overlay.frecency").reset()
 ```
 
-The overlay is drawn with [`lib.nvim`](https://github.com/StefanBartl/lib.nvim)'s
+The overlay is drawn with [`lib.nvim`](https://github.com/WKDSteve/lib.nvim)'s
 `ui.kit`, so `theme` accepts any kit theme argument — a preset name
 (`"minimal"`, `"rounded"`, `"solid"`, `"double"`, `"ascii"`) or an override
 table.
@@ -167,7 +167,7 @@ adding or stripping a checkbox from a line that doesn't have one yet.
 
 ### cascade.nvim bridge
 
-If you also use [cascade.nvim](https://github.com/StefanBartl/cascade.nvim),
+If you also use [cascade.nvim](https://github.com/WKDSteve/cascade.nvim),
 `require("emojis").cascade_groups()` returns `config.checkbox.sets` in
 cascade's `cycle.groups` format, so the same glyphs drive both plugins
 without listing them twice:

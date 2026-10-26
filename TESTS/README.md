@@ -20,7 +20,7 @@ migration — check that out as a sibling too.
 
 ## Run
 
-The suite runs on [testing.nvim](https://github.com/StefanBartl/testing.nvim) (dialect `h`: the
+The suite runs on [testing.nvim](https://github.com/WKDSteve/testing.nvim) (dialect `h`: the
 specs run on `harness.lua`). From the repo root, with `testing.nvim`, `lib.nvim` and `ui.nvim`
 checked out as siblings (or found via `$TESTING_NVIM_DIR`, `$LIB_NVIM_DIR`, `$UI_NVIM_DIR`,
 `.deps/<name>` or `stdpath("data")/lazy/<name>`):

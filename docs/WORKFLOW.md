@@ -96,7 +96,7 @@ than relying on the search order to guess right.
 
 ## `cascade_groups()` — one vocabulary, two cycling styles
 
-If [cascade.nvim](https://github.com/StefanBartl/cascade.nvim) is also
+If [cascade.nvim](https://github.com/WKDSteve/cascade.nvim) is also
 installed, wiring `require("emojis").cascade_groups()` into its
 `cycle.groups` means the same checkbox glyphs work two ways without
 double-listing them: `<leader>et` cycles the glyph anywhere on the

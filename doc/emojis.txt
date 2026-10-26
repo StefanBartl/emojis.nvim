@@ -41,7 +41,7 @@ via `lib.nvim.bindings.usercmd.composer`.
   - ripgrep (`rg`) — only for the `cwd` scope
   - telescope.nvim or fzf-lua — optional; live-search picker for `:Emojis
     insert` (`picker.engine = "auto"`), falls back to `vim.ui.select`
-  - lib.nvim (StefanBartl/lib.nvim) — required; the `:Emojis` command is
+  - lib.nvim (WKDSteve/lib.nvim) — required; the `:Emojis` command is
     registered via `lib.nvim.bindings.usercmd.composer`, with no fallback
     (`notify`/`map` specifically still degrade to a native fallback if
     somehow absent at that call site, but the command layer itself does not)
@@ -51,8 +51,8 @@ via `lib.nvim.bindings.usercmd.composer`.
 
 lazy.nvim: >lua
   {
-    "StefanBartl/emojis.nvim",
-    dependencies = { "StefanBartl/lib.nvim" }, -- required
+    "WKDSteve/emojis.nvim",
+    dependencies = { "WKDSteve/lib.nvim" }, -- required
     cmd = "Emojis",
     opts = {},
   }
@@ -60,8 +60,8 @@ lazy.nvim: >lua
 
 packer.nvim: >lua
   use {
-    "StefanBartl/emojis.nvim",
-    requires = { "StefanBartl/lib.nvim" }, -- required
+    "WKDSteve/emojis.nvim",
+    requires = { "WKDSteve/lib.nvim" }, -- required
     config = function()
       require("emojis").setup()
     end,
@@ -69,8 +69,8 @@ packer.nvim: >lua
 <
 
 vim-plug: >vim
-  Plug 'StefanBartl/lib.nvim' " required
-  Plug 'StefanBartl/emojis.nvim'
+  Plug 'WKDSteve/lib.nvim' " required
+  Plug 'WKDSteve/emojis.nvim'
 
   lua require("emojis").setup()
 <

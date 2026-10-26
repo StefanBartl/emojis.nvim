@@ -456,7 +456,7 @@ function M.open(mode)
 
   local kit = load_kit()
   if not kit then
-    notify.error("the overlay needs ui.kit — please install StefanBartl/ui.nvim")
+    notify.error("the overlay needs ui.kit — please install WKDSteve/ui.nvim")
     return
   end
 

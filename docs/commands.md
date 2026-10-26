@@ -110,7 +110,7 @@ Bound to `<leader>et` (normal and visual mode) when `keymaps.preset = true`.
 Sets are configured under `config.checkbox.sets`; see
 [`docs/configuration.md`](configuration.md#checkboxes) to add your own or
 change the search order. The same sets can drive
-[cascade.nvim](https://github.com/StefanBartl/cascade.nvim)'s cursor-precise
+[cascade.nvim](https://github.com/WKDSteve/cascade.nvim)'s cursor-precise
 `<C-y>` cycling via `require("emojis").cascade_groups()` — see
 [`docs/configuration.md#cascadenvim-bridge`](configuration.md#cascadenvim-bridge).
 

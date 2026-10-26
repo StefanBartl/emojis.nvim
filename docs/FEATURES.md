@@ -3,7 +3,7 @@
 Everything `emojis.nvim` does, in one file — a single `:Emojis` command
 plus a handful of internal areas (scopes, overlay, checkboxes), so a
 theme split would only add navigation for its own sake. See
-[`docs/FEATURES_FORMAT.md`](https://github.com/StefanBartl/docmap.nvim/blob/main/docs/FEATURES_FORMAT.md)
+[`docs/FEATURES_FORMAT.md`](https://github.com/WKDSteve/docmap.nvim/blob/main/docs/FEATURES_FORMAT.md)
 (in `docmap.nvim`) for the format this file follows.
 
 ## `:Emojis` — the single entry point
@@ -196,7 +196,7 @@ existing one.
 ## cascade.nvim bridge
 
 `require("emojis").cascade_groups()` returns `config.checkbox.sets` in
-[cascade.nvim](https://github.com/StefanBartl/cascade.nvim)'s
+[cascade.nvim](https://github.com/WKDSteve/cascade.nvim)'s
 `cycle.groups` format, so the same glyph vocabulary drives both plugins
 without listing it twice — cascade's `<C-y>` cycles the glyph the cursor
 is *on* (cursor-precise), `:Emojis toggle`/`<leader>et` cycles whichever
