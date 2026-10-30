@@ -7,6 +7,12 @@
 return function(H)
   local eq, ok = H.eq, H.ok
   local unicode = require("emojis.unicode")
+
+  -- the "*" round-trip below runs on testing.nvim's in-memory provider (the standalone TESTS/run.lua
+  -- brings its own), never on the system clipboard
+  if package.loaded["testing.child.clipboard"] then
+    eq(vim.g.clipboard and vim.g.clipboard.name, "testing-fake-clipboard", "* is testing.nvim's fake clipboard")
+  end
   local data_mod = require("emojis.unicode.data")
 
   require("emojis").setup({})
@@ -108,7 +114,7 @@ return function(H)
 
     -- A register from setreg's own accepted set (letters, digits, and its
     -- fixed punctuation registers) still works. "*" is backed by the
-    -- in-memory provider TESTS/run.lua installs, so it round-trips on every
+    -- in-memory provider of the runner (testing.nvim, or TESTS/run.lua), so it round-trips on every
     -- host without touching the real clipboard.
     for _, reg in ipairs({ "-", "*" }) do
       said = H.notices(function()

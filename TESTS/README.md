@@ -33,7 +33,8 @@ bash scripts/test.sh --json ir.json        # also write the machine-readable res
 
 It prints one line per spec file and exits non-zero on any failure or when a dependency is missing
 (`EMOJIS_TESTS_OK` on a full green run). `TESTS/minimal_init.lua` puts the plugin and its
-dependencies on the runtimepath and redirects the frecency store and the clipboard before any spec runs.
+dependencies on the runtimepath and redirects the frecency store before any spec runs; the in-memory
+clipboard comes from testing.nvim (the standalone `TESTS/run.lua` installs its own).
 
 ## No subprocesses, no network
 
@@ -60,7 +61,7 @@ never mutates the developer's real usage history under `stdpath("data")`.
 | File | Covers |
 | --- | --- |
 | `harness.lua` | Shared assertions (`eq`, `ok`), the assertion counter, `scratch(ft)` buffers, and `notices(fn)` — which captures what `emojis.util.notify` said. |
-| `minimal_init.lua` | Runtimepath and dependency lookup (fatal when one is missing), frecency store and clipboard redirection. |
+| `minimal_init.lua` | Runtimepath and dependency lookup (fatal when one is missing), frecency store redirection (the fake clipboard comes from testing.nvim). |
 | `run.lua` | Former runner; testing.nvim still reads its `specs` list for the run order (the suite is order-dependent). |
 | `patterns_spec.lua` | Tokenizer: base matching, VS16, skin tone, ZWJ chains, flag pairing, `match_at` anchoring, `encode`/`codepoint` round-trips. |
 | `ops_spec.lua` | `clear`/`replace`/`unreplace`/`wrap`/`count`/`list` on string arrays: space-collapse rules, stray VS16, default arguments, unknown `:token:` handling. |

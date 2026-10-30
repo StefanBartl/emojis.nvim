@@ -87,24 +87,8 @@ end
 -- stdpath("data").
 require("emojis.overlay.frecency").set_path(vim.fn.tempname() .. "-emojis-frecency.json")
 
--- unicode_spec saves into the "*" register. On a developer machine that is the real system clipboard
--- (restoring it is not reliable, since providers such as win32yank write asynchronously), while a bare
--- Linux runner has no provider at all and setreg silently stores nothing. An in-memory provider (the
--- pattern from `:h g:clipboard`) makes "*" and "+" behave like plain registers everywhere. Installed
--- before any spec can touch a register, since the provider is resolved on first use.
-do
-  local store = { {}, "v" }
-  local function copy(lines, regtype)
-    store = { lines, regtype }
-  end
-  local function paste()
-    return store
-  end
-  vim.g.clipboard = {
-    name = "InMemoryForTests",
-    copy = { ["+"] = copy, ["*"] = copy },
-    paste = { ["+"] = paste, ["*"] = paste },
-  }
-end
+-- No clipboard provider here: testing.nvim installs an in-memory `+`/`*` (`testing.child.clipboard`)
+-- before this file runs, so unicode_spec's "*" round-trips on a bare CI runner and never touches the
+-- developer's clipboard. The standalone TESTS/run.lua installs its own.
 
 return { root = root, deps = found }
