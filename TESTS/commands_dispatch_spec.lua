@@ -207,7 +207,8 @@ return function(H)
   -- positional argument, taken from the argument's own `desc` or -- for a set of values -- from
   -- `enum_desc`. No route ships an argument without one, the lines keep the float's house style
   -- (one short line, no trailing full stop), and a value text always belongs to a value the
-  -- argument offers. Skipped on a lib.nvim without argument texts.
+  -- argument offers. A lib.nvim without argument texts fails the case by name (NEW-43), it is not
+  -- skipped.
   do
     local composer = require("lib.nvim.bindings.usercmd.composer")
     local ok_entries, entries = pcall(require, "lib.nvim.bindings.usercmd.composer.help.entries")
@@ -219,7 +220,7 @@ return function(H)
         and type(entries.arg_desc) == "function"
       )
     then
-      print("  skip :Emojis option float tests (lib.nvim has no argument texts)")
+      ok(false, "option float: lib.nvim lacks composer.help.undocumented / entries.arg_desc, update lib.nvim")
     else
       local missing = {}
       for _, m in ipairs(composer.help.undocumented("Emojis", { args = true })) do
