@@ -22,10 +22,8 @@ return {
     prompt = "error",
     deprecation = "error",
     process_net = "error",
-    -- Warn only, real findings: the specs leave scratch buffers ([No Name]), buffer-local keymaps,
-    -- highlight groups and some autocmds / user commands behind (plus plugin setup() state);
-    -- isolated = "file" keeps that from reaching the next spec file.
-    state = "warn",
+    -- The suite leaves no state behind, so the guard fails any leak.
+    state = "error",
   },
   -- Nothing to allow: the suite neither writes files outside the temp dir, starts processes nor
   -- opens connections.
